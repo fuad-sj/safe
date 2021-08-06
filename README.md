@@ -1,6 +1,6 @@
-# test_driver_app
+# Safe Customer
 
-Test Driver App
+Safe Customer App
 
 ## Getting Started
 
