@@ -1,0 +1,65 @@
+import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui';
+
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:intl/intl.dart';
+
+class AlphaNumericUtil {
+  static String toTitleCase(String str) {
+    return str;
+  }
+
+  static final _doubleFormatter = [
+    NumberFormat("#,###"),
+    NumberFormat("#,###.#"),
+    NumberFormat("#,###.##"),
+    NumberFormat("#,###.###"),
+    NumberFormat("#,###.####"),
+  ];
+
+  static String formatDouble(double d, int digits) {
+    return _doubleFormatter[min(digits, _doubleFormatter.length)].format(d);
+  }
+
+  static final _dateFormatter = DateFormat('dd/MM/yyyy');
+
+  static String formatDate(DateTime? date) {
+    return date == null ? "" : _dateFormatter.format(date);
+  }
+
+  static double parseDouble(String val) {
+    try {
+      return double.parse(val);
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  static String formatDuration(Duration duration) {
+    return duration.toString().split('.').first.padLeft(8, "0");
+  }
+
+  static String extractFileExtensionFromName(String filename) {
+    int lastIndex = filename.lastIndexOf(".");
+    return filename.substring(lastIndex);
+  }
+
+  static Future<BitmapDescriptor?> getBytesFromAsset(
+      BuildContext context, String path, double sizeRatio) async {
+    double screenWidth = MediaQuery.of(context).size.width;
+    int iconSize = (screenWidth * sizeRatio).toInt();
+    ByteData data = await rootBundle.load(path);
+    Codec codec = await instantiateImageCodec(data.buffer.asUint8List(),
+        targetWidth: iconSize);
+    FrameInfo fi = await codec.getNextFrame();
+    Uint8List? iconData =
+        (await fi.image.toByteData(format: ImageByteFormat.png))
+            ?.buffer
+            .asUint8List();
+    if (iconData == null) return null;
+    return BitmapDescriptor.fromBytes(iconData);
+  }
+}
