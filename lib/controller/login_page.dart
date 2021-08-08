@@ -7,7 +7,7 @@ import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/registration_screen.dart';
 import 'package:safe/controller/verification_page.dart';
-import 'package:safe/main.dart';
+import 'package:package_info/package_info.dart';
 
 class LoginPage extends StatefulWidget {
   static const String idScreen = 'LoginPage';
@@ -25,6 +25,8 @@ class _LoginPageState extends State<LoginPage> {
 
   TextEditingController _phoneController = TextEditingController();
 
+  String? _appVersionNumber;
+
   void _setPhoneControllerText(String newPhone) {
     _phoneController.value = TextEditingValue(
       text: newPhone,
@@ -34,7 +36,6 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
     _phoneController.text = '+251'; // start off with ethiopian phone number
@@ -52,6 +53,14 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       _loginBtnActive = _phoneController.text.length == 13;
+      setState(() {});
+    });
+
+    PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
+      String version = packageInfo.version;
+      String buildNumber = packageInfo.buildNumber;
+
+      _appVersionNumber = '${version}_$buildNumber';
       setState(() {});
     });
   }
@@ -170,7 +179,11 @@ class _LoginPageState extends State<LoginPage> {
                 Padding(
                   padding: const EdgeInsets.only(bottom: 50.0),
                   child: Container(
-                    child: Text('Powered By Mukera Technologies',
+                    child: Text(
+                        'Powered By Mukera Technologies' +
+                            (_appVersionNumber != null
+                                ? ' $_appVersionNumber'
+                                : ''),
                         style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontFamily: 'Open Sans')),
