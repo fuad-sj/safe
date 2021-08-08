@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => PickUpAndDropOffLocations(),
       child: MaterialApp(
-        title: 'Test Taxi Driver',
+        title: 'Safe Rider',
         theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
