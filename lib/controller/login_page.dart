@@ -19,8 +19,42 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  late String _phoneNo;
   late String _verificationId;
+
+  bool _loginBtnActive = false;
+
+  TextEditingController _phoneController = TextEditingController();
+
+  void _setPhoneControllerText(String newPhone) {
+    _phoneController.value = TextEditingValue(
+      text: newPhone,
+      selection: TextSelection.collapsed(offset: newPhone.length),
+    );
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    _phoneController.text = '+251'; // start off with ethiopian phone number
+
+    _phoneController.addListener(() {
+      String phone = _phoneController.text;
+
+      // reset to +251 if non ethiopian phone is used
+      if (!phone.startsWith('+251')) {
+        _setPhoneControllerText('+251');
+      } else if (phone.length >= 5 && !phone.startsWith('+2519')) {
+        _setPhoneControllerText('+251');
+      } else if (phone.length > 13) {
+        _setPhoneControllerText(phone.substring(0, 13));
+      }
+
+      _loginBtnActive = _phoneController.text.length == 13;
+      setState(() {});
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +103,7 @@ class _LoginPageState extends State<LoginPage> {
                             EdgeInsets.only(top: 10.0, left: 30.0, right: 30.0),
                         child: TextField(
                           keyboardType: TextInputType.phone,
+                          controller: _phoneController,
                           decoration: InputDecoration(
                               border: OutlineInputBorder(
                                 borderSide: const BorderSide(
@@ -81,10 +116,6 @@ class _LoginPageState extends State<LoginPage> {
                               hintText: '+251912345678',
                               hintStyle: TextStyle(color: Colors.grey),
                               fillColor: Colors.white),
-                          onChanged: (phoneVal) {
-                            _phoneNo = phoneVal;
-                            setState(() {});
-                          },
                         ),
                       ),
                     ],
@@ -114,11 +145,15 @@ class _LoginPageState extends State<LoginPage> {
                     width: MediaQuery.of(context).size.width * 0.5,
                     child: ElevatedButton(
                         onPressed: () {
-                          verifyPhone(context);
+                          if (_loginBtnActive) {
+                            verifyPhone(context);
+                          }
                         },
                         style: ButtonStyle(
-                            backgroundColor:
-                                MaterialStateProperty.all(Color(0xffE63830)),
+                            backgroundColor: MaterialStateProperty.all(
+                                _loginBtnActive
+                                    ? Colors.orange.shade800
+                                    : Colors.grey.shade700),
                             shape: MaterialStateProperty.all<
                                 RoundedRectangleBorder>(RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15.0),
@@ -192,7 +227,7 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: _phoneNo,
+        phoneNumber: _phoneController.text,
         verificationCompleted: verificationCompleted,
         verificationFailed: (FirebaseAuthException e) {
           // pop off the progress dialog and show a toast message instead
