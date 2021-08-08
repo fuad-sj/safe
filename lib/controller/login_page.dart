@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:safe/auth_service.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
+import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/registration_screen.dart';
 import 'package:safe/controller/verification_page.dart';
@@ -158,11 +159,6 @@ class _LoginPageState extends State<LoginPage> {
           authCredential);
     };
 
-    PhoneVerificationFailed verificationFailed =
-        (FirebaseAuthException authException) {
-      print('${authException.message}');
-    };
-
     PhoneCodeSent smsSent = (verificationID, int? forceResend) {
       _verificationId = verificationID;
       if (mounted) {
@@ -198,7 +194,11 @@ class _LoginPageState extends State<LoginPage> {
     await FirebaseAuth.instance.verifyPhoneNumber(
         phoneNumber: _phoneNo,
         verificationCompleted: verificationCompleted,
-        verificationFailed: verificationFailed,
+        verificationFailed: (FirebaseAuthException e) {
+          // pop off the progress dialog and show a toast message instead
+          Navigator.pop(context);
+          displayToastMessage(e.message ?? 'Error logging in', context);
+        },
         codeSent: smsSent,
         codeAutoRetrievalTimeout: autoRetrievalTimeout);
   }

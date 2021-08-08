@@ -6,18 +6,24 @@ import 'package:safe/models/customer.dart';
 import 'package:safe/utils/pref_util.dart';
 
 class AuthService {
-  static Future<bool> signInWithLoginCredential(
+  static Future<String?> signInWithLoginCredential(
     BuildContext context,
     String loggedInPath,
     String signupPath,
     AuthCredential authCredential,
   ) async {
-    UserCredential credential =
-        await FirebaseAuth.instance.signInWithCredential(authCredential);
+    UserCredential credential;
+
+    try {
+      credential =
+          await FirebaseAuth.instance.signInWithCredential(authCredential);
+    } on FirebaseAuthException catch (e) {
+      return e.message ?? 'Error Verifying Phone Number';
+    }
 
     final User? firebaseUser = credential.user;
     if (firebaseUser == null) {
-      return false;
+      return "No User Found";
     }
 
     await PrefUtil.setLoginStatus(PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW);
@@ -34,10 +40,10 @@ class AuthService {
         customer.documentExists() ? loggedInPath : signupPath,
         (route) => false);
 
-    return true;
+    return null;
   }
 
-  static Future<bool> signInWithSMSVerificationCode(
+  static Future<String?> signInWithSMSVerificationCode(
     BuildContext context,
     String loggedInPath,
     String signupPath,

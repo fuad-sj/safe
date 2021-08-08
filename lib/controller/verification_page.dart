@@ -4,6 +4,7 @@ import 'package:otp_text_field/otp_text_field.dart';
 import 'package:otp_text_field/style.dart';
 import 'package:safe/auth_service.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
+import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/registration_screen.dart';
 
@@ -104,7 +105,7 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                             message: 'Verifying SMS, Please Wait...'),
                       );
 
-                      bool result =
+                      String? errMessage =
                           await AuthService.signInWithSMSVerificationCode(
                               context,
                               MainScreenCustomer.idScreen,
@@ -112,8 +113,10 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                               _smsCode,
                               widget.verificationId);
 
-                      if (!result) {
+                      if (errMessage != null) {
                         Navigator.pop(context);
+
+                        displayToastMessage(errMessage, context);
                       }
                     }),
               )
