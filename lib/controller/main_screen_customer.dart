@@ -22,7 +22,6 @@ import 'package:safe/controller/login_page.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
-import 'package:safe/controller/search_screen.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
