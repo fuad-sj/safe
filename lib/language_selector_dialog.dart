@@ -5,10 +5,10 @@ import 'package:safe/utils/pref_util.dart';
 
 class LanguageSelectorDialog extends StatelessWidget {
   static const List<_LanguageOption> LANGUAGE_OPTIONS = [
+    _LanguageOption(languageName: 'አማርኛ', localeCode: 'am'),
     _LanguageOption(languageName: 'Afaan Oromoo', localeCode: 'en'),
     _LanguageOption(languageName: 'English', localeCode: 'en'),
     _LanguageOption(languageName: '中文', localeCode: 'zh'),
-    _LanguageOption(languageName: 'አማርኛ', localeCode: 'am'),
   ];
 
   const LanguageSelectorDialog({Key? key}) : super(key: key);
@@ -27,7 +27,7 @@ class LanguageSelectorDialog extends StatelessWidget {
         children: [
           // Header
           Container(
-            color: Colors.red.shade600,
+            color: Colors.red.shade400,
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
@@ -60,6 +60,7 @@ class LanguageSelectorDialog extends StatelessWidget {
                     child: Text(
                       option.languageName,
                       style: TextStyle(
+                        color: Colors.grey.shade800,
                         fontSize: PrefUtil.getUserLanguageLocale() ==
                                 option.localeCode
                             ? 20.0
