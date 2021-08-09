@@ -302,21 +302,18 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   void navOptionSelected(MenuOption option) {
     switch (option) {
       case MenuOption.MENU_OPTION_MY_TRIPS:
-        {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => CustomerOrderHistory()),
-          );
-          break;
-        }
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CustomerOrderHistory()),
+        );
+        break;
 
       case MenuOption.MENU_OPTION_LANGUAGES:
-        {
-          showDialog(
-            context: context,
-            builder: (_) => LanguageSelectorDialog(),
-          );
-        }
+        showDialog(
+          context: context,
+          builder: (_) => LanguageSelectorDialog(),
+        );
+        break;
     }
   }
 
