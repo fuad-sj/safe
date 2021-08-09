@@ -7,6 +7,7 @@ import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class CustomerOrderHistory extends StatefulWidget {
   const CustomerOrderHistory({Key? key}) : super(key: key);
@@ -67,7 +68,7 @@ class _CustomerOrderHistoryState extends State<CustomerOrderHistory> {
           backgroundColor: Color(0xfe7a110a),
           elevation: 0.0,
           leading: new BackButton(color: Colors.black),
-          title: Text('Order History'),
+          title: Text(SafeLocalizations.of(context)!.order_history_title),
           actions: <Widget>[]),
       body: ListView.builder(
         itemCount: _requests.length,
@@ -95,7 +96,7 @@ class _RideRequestListItem extends StatelessWidget {
 
   const _RideRequestListItem({required this.request});
 
-  _RequestStatusResources getResourceForOrderStatus(int requestStatus) {
+  _RequestStatusResources getResourceForOrderStatus(BuildContext context, int requestStatus) {
     Color bkgndColor, txtColor;
     String status;
 
@@ -103,27 +104,32 @@ class _RideRequestListItem extends StatelessWidget {
       case RideRequest.STATUS_PLACED:
         bkgndColor = Colors.teal.shade700;
         txtColor = Colors.grey.shade100;
-        status = 'Request Created';
+        status =
+            SafeLocalizations.of(context)!.order_history_order_status_placed;
         break;
       case RideRequest.STATUS_DRIVER_CONFIRMED:
         bkgndColor = Colors.teal.shade200;
         txtColor = Colors.grey.shade800;
-        status = 'Driver Confirmed';
+        status =
+            SafeLocalizations.of(context)!.order_history_order_status_confirmed;
         break;
       case RideRequest.STATUS_TRIP_STARTED:
         bkgndColor = Colors.teal.shade300;
         txtColor = Colors.grey.shade700;
-        status = 'Trip Started';
+        status =
+            SafeLocalizations.of(context)!.order_history_order_status_started;
         break;
       case RideRequest.STATUS_TRIP_COMPLETED:
         bkgndColor = Colors.teal.shade400;
         txtColor = Colors.grey.shade700;
-        status = 'Trip Completed';
+        status =
+            SafeLocalizations.of(context)!.order_history_order_status_completed;
         break;
       default:
         bkgndColor = Colors.teal.shade100;
         txtColor = Colors.grey.shade900;
-        status = 'Request Cancelled';
+        status =
+            SafeLocalizations.of(context)!.order_history_order_status_cancelled;
         break;
     }
 
@@ -136,7 +142,7 @@ class _RideRequestListItem extends StatelessWidget {
     FontWeight _bold = FontWeight.bold;
 
     _RequestStatusResources orderResource =
-        getResourceForOrderStatus(request.ride_status);
+        getResourceForOrderStatus(context, request.ride_status);
 
     return Card(
       elevation: 5,
@@ -170,7 +176,8 @@ class _RideRequestListItem extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Date:', style: TextStyle(fontWeight: _bold)),
+                    Text(SafeLocalizations.of(context)!.order_history_date,
+                        style: TextStyle(fontWeight: _bold)),
                     SizedBox(
                       width: 5.0,
                     ),

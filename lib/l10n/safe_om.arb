@@ -1,0 +1,80 @@
+{
+  "@@locale": "om",
+
+  "nav_option_my_trips": "My Orders",
+  "nav_option_payment": "Payment",
+  "nav_option_settings": "Fiilenoo",
+  "nav_option_languages": "Languages",
+  "nav_option_contact_us": "Contact Us",
+  "nav_option_emergency": "Emergency",
+  "nav_option_sign_out": "Sign Out",
+
+  "nav_header_edit_profile": "Edit Profile",
+
+  "progress_dialog_please_wait": "Please Wait...",
+
+  "customer_marker_info_pickup": "Pickup Location",
+  "customer_marker_info_dropoff": "DropOff Location",
+
+  "dialog_trip_summary_total": "Total",
+  "dialog_trip_summary_birr": "Birr",
+  "dialog_trip_summary_base_fare": "Base Fare",
+  "dialog_trip_summary_distance_travelled": "Distance Travelled",
+  "dialog_trip_summary_ride_time": "Ride Time",
+  "dialog_trip_summary_total_trip_fare": "Total Trip Fare",
+  "dialog_trip_summary_trip_completed": "Trip Completed",
+  "dialog_trip_summary_done": "DONE",
+
+  "dialog_cancel_ride_cancel_cancelling_request": "Cancelling Request, Please Wait...",
+  "dialog_cancel_ride_cancel_reason_waited_too_long": "Waited too long",
+  "dialog_cancel_ride_cancel_reason_driver_too_far": "Driver too far away",
+  "dialog_cancel_ride_cancel_reason_changed_my_mind": "Changed my mind",
+  "dialog_cancel_ride_title": "Cancelling Request?",
+  "dialog_cancel_ride_dismiss": "Dismiss",
+
+  "bottom_sheet_confirm_ride_details_car": "car",
+  "bottom_sheet_confirm_ride_details_etb": "ETB",
+  "bottom_sheet_confirm_ride_details_cash": "Cash",
+  "bottom_sheet_confirm_ride_details_confirm_request": "Confirm Request",
+
+  "bottom_sheet_destination_picker_pickup_location": "Pickup Location",
+  "bottom_sheet_destination_picker_destination_location": "Where to?",
+  "bottom_sheet_destination_picker_pin_your_location": "Pin your location on the map",
+  "bottom_sheet_destination_picker_progress_dialog_waiting": "Setting Dropoff, Please wait...",
+
+  "bottom_sheet_driver_picked_cancel_ride": "Cancel Ride",
+
+  "bottom_sheet_searching_for_driver_progress": "Requesting Ride, Please Wait...",
+
+  "bottom_sheet_select_drop_off_select_dropoff": "Select Dropoff Location",
+  "bottom_sheet_select_drop_off_change": "Change",
+  "bottom_sheet_select_drop_off_select_pickup": "Set Pickup Location",
+
+  "bottom_sheet_trip_details_distance_covered": "Distance Covered",
+  "bottom_sheet_trip_details_ride_time": "Ride Time",
+
+  "bottom_sheet_where_to_where_to": "Where To?",
+  "bottom_sheet_where_to_current_location": "Current Location",
+  "bottom_sheet_where_to_enter_destination": "Enter Destination",
+
+  "order_history_title": "Order History",
+  "order_history_order_status_placed": "Request Created",
+  "order_history_order_status_confirmed": "Driver Confirmed",
+  "order_history_order_status_started": "Trip Started",
+  "order_history_order_status_completed": "Trip Completed",
+  "order_history_order_status_cancelled": "Request Cancelled",
+  "order_history_date": "Date: ",
+
+  "login_phone_number": "Phone Number",
+  "login_log_in": "Log In",
+  "login_powered_by": "Powered By Mukera Technologies",
+  "login_logging_in": "Logging In, Please Wait...",
+  "login_error_logging_in": "Error logging in",
+
+  "registration_customer_name": "Customer Name",
+  "registration_customer_name_hint": "Name",
+  "registration_register_customer": "Register Customer",
+  "registration_registration_progress": "Registering, Please Wait...",
+  "registration_registration_congratulations": "Congratulations, your account has been created",
+  "registration_registration_new_customer_has_been_created": "New User account hasn\\'t been created"
+}

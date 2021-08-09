@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
-import 'package:safe/pickup_and_dropoff_locations.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class SearchingForDriverBottomSheet extends BaseBottomSheet {
   static const String KEY = 'SearchingForDriverBottomSheet';
@@ -48,7 +47,8 @@ class _SearchingForDriverBottomSheetState
           SizedBox(height: 12.0),
           SizedBox(
               width: double.infinity,
-              child: Text('Requesting Ride, Please Wait...',
+              child: Text(SafeLocalizations.of(context)!
+                  .bottom_sheet_searching_for_driver_progress,
                   style:
                       TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold))),
           SizedBox(height: 22.0),

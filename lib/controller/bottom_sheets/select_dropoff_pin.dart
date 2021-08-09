@@ -9,6 +9,7 @@ import 'package:safe/models/google_place_description.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/google_api_util.dart';
 import 'package:safe/utils/map_style.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class SelectDropOffPinBottomSheet extends BaseBottomSheet {
   static const double TOP_CORNER_BORDER_RADIUS = 22.0;
@@ -223,7 +224,9 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
         children: [
           SizedBox(height: 6.0),
           //
-          Text('Select Dropoff Location',
+          Text(
+              SafeLocalizations.of(context)!
+                  .bottom_sheet_select_drop_off_select_dropoff,
               style: TextStyle(
                 fontSize: 18.0,
                 fontWeight: FontWeight.bold,
@@ -250,7 +253,8 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
                   widget.onBackSelected();
                 },
                 child: Text(
-                  'Change',
+                  SafeLocalizations.of(context)!
+                      .bottom_sheet_select_drop_off_change,
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 14,
@@ -285,7 +289,8 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
               width: double.infinity,
               child: Center(
                 child: Text(
-                  'Set Pickup Location',
+                  SafeLocalizations.of(context)!
+                      .bottom_sheet_select_drop_off_select_pickup,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,

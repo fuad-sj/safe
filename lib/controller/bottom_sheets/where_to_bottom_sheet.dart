@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class WhereToBottomSheet extends BaseBottomSheet {
   static const String KEY = 'WhereToBottomSheet';
@@ -47,7 +48,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
           SizedBox(height: 6.0),
 
           //
-          Text('Where to?',
+          Text(SafeLocalizations.of(context)!.bottom_sheet_where_to_where_to,
               style: TextStyle(
                 fontSize: 22.0,
                 fontWeight: FontWeight.bold,
@@ -58,7 +59,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
           Text(Provider.of<PickUpAndDropOffLocations>(context)
                   .pickUpLocation
                   ?.placeName ??
-              "Current Location"),
+              SafeLocalizations.of(context)!.bottom_sheet_where_to_current_location),
           SizedBox(height: 25.0),
           TextButton(
             style: TextButton.styleFrom(
@@ -73,7 +74,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               widget.onActionCallback();
             },
             child: Text(
-              "Enter Destination",
+              SafeLocalizations.of(context)!.bottom_sheet_where_to_enter_destination,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,

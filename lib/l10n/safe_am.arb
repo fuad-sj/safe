@@ -1,0 +1,80 @@
+{
+  "@@locale": "am",
+
+  "nav_option_my_trips": "ትእዛዞች",
+  "nav_option_payment": "ክፍያ",
+  "nav_option_settings": "ምርጫዎች",
+  "nav_option_languages": "ቋንቋ",
+  "nav_option_contact_us": "ለበለጠ መረጃ",
+  "nav_option_emergency": "ለድንገተኛ",
+  "nav_option_sign_out": "መውጫ",
+
+  "nav_header_edit_profile": "መረጃ ለመቀየር",
+
+  "progress_dialog_please_wait": "እባክዎትን ይቆዩን",
+
+  "customer_marker_info_pickup": "መነሻ",
+  "customer_marker_info_dropoff": "መድረሻ",
+
+  "dialog_trip_summary_total": "ድምር",
+  "dialog_trip_summary_birr": "ብር",
+  "dialog_trip_summary_base_fare": "መነሻ ዎጋ",
+  "dialog_trip_summary_distance_travelled": "የተጛዙት ርቀት",
+  "dialog_trip_summary_ride_time": "የተጛዙበት ሰአት",
+  "dialog_trip_summary_total_trip_fare": "አጠቃላይ ጉዞ ዎጋ",
+  "dialog_trip_summary_trip_completed": "ጉዞው ተጠናቅዋል",
+  "dialog_trip_summary_done": "ተሳክትዋል",
+
+  "dialog_cancel_ride_cancel_cancelling_request": "ትራዋ ተቕርጥዋል , እባክዎን ይጠብቁን",
+  "dialog_cancel_ride_cancel_reason_waited_too_long": "ብዙ ቆየሁ",
+  "dialog_cancel_ride_cancel_reason_driver_too_far": "አሽከርካሪው እሩቅ ነው",
+  "dialog_cancel_ride_cancel_reason_changed_my_mind": "ሀሳቤን ቀይርያለው",
+  "dialog_cancel_ride_title": "ጥሪውን ለመሰረዝ",
+  "dialog_cancel_ride_dismiss": "ለመሰረዝ",
+
+  "bottom_sheet_confirm_ride_details_car": "መኪና",
+  "bottom_sheet_confirm_ride_details_etb": "ብር",
+  "bottom_sheet_confirm_ride_details_cash": "ገንዘብ",
+  "bottom_sheet_confirm_ride_details_confirm_request": "ጥሪውን ማረጋገጥ",
+
+  "bottom_sheet_destination_picker_pickup_location": "መነሻ ቦት",
+  "bottom_sheet_destination_picker_destination_location": "መድረሻ",
+  "bottom_sheet_destination_picker_pin_your_location": "መነሻዋትን ከmap ይውሰዱ",
+  "bottom_sheet_destination_picker_progress_dialog_waiting": "መነሻዋትን እየተሞላ ነው እባክዎት ይቆዪን",
+
+  "bottom_sheet_driver_picked_cancel_ride": "ጉዞውን ይሰርዙ",
+
+  "bottom_sheet_searching_for_driver_progress": "እባክዎት ይቆዪን",
+
+  "bottom_sheet_select_drop_off_select_dropoff": "መድረሻ ቦታ ይምረጡ",
+  "bottom_sheet_select_drop_off_change": "ለመቀየር",
+  "bottom_sheet_select_drop_off_select_pickup": "መነሻ ቦት ያስገቡ",
+
+  "bottom_sheet_trip_details_distance_covered": "የተጛዙት ርቀት",
+  "bottom_sheet_trip_details_ride_time": "የተጛዙበት ሰአት",
+
+  "bottom_sheet_where_to_where_to": "ወዴት መሄት ይፈልጋሉ",
+  "bottom_sheet_where_to_current_location": "መነሻ ቦታ",
+  "bottom_sheet_where_to_enter_destination": "መድረሻ ያስገቡ",
+
+  "order_history_title": "የበፊት ትዛዝ",
+  "order_history_order_status_placed": "ጥሪው ለማቅረብ",
+  "order_history_order_status_confirmed": "አሽከርካሪው እየመጣ ነው",
+  "order_history_order_status_started": "ጉዞው ተጀምርዎል",
+  "order_history_order_status_completed": "ጉዞው ተጠናቅዋል",
+  "order_history_order_status_cancelled": "ጥሪውን ለማቅዎረጥ",
+  "order_history_date": "ቀን",
+
+  "login_phone_number": "ስልክ ቁጥር",
+  "login_log_in": "ይግቡ",
+  "login_powered_by": "በሙከራ ቴክኖሎጅ የተሰራ",
+  "login_logging_in": "በመግባት ላይ : እባክዎት ይቆዪን",
+  "login_error_logging_in": "ያተሳሳተ ሙከራ",
+
+  "registration_customer_name": "የደንበኛው ስም",
+  "registration_customer_name_hint": "ስም",
+  "registration_register_customer": "ደንበኛ መመዝገብ",
+  "registration_registration_progress": "አዲስ አካውንት በመክፈት ላይነው እባክዎት ይቆዪን",
+  "registration_registration_congratulations": "አዲስ አካውንት በተሳካ ሁኔታ ተከፍትዎል",
+  "registration_registration_new_customer_has_been_created": "አዲስ አካውንቱ ውድቅ ሆንዎል"
+}

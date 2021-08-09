@@ -8,6 +8,7 @@ import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/registration_screen.dart';
 import 'package:safe/controller/verification_page.dart';
 import 'package:package_info/package_info.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class LoginPage extends StatefulWidget {
   static const String idScreen = 'LoginPage';
@@ -120,7 +121,8 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                   vertical: 10.0, horizontal: 10.0),
-                              labelText: 'Phone Number',
+                              labelText: SafeLocalizations.of(context)!
+                                  .login_phone_number,
                               labelStyle: TextStyle(color: Colors.white),
                               hintText: '+251912345678',
                               hintStyle: TextStyle(color: Colors.grey),
@@ -168,7 +170,7 @@ class _LoginPageState extends State<LoginPage> {
                               borderRadius: BorderRadius.circular(15.0),
                             ))),
                         child: Text(
-                          "Log In",
+                          SafeLocalizations.of(context)!.login_log_in,
                           style: TextStyle(
                               color: Color(0xfffefefe),
                               fontWeight: FontWeight.bold,
@@ -180,7 +182,7 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.only(bottom: 50.0),
                   child: Container(
                     child: Text(
-                        'Powered By Mukera Technologies' +
+                        SafeLocalizations.of(context)!.login_powered_by +
                             (_appVersionNumber != null
                                 ? ' $_appVersionNumber'
                                 : ''),
@@ -235,8 +237,8 @@ class _LoginPageState extends State<LoginPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) =>
-          CustomProgressDialog(message: 'Logging In, Please Wait...'),
+      builder: (context) => CustomProgressDialog(
+          message: SafeLocalizations.of(context)!.login_logging_in),
     );
 
     await FirebaseAuth.instance.verifyPhoneNumber(
@@ -245,7 +247,10 @@ class _LoginPageState extends State<LoginPage> {
         verificationFailed: (FirebaseAuthException e) {
           // pop off the progress dialog and show a toast message instead
           Navigator.pop(context);
-          displayToastMessage(e.message ?? 'Error logging in', context);
+          displayToastMessage(
+              e.message ??
+                  SafeLocalizations.of(context)!.login_error_logging_in,
+              context);
         },
         codeSent: smsSent,
         codeAutoRetrievalTimeout: autoRetrievalTimeout);

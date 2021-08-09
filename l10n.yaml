@@ -1,0 +1,7 @@
+arb-dir: lib/l10n
+template-arb-file: safe_en.arb
+output-localization-file: safe_localizations.dart
+output-class: SafeLocalizations
+preferred-supported-locales:
+  - en
+use-deferred-loading: true

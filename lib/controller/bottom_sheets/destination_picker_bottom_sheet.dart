@@ -7,6 +7,7 @@ import 'package:safe/models/address.dart';
 import 'package:safe/models/google_place_description.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/google_api_util.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class DestinationPickerBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DestinationPickerBottomSheet';
@@ -88,7 +89,8 @@ class _DestinationPickerBottomSheetState
                         child: TextField(
                           controller: _pickupTextController,
                           decoration: InputDecoration(
-                            hintText: 'Pickup Location',
+                            hintText: SafeLocalizations.of(context)!
+                                .bottom_sheet_destination_picker_pickup_location,
                             fillColor: Colors.grey.shade100,
                             filled: true,
                             border: InputBorder.none,
@@ -136,7 +138,8 @@ class _DestinationPickerBottomSheetState
                           setState(() {});
                         },
                         decoration: InputDecoration(
-                          hintText: 'Where to?',
+                          hintText: SafeLocalizations.of(context)!
+                              .bottom_sheet_destination_picker_destination_location,
                           fillColor: Colors.grey.shade100,
                           filled: true,
                           border: InputBorder.none,
@@ -173,7 +176,8 @@ class _DestinationPickerBottomSheetState
                     Icon(Icons.location_on, size: 20.0),
                     SizedBox(width: 18.0),
                     Text(
-                      'Pin your location on the map',
+                      SafeLocalizations.of(context)!
+                          .bottom_sheet_destination_picker_pin_your_location,
                       style: TextStyle(
                         fontSize: 16.0,
                         color: Colors.grey.shade800,
@@ -200,7 +204,8 @@ class _DestinationPickerBottomSheetState
                     showDialog(
                         context: context,
                         builder: (_) => CustomProgressDialog(
-                            message: 'Setting Dropoff, Please wait...'));
+                            message: SafeLocalizations.of(context)!
+                                .bottom_sheet_destination_picker_progress_dialog_waiting));
 
                     Address? address =
                         await GoogleApiUtils.getPlaceAddressDetails(

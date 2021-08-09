@@ -9,6 +9,7 @@ import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
 import 'package:safe/utils/pref_util.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class RegistrationScreen extends StatefulWidget {
   static const String idScreen = "register";
@@ -47,7 +48,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                 ],
               ),
-              height: MediaQuery.of(context).size.height * 0.55,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.55,
               width: double.infinity,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -63,7 +67,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   Container(
                     width: double.infinity,
                     padding:
-                        EdgeInsets.only(top: 10.0, left: 30.0, right: 30.0),
+                    EdgeInsets.only(top: 10.0, left: 30.0, right: 30.0),
                     child: TextField(
                       keyboardType: TextInputType.text,
                       decoration: InputDecoration(
@@ -73,9 +77,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ),
                           contentPadding: const EdgeInsets.symmetric(
                               vertical: 10.0, horizontal: 10.0),
-                          labelText: 'Customer Name',
+                          labelText: SafeLocalizations.of(context)!.registration_customer_name,
                           labelStyle: TextStyle(color: Colors.white),
-                          hintText: 'Name',
+                          hintText: SafeLocalizations.of(context)!.
+                          registration_customer_name_hint,
                           hintStyle: TextStyle(color: Colors.grey),
                           fillColor: Colors.white),
                       onChanged: (val) {
@@ -101,24 +106,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                 ],
               ),
-              width: MediaQuery.of(context).size.width * 0.5,
+              width: MediaQuery
+                  .of(context)
+                  .size
+                  .width * 0.5,
               child: ElevatedButton(
                   onPressed: () {
                     // don't accept values when either of the values are empty
-                    if (_customerName.trim().isEmpty) {
+                    if (_customerName
+                        .trim()
+                        .isEmpty) {
                       return;
                     }
                     registerNewUser(context);
                   },
                   style: ButtonStyle(
                       backgroundColor:
-                          MaterialStateProperty.all(Color(0xffE63830)),
+                      MaterialStateProperty.all(Color(0xffE63830)),
                       shape: MaterialStateProperty.all<RoundedRectangleBorder>(
                           RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ))),
+                            borderRadius: BorderRadius.circular(15.0),
+                          ))),
                   child: Text(
-                    "Register Customer",
+                    SafeLocalizations.of(context)!.
+                    registration_register_customer,
                     style: TextStyle(
                         color: Color(0xfffefefe),
                         fontWeight: FontWeight.bold,
@@ -137,8 +148,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         context: context,
         barrierDismissible: false,
         builder: (context) =>
-            CustomProgressDialog(message: 'Registering, Please Wait...'),
+            CustomProgressDialog(message: SafeLocalizations.of(context)!.
+                registration_registration_progress),
       );
+
 
       final User? firebaseUser = FirebaseAuth.instance.currentUser;
 
@@ -158,7 +171,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         await PrefUtil.setLoginStatus(PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW);
 
         displayToastMessage(
-            'Congratulations, your account has been created', context);
+            SafeLocalizations.of(context)!.
+            registration_registration_congratulations, context);
 
         Navigator.pushNamedAndRemoveUntil(
             context, MainScreenCustomer.idScreen, (route) => false);
@@ -166,7 +180,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         // this dismisses the progress dialog
         Navigator.pop(context);
 
-        displayToastMessage('New User account hasn\'t been created', context);
+        displayToastMessage(SafeLocalizations.of(context)!.
+            registration_registration_new_customer_has_been_created, context);
       }
     } catch (err) {
       // this dismisses the progress dialog

@@ -5,6 +5,7 @@ import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/ride_request.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class RideCancellationDialog extends StatefulWidget {
   static final String DIALOG_RESULT_YES_PRESSED = 'dialog_result_yes_pressed';
@@ -20,18 +21,12 @@ class RideCancellationDialog extends StatefulWidget {
 }
 
 class _RideCancellationDialogState extends State<RideCancellationDialog> {
-  final List<_CancellationReason> _reasonsList = [
-    _CancellationReason(reasonCode: 1, reasonDescription: 'Waited too long'),
-    _CancellationReason(
-        reasonCode: 2, reasonDescription: 'Driver too far away'),
-    _CancellationReason(reasonCode: 2, reasonDescription: 'Changed my mind'),
-  ];
-
-  void setCancellationReason(BuildContext context, int reasonIndex) async {
+  void setCancellationReason(BuildContext context, _CancellationReason reason) async {
     showDialog(
         context: context,
         builder: (_) => CustomProgressDialog(
-            message: 'Cancelling Request, Please Wait...'));
+            message: SafeLocalizations.of(context)!
+                .dialog_cancel_ride_cancel_cancelling_request));
 
     Map<String, dynamic> updateFields = new Map();
 
@@ -41,9 +36,9 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
     updateFields[RideRequest.FIELD_CANCEL_SOURCE_TRIGGER_SOURCE_ID] =
         FirebaseAuth.instance.currentUser!.uid;
     updateFields[RideRequest.FIELD_CANCEL_CODE] =
-        _reasonsList[reasonIndex].reasonCode;
+        reason.reasonCode;
     updateFields[RideRequest.FIELD_CANCEL_REASON] =
-        _reasonsList[reasonIndex].reasonDescription;
+        reason.reasonDescription;
 
     await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_RIDES)
@@ -66,6 +61,21 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
 
     double HORIZONTAL_PADDING = 15.0;
 
+    List<_CancellationReason> _reasonsList = [
+      _CancellationReason(
+          reasonCode: 1,
+          reasonDescription: SafeLocalizations.of(context)!
+              .dialog_cancel_ride_cancel_reason_waited_too_long),
+      _CancellationReason(
+          reasonCode: 2,
+          reasonDescription: SafeLocalizations.of(context)!
+              .dialog_cancel_ride_cancel_reason_driver_too_far),
+      _CancellationReason(
+          reasonCode: 2,
+          reasonDescription: SafeLocalizations.of(context)!
+              .dialog_cancel_ride_cancel_reason_changed_my_mind),
+    ];
+
     return Dialog(
       elevation: 2.0,
       insetPadding: EdgeInsets.symmetric(horizontal: edgePadding),
@@ -79,7 +89,7 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
-                'Cancelling Request?',
+                SafeLocalizations.of(context)!.dialog_cancel_ride_title,
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -99,7 +109,7 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
                 return GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () {
-                    setCancellationReason(context, index);
+                    setCancellationReason(context, _reasonsList[index]);
                   },
                   child: Container(
                     padding: EdgeInsets.symmetric(vertical: 25.0),
@@ -132,7 +142,7 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
                 width: double.infinity,
                 child: Center(
                   child: Text(
-                    'Dismiss',
+                    SafeLocalizations.of(context)!.dialog_cancel_ride_dismiss,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 22,

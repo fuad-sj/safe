@@ -5,6 +5,7 @@ import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/models/route_details.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class ConfirmRideDetailsBottomSheet extends BaseBottomSheet {
   static const String KEY = 'ConfirmRideDetailsBottomSheet';
@@ -47,6 +48,7 @@ class _ConfirmRideDetailsBottomSheetState
     implements BottomSheetWidgetBuilder {
   @override
   Widget buildContent(BuildContext context) {
+
     return Container(
       padding: EdgeInsets.symmetric(vertical: 17.0, horizontal: 16.0),
       child: Column(
@@ -63,7 +65,8 @@ class _ConfirmRideDetailsBottomSheetState
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Car',
+                    Text(SafeLocalizations.of(context)!
+                        .bottom_sheet_confirm_ride_details_car,
                         style: TextStyle(
                             fontSize: 18.0, fontFamily: 'Brand-Bold')),
                     Text(widget.routeDetails!.distanceText,
@@ -74,8 +77,9 @@ class _ConfirmRideDetailsBottomSheetState
                 Text(
                   '~ ' +
                       AlphaNumericUtil.formatDouble(
-                          widget.routeDetails!.estimatedFarePrice, 0) +
-                      ' ETB',
+                          widget.routeDetails!.estimatedFarePrice, 0) + ' ' +
+                      SafeLocalizations.of(context)!
+                          .bottom_sheet_confirm_ride_details_etb,
                   style: TextStyle(
                     fontFamily: 'Brand-Bold',
                     fontWeight: FontWeight.bold,
@@ -92,7 +96,8 @@ class _ConfirmRideDetailsBottomSheetState
               Icon(FontAwesomeIcons.moneyBill,
                   size: 18.0, color: Colors.black54),
               SizedBox(width: 16.0),
-              Text('Cash'),
+              Text(SafeLocalizations.of(context)!
+                  .bottom_sheet_confirm_ride_details_cash),
             ],
           ),
 
@@ -112,7 +117,8 @@ class _ConfirmRideDetailsBottomSheetState
               width: double.infinity,
               child: Center(
                 child: Text(
-                  'Confirm Request',
+                  SafeLocalizations.of(context)!
+                      .bottom_sheet_confirm_ride_details_confirm_request,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,

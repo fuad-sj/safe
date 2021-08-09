@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class TripCompletionDialog extends StatefulWidget {
   static final String DIALOG_RESULT_OKAY_PRESSED = "dialog_result_okay_pressed";
@@ -15,14 +16,17 @@ class TripCompletionDialog extends StatefulWidget {
 }
 
 class _TripCompletionDialogState extends State<TripCompletionDialog> {
-  Widget _getTripSummaryWidget() {
+  Widget _getTripSummaryWidget(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: 10.0),
 
         // Total fare price
-        Center(child: Text('Total', style: TextStyle(fontSize: 18.0))),
+        Center(
+            child: Text(
+                SafeLocalizations.of(context)!.dialog_trip_summary_total,
+                style: TextStyle(fontSize: 18.0))),
         SizedBox(height: 10.0),
         Center(
           child: Row(
@@ -36,7 +40,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
               ),
               SizedBox(width: 5.0),
               Text(
-                'Birr',
+                SafeLocalizations.of(context)!.dialog_trip_summary_birr,
                 style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
               ),
             ],
@@ -81,7 +85,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Base Fare',
+              SafeLocalizations.of(context)!.dialog_trip_summary_base_fare,
               style: TextStyle(fontSize: 12.0),
             ),
             Expanded(child: Container()),
@@ -102,7 +106,8 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             Icon(Icons.location_on, color: Colors.orangeAccent),
             SizedBox(width: 5.0),
             Text(
-              'Distance Travelled',
+              SafeLocalizations.of(context)!
+                  .dialog_trip_summary_distance_travelled,
               style: TextStyle(fontSize: 12.0),
             ),
             Expanded(child: Container()),
@@ -123,7 +128,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             Icon(Icons.timer, color: Colors.orangeAccent),
             SizedBox(width: 5.0),
             Text(
-              'Ride Time',
+              SafeLocalizations.of(context)!.dialog_trip_summary_ride_time,
               style: TextStyle(fontSize: 12.0),
             ),
             Expanded(child: Container()),
@@ -145,12 +150,14 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             Icon(Icons.attach_money_outlined, color: Colors.orangeAccent),
             SizedBox(width: 5.0),
             Text(
-              'Total Trip Fare',
+              SafeLocalizations.of(context)!
+                  .dialog_trip_summary_total_trip_fare,
               style: TextStyle(fontSize: 12.0),
             ),
             Expanded(child: Container()),
             Text(
-              '${AlphaNumericUtil.formatDouble(widget.rideRequest.actual_trip_fare!, 2)} birr',
+              '${AlphaNumericUtil.formatDouble(widget.rideRequest.actual_trip_fare!, 2)} ' +
+                  SafeLocalizations.of(context)!.dialog_trip_summary_birr,
               style: TextStyle(fontSize: 12.0),
             ),
           ],
@@ -181,7 +188,8 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
-                'Trip Completed',
+                SafeLocalizations.of(context)!
+                    .dialog_trip_summary_trip_completed,
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -193,7 +201,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
           SizedBox(height: 5.0),
           Container(
             padding: EdgeInsets.symmetric(horizontal: HORIZONTAL_PADDING),
-            child: _getTripSummaryWidget(),
+            child: _getTripSummaryWidget(context),
           ),
           SizedBox(height: 5.0),
 
@@ -216,9 +224,11 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       width: double.infinity,
                       child: Center(
-                        child: Text('DONE',
+                        child: Text(
+                            SafeLocalizations.of(context)!
+                                .dialog_trip_summary_done,
                             style:
-                            TextStyle(fontSize: 16.0, color: Colors.white)),
+                                TextStyle(fontSize: 16.0, color: Colors.white)),
                       ),
                     ),
                   ),

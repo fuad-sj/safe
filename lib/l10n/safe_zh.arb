@@ -1,0 +1,80 @@
+{
+  "@@locale": "zh",
+
+  "nav_option_my_trips": "遊樂設施",
+  "nav_option_payment": "支付",
+  "nav_option_settings": "下",
+  "nav_option_languages": "Languages",
+  "nav_option_contact_us": "聯繫我們",
+  "nav_option_emergency": "緊急情況",
+  "nav_option_sign_out": "登出",
+
+  "nav_header_edit_profile": "編輯個人資料",
+
+  "progress_dialog_please_wait": "請稍等...",
+
+  "customer_marker_info_pickup": "接人的地方",
+  "customer_marker_info_dropoff": "下車地點",
+
+  "dialog_trip_summary_total": "全部的",
+  "dialog_trip_summary_birr": "Birr",
+  "dialog_trip_summary_base_fare": "基地製作",
+  "dialog_trip_summary_distance_travelled": "行駛距離",
+  "dialog_trip_summary_ride_time": "乘車時間",
+  "dialog_trip_summary_total_trip_fare": "總車費",
+  "dialog_trip_summary_trip_completed": "行程已完成",
+  "dialog_trip_summary_done": "完畢",
+
+  "dialog_cancel_ride_cancel_cancelling_request": "正在取消請求，請稍候...",
+  "dialog_cancel_ride_cancel_reason_waited_too_long": "等了太久",
+  "dialog_cancel_ride_cancel_reason_driver_too_far": "司機太遠",
+  "dialog_cancel_ride_cancel_reason_changed_my_mind": "改變我的主意了",
+  "dialog_cancel_ride_title": "取消請求？",
+  "dialog_cancel_ride_dismiss": "解僱",
+
+  "bottom_sheet_confirm_ride_details_car": "車",
+  "bottom_sheet_confirm_ride_details_etb": "ETB",
+  "bottom_sheet_confirm_ride_details_cash": "現金",
+  "bottom_sheet_confirm_ride_details_confirm_request": "確認請求",
+
+  "bottom_sheet_destination_picker_pickup_location": "接人的地方",
+  "bottom_sheet_destination_picker_destination_location": "去哪兒？",
+  "bottom_sheet_destination_picker_pin_your_location": "在地圖上固定您的位置",
+  "bottom_sheet_destination_picker_progress_dialog_waiting": "正在設置下車，請稍候...",
+
+  "bottom_sheet_driver_picked_cancel_ride": "取消行程",
+
+  "bottom_sheet_searching_for_driver_progress": "請求乘車，請稍候...",
+
+  "bottom_sheet_select_drop_off_select_dropoff": "選擇下車地點",
+  "bottom_sheet_select_drop_off_change": "改變",
+  "bottom_sheet_select_drop_off_select_pickup": "設置取件地點",
+
+  "bottom_sheet_trip_details_distance_covered": "覆蓋距離",
+  "bottom_sheet_trip_details_ride_time": "乘車時間",
+
+  "bottom_sheet_where_to_where_to": "去哪兒？",
+  "bottom_sheet_where_to_current_location": "當前位置",
+  "bottom_sheet_where_to_enter_destination": "輸入目的地",
+
+  "order_history_title": "訂單歷史",
+  "order_history_order_status_placed": "請求已創建",
+  "order_history_order_status_confirmed": "司機確認",
+  "order_history_order_status_started": "旅行開始",
+  "order_history_order_status_completed": "行程已完成",
+  "order_history_order_status_cancelled": "請求已取消",
+  "order_history_date": "日期：",
+
+  "login_phone_number": "電話號碼",
+  "login_log_in": "登錄",
+  "login_powered_by": "供電 Mukera Technologies",
+  "login_logging_in": "正在登錄，請稍候...",
+  "login_error_logging_in": "登錄時出錯",
+
+  "registration_customer_name": "顧客姓名",
+  "registration_customer_name_hint": "名稱",
+  "registration_register_customer": "註冊客戶",
+  "registration_registration_progress": "正在註冊，請稍候...",
+  "registration_registration_congratulations": "恭喜，您的帳戶已創建",
+  "registration_registration_new_customer_has_been_created": "尚未創建新用戶帳戶"
+}

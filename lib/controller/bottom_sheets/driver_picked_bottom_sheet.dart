@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
-import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/models/driver.dart';
-import 'package:safe/pickup_and_dropoff_locations.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class DriverPickedBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DriverPickedBottomSheet';
@@ -87,7 +86,8 @@ class _DriverPickedBottomSheetState extends State<DriverPickedBottomSheet>
               width: double.infinity,
               child: Center(
                 child: Text(
-                  'Cancel Ride',
+                  SafeLocalizations.of(context)!
+                      .bottom_sheet_driver_picked_cancel_ride,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,

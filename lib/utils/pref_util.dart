@@ -27,10 +27,6 @@ class PrefUtil {
     return _singleton!;
   }
 
-  static const int LANGUAGE_NONE = 0;
-  static const int LANGUAGE_AMHARIC = 1;
-  static const int LANGUAGE_ENGLISH = 2;
-
   static String getCurrentUserID() {
     return FirebaseAuth.instance.currentUser?.uid ?? '';
   }
@@ -40,6 +36,7 @@ class PrefUtil {
   }
 
   static const String pref_key_company_id = "pref_key_company_id";
+
   static Future<void> saveCurrentCompanyID(String companyId) async {
     await _prefs.setString(pref_key_company_id, companyId);
   }
@@ -68,15 +65,13 @@ class PrefUtil {
 
   static const String pref_user_language_locale = "pref_user_language_locale";
 
-  Future<void> setUserLanugageLocale(int localeId) async {
-    await _prefs.setInt(pref_user_language_locale, localeId);
+  static const String LANGUAGE_ENGLISH = 'en';
+
+  static Future<void> setUserLanguageLocale(String localeId) async {
+    await _prefs.setString(pref_user_language_locale, localeId);
   }
 
-  static int getUserLanguageLocaleID() {
-    return _prefs.getInt(pref_user_language_locale) ?? LANGUAGE_NONE;
-  }
-
-  static bool isUserLanguageSet() {
-    return getUserLanguageLocaleID() != LANGUAGE_NONE;
+  static String getUserLanguageLocale() {
+    return _prefs.getString(pref_user_language_locale) ?? LANGUAGE_ENGLISH;
   }
 }

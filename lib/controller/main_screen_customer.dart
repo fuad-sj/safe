@@ -24,6 +24,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:safe/controller/ui_helpers.dart';
+import 'package:safe/language_selector_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
 import 'package:safe/models/driver.dart';
@@ -42,6 +43,7 @@ import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:safe/utils/map_style.dart';
 import 'package:safe/utils/pref_util.dart';
 import 'package:vector_math/vector_math.dart' as vectors;
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class MainScreenCustomer extends StatefulWidget {
   static const String idScreen = "mainScreenRider";
@@ -53,24 +55,6 @@ class MainScreenCustomer extends StatefulWidget {
 class _MainScreenCustomerState extends State<MainScreenCustomer>
     with TickerProviderStateMixin {
   static const double DRIVER_RADIUS_KILOMETERS = 6.0;
-
-  final List<_MenuListItem> _primaryNavOptions = [
-    _MenuListItem(Icons.history, 'My Orders', MenuOption.MENU_OPTION_MY_TRIPS,
-        Colors.orange.shade600),
-    _MenuListItem(Icons.attach_money, 'Payment', MenuOption.MENU_OPTION_PAYMENT,
-        Colors.teal.shade600),
-    _MenuListItem(Icons.settings, 'Setting', MenuOption.MENU_OPTION_SETTINGS,
-        Colors.blue.shade600),
-  ];
-
-  final List<_MenuListItem> _secondaryNavOptions = [
-    _MenuListItem(Icons.phone, 'Contact Us', MenuOption.MENU_OPTION_CONTACT_US,
-        Colors.blueGrey.shade600),
-    _MenuListItem(Icons.help, 'Emergency', MenuOption.MENU_OPTION_EMERGENCY,
-        Colors.red.shade600),
-    _MenuListItem(Icons.logout, 'Sign Out', MenuOption.MENU_OPTION_SIGNOUT,
-        Colors.grey.shade600),
-  ];
 
   static const CameraPosition ADDIS_ABABA_CENTER_LOCATION = CameraPosition(
       target: LatLng(9.00464643580664, 38.767820855962), zoom: 12.0);
@@ -146,8 +130,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   bool get isTripStarted => (_currentRideRequest != null &&
       _currentRideRequest!.ride_status == RideRequest.STATUS_TRIP_STARTED);
 
-  late Random _random;
-
   void setBottomMapPadding(double height) {
     const double MAP_BUFFER_HEIGHT = 5.0 + 15;
     _mapBottomPadding = height + MAP_BUFFER_HEIGHT;
@@ -156,8 +138,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   @override
   initState() {
     super.initState();
-
-    _random = Random(DateTime.now().millisecondsSinceEpoch);
 
     updateLoginCredentials();
 
@@ -329,6 +309,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           );
           break;
         }
+
+      case MenuOption.MENU_OPTION_LANGUAGES:
+        {
+          showDialog(
+            context: context,
+            builder: (_) => LanguageSelectorDialog(),
+          );
+        }
     }
   }
 
@@ -362,6 +350,47 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     double horizontalPadding = drawerWidth * HORIZONTAL_LEFT_PADDING_PERCENT;
     double verticalPadding = screenHeight * VERTICAL_PADDING_PERCENT;
     double horizontalSpace = drawerWidth * HORIZONTAL_BETWEEN_SPACE_PERCENT;
+
+    List<_MenuListItem> primaryNavOptions = [
+      _MenuListItem(
+          Icons.history,
+          SafeLocalizations.of(context)!.nav_option_my_trips,
+          MenuOption.MENU_OPTION_MY_TRIPS,
+          Colors.orange.shade600),
+      _MenuListItem(
+          Icons.attach_money,
+          SafeLocalizations.of(context)!.nav_option_payment,
+          MenuOption.MENU_OPTION_PAYMENT,
+          Colors.teal.shade600),
+      _MenuListItem(
+          Icons.settings,
+          SafeLocalizations.of(context)!.nav_option_settings,
+          MenuOption.MENU_OPTION_SETTINGS,
+          Colors.blue.shade600),
+      _MenuListItem(
+          Icons.language,
+          SafeLocalizations.of(context)!.nav_option_languages,
+          MenuOption.MENU_OPTION_LANGUAGES,
+          Colors.grey.shade600),
+    ];
+
+    List<_MenuListItem> secondaryNavOptions = [
+      _MenuListItem(
+          Icons.phone,
+          SafeLocalizations.of(context)!.nav_option_contact_us,
+          MenuOption.MENU_OPTION_CONTACT_US,
+          Colors.blueGrey.shade600),
+      _MenuListItem(
+          Icons.help,
+          SafeLocalizations.of(context)!.nav_option_emergency,
+          MenuOption.MENU_OPTION_EMERGENCY,
+          Colors.red.shade600),
+      _MenuListItem(
+          Icons.logout,
+          SafeLocalizations.of(context)!.nav_option_sign_out,
+          MenuOption.MENU_OPTION_SIGNOUT,
+          Colors.grey.shade600),
+    ];
 
     return Container(
       width: drawerWidth,
@@ -403,7 +432,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                                 fontFamily: "Brand-Bold"),
                           ),
                           SizedBox(height: 6.0),
-                          Text('Edit Profile',
+                          Text(
+                              SafeLocalizations.of(context)!
+                                  .nav_header_edit_profile,
                               style: TextStyle(color: Colors.grey.shade500)),
                         ],
                       ),
@@ -420,7 +451,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
             SizedBox(height: 12.0),
 
-            ..._primaryNavOptions.map(
+            ...primaryNavOptions.map(
               (item) => _getNavigationItemWidget(
                 context,
                 item,
@@ -433,7 +464,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
             greyVerticalDivider(0.5),
 
-            ..._secondaryNavOptions.map(
+            ...secondaryNavOptions.map(
               (item) => _getNavigationItemWidget(
                 context,
                 item,
@@ -585,7 +616,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               setState(() {});
             },
             callback: () async {
-              await getRouteDetails();
+              await getRouteDetails(context);
               _UIState = UI_STATE_DROPOFF_SET;
 
               _isHamburgerDrawerMode = false;
@@ -611,7 +642,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 setState(() {});
               },
               callback: () async {
-                await getRouteDetails();
+                await getRouteDetails(context);
                 _UIState = UI_STATE_DROPOFF_SET;
 
                 _isHamburgerDrawerMode = false;
@@ -822,7 +853,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             )
           };
 
-          // TODO: add markers to customer's pickup/destinatino locations
+          // TODO: add markers to customer's pickup/destination locations
         }
 
         // cancel any previous driver's location stream
@@ -936,7 +967,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     );
   }
 
-  Future<void> getRouteDetails() async {
+  Future<void> getRouteDetails(BuildContext context) async {
     Address startLocation =
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
             .pickUpLocation!;
@@ -948,7 +979,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     LatLng dropOffLoc = destLocation.location;
 
     CustomProgressDialog.showProgressDialog(
-        context: context, message: 'Please wait...');
+        context: context,
+        message: SafeLocalizations.of(context)!.progress_dialog_please_wait);
 
     _pickupToDropOffRouteDetail =
         await GoogleApiUtils.getRouteDetailsFromStartToDestination(
@@ -980,8 +1012,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         markerId: MarkerId('pickup id'),
         icon: _PICKUP_PIN_ICON ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
-        infoWindow:
-            InfoWindow(title: startLocation.placeName, snippet: 'My Location'),
+        infoWindow: InfoWindow(
+            title: startLocation.placeName,
+            snippet:
+                SafeLocalizations.of(context)!.customer_marker_info_pickup),
         position: pickUpLoc,
       ),
       // dropoff marker
@@ -990,7 +1024,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         icon: _DROPOFF_PIN_ICON ??
             BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
         infoWindow: InfoWindow(
-            title: destLocation.placeName, snippet: 'DropOff Location'),
+            title: destLocation.placeName,
+            snippet:
+                SafeLocalizations.of(context)!.customer_marker_info_dropoff),
         position: dropOffLoc,
       ),
     };
@@ -1163,6 +1199,7 @@ enum MenuOption {
   MENU_OPTION_MY_TRIPS,
   MENU_OPTION_PAYMENT,
   MENU_OPTION_SETTINGS,
+  MENU_OPTION_LANGUAGES,
   MENU_OPTION_CONTACT_US,
   MENU_OPTION_EMERGENCY,
   MENU_OPTION_SIGNOUT,

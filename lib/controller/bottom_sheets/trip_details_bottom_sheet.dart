@@ -8,6 +8,7 @@ import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/models/driver.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
 class TripDetailsBottomSheet extends BaseBottomSheet {
   static const String KEY = 'TripDetailsBottomSheet';
@@ -103,7 +104,8 @@ class _TripDetailsBottomSheetState extends State<TripDetailsBottomSheet>
                       Icon(Icons.directions, color: Colors.orangeAccent),
                       SizedBox(width: 10.0),
                       Text(
-                        'Distance Covered',
+                        SafeLocalizations.of(context)!
+                            .bottom_sheet_trip_details_distance_covered,
                         style: TextStyle(fontSize: 14.0),
                       ),
                     ],
@@ -128,7 +130,8 @@ class _TripDetailsBottomSheetState extends State<TripDetailsBottomSheet>
                       Icon(Icons.timer, color: Colors.orangeAccent),
                       SizedBox(width: 10.0),
                       Text(
-                        'Ride Time',
+                        SafeLocalizations.of(context)!
+                            .bottom_sheet_trip_details_ride_time,
                         style: TextStyle(fontSize: 14.0),
                       ),
                     ],
