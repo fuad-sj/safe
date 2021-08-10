@@ -818,9 +818,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               .actual_pickup_to_initial_dropoff_encoded_points!;
           lineWidth = 5;
 
-          Position position = await Geolocator.getCurrentPosition(
-              desiredAccuracy: LocationAccuracy.bestForNavigation);
-
           // This is the start location, not the pickup location
           _tripStartedLocation =
               LatLng(_currentPosition!.latitude, _currentPosition!.longitude);
@@ -857,7 +854,23 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             )
           };
 
-          // TODO: add markers to customer's pickup/destination locations
+          _mapMarkers = {
+            Marker(
+              markerId: MarkerId('pickup id'),
+              icon: (hasTripStarted ? _DROPOFF_PIN_ICON : _PICKUP_PIN_ICON) ??
+                  BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueYellow),
+              infoWindow: InfoWindow(
+                  title: hasTripStarted
+                      ? _currentRideRequest!.dropoff_address_name
+                      : _currentRideRequest!.pickup_address_name,
+                  snippet: SafeLocalizations.of(context)!
+                      .customer_marker_info_pickup),
+              position: hasTripStarted
+                  ? _currentRideRequest!.dropoff_location!
+                  : _currentRideRequest!.pickup_location!,
+            ),
+          };
         }
 
         // cancel any previous driver's location stream
@@ -875,10 +888,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             _selectedDriverCurrentLocation =
                 DriverLocation.fromSnapshot(locSnapshot.snapshot);
 
+            bool has_trip_started = _currentRideRequest!.ride_status ==
+                RideRequest.STATUS_TRIP_STARTED;
             if (firstTimeLocationAcquired) {
-              bool has_trip_started = _currentRideRequest!.ride_status ==
-                  RideRequest.STATUS_TRIP_STARTED;
-
               zoomCameraToWithinBounds(
                 LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
                 has_trip_started
@@ -888,6 +900,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             }
 
             _mapMarkers = {
+              // Car live locations
               Marker(
                 markerId: MarkerId(
                     'driver${_selectedDriverCurrentLocation!.driverID}'),
@@ -895,6 +908,24 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                     _selectedDriverCurrentLocation!.longitude),
                 icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
                 rotation: 0,
+              ),
+
+              // Pickup | Dropoff pins
+              Marker(
+                markerId: MarkerId('pickup id'),
+                icon:
+                    (has_trip_started ? _DROPOFF_PIN_ICON : _PICKUP_PIN_ICON) ??
+                        BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueYellow),
+                infoWindow: InfoWindow(
+                    title: has_trip_started
+                        ? _currentRideRequest!.dropoff_address_name
+                        : _currentRideRequest!.pickup_address_name,
+                    snippet: SafeLocalizations.of(context)!
+                        .customer_marker_info_pickup),
+                position: has_trip_started
+                    ? _currentRideRequest!.dropoff_location!
+                    : _currentRideRequest!.pickup_location!,
               ),
             };
 
