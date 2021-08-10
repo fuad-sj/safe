@@ -325,9 +325,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       String combined = prefix + '***' + suffix;
       return combined;
     }
-    // TODO: get back to user's phone
-    return '912***275';
-    //return phone;
+    return phone;
   }
 
   Widget _getDrawerLayout(BuildContext context) {
