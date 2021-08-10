@@ -660,8 +660,17 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             showBottomSheet: _UIState == UI_STATE_DROPOFF_SET,
             routeDetails: _pickupToDropOffRouteDetail,
             actionCallback: () async {
-              // TODO: show progress while creating order
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => CustomProgressDialog(
+                    message: SafeLocalizations.of(context)!
+                        .main_screen_creating_order_progress),
+              );
+
               await createNewRideRequest();
+
+              Navigator.pop(context);
 
               // Will update UI when either driver is assigned OR trip is cancelled
               await listenToRideStatusUpdates();

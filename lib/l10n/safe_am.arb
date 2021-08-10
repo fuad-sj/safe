@@ -1,6 +1,8 @@
 {
   "@@locale": "am",
 
+  "main_screen_creating_order_progress": "ትዛዞት እየተፈጠረው, ትንሽ ይጠብቁ...",
+
   "nav_option_my_trips": "ትእዛዞች",
   "nav_option_payment": "ክፍያ",
   "nav_option_settings": "ምርጫዎች",
