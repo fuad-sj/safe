@@ -8,7 +8,7 @@ class LanguageSelectorDialog extends StatelessWidget {
     _LanguageOption(languageName: 'አማርኛ', localeCode: 'am'),
     _LanguageOption(languageName: 'Afaan Oromoo', localeCode: 'it'),
     _LanguageOption(languageName: 'English', localeCode: 'en'),
-    _LanguageOption(languageName: '中文', localeCode: 'zh'),
+    //_LanguageOption(languageName: '中文', localeCode: 'zh'),
   ];
 
   const LanguageSelectorDialog({Key? key}) : super(key: key);
