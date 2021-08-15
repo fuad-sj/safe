@@ -1,5 +1,5 @@
 class FIREBASE_DB_PATHS {
-  static final PATH_GEOFIRE_AVAILABLE_DRIVERS = 'geofire_available_drivers';
+  static final PATH_VEHICLE_LOCATIONS = 'vehicle_locations';
 }
 
 class FIRESTORE_PATHS {

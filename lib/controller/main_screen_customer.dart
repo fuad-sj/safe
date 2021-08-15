@@ -878,7 +878,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         _selectedDriverLocationStream?.cancel();
         _selectedDriverLocationStream = FirebaseDatabase.instance
             .reference()
-            .child(FIREBASE_DB_PATHS.PATH_GEOFIRE_AVAILABLE_DRIVERS)
+            .child(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS)
             .child(driverId)
             .onValue
             .listen(
@@ -1094,7 +1094,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   Future<bool> initGeoFireListener() async {
-    await Geofire.initialize(FIREBASE_DB_PATHS.PATH_GEOFIRE_AVAILABLE_DRIVERS);
+    await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
 
     _geoFireInitialized = true;
 
