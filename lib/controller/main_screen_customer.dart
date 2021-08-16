@@ -235,7 +235,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         context, 'images/dot_blue.png', PIN_ICON_SIZE_RATIO);
 
     _CURRENT_PIN_ICON = Image.asset(
-      'images/pin_location.png',
+      'images/redmarker.png',
       height: SIZE_CURRENT_PIN_IMAGE,
       width: SIZE_CURRENT_PIN_IMAGE,
     );
