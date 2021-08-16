@@ -78,7 +78,7 @@ class _SelectDropOffPinBottomSheetState
 
   Widget _getBackBtnWidget() {
     return Positioned(
-      top: 20.0,
+      top: 50.0,
       left: 20.0,
       child: GestureDetector(
         onTap: () {
@@ -112,7 +112,7 @@ class _SelectDropOffPinBottomSheetState
     const double TOP_MAP_PADDING = 40;
 
     double mapWidth = MediaQuery.of(context).size.width;
-    double mapHeight = DestinationPickerBottomSheet.HEIGHT_DESTINATION_SELECTOR;
+    double mapHeight = MediaQuery.of(context).size.height;
 
     return Stack(
       children: [
