@@ -23,6 +23,8 @@ import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:safe/controller/payment_screen.dart';
+import 'package:safe/controller/settings_screen.dart';
 import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/language_selector_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
@@ -301,10 +303,28 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   void navOptionSelected(MenuOption option) {
     switch (option) {
+      case MenuOption.MENU_OPTION_PROFILE:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CustomerOrderHistory()),
+        );
+        break;
       case MenuOption.MENU_OPTION_MY_TRIPS:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => CustomerOrderHistory()),
+        );
+        break;
+      case MenuOption.MENU_OPTION_PAYMENT:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PaymentScreen()),
+        );
+        break;
+      case MenuOption.MENU_OPTION_SETTINGS:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SettingsScreen()),
         );
         break;
 
@@ -313,6 +333,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           context: context,
           builder: (_) => LanguageSelectorDialog(),
         );
+        break;
+
+      case MenuOption.MENU_OPTION_SIGNOUT:
+        FirebaseAuth.instance.signOut();
+        Navigator.pushNamedAndRemoveUntil(
+            context, LoginPage.idScreen, (route) => false);
+
         break;
     }
   }
@@ -427,10 +454,15 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                                 fontFamily: "Brand-Bold"),
                           ),
                           SizedBox(height: 6.0),
-                          Text(
-                              SafeLocalizations.of(context)!
-                                  .nav_header_edit_profile,
-                              style: TextStyle(color: Colors.grey.shade500)),
+                          GestureDetector(
+                            onTap: () {
+                              navOptionSelected(MenuOption.MENU_OPTION_PROFILE);
+                            },
+                            child: Text(
+                                SafeLocalizations.of(context)!
+                                    .nav_header_edit_profile,
+                                style: TextStyle(color: Colors.grey.shade500)),
+                          ),
                         ],
                       ),
                     ),
@@ -1232,6 +1264,7 @@ class _MenuListItem {
 }
 
 enum MenuOption {
+  MENU_OPTION_PROFILE,
   MENU_OPTION_MY_TRIPS,
   MENU_OPTION_PAYMENT,
   MENU_OPTION_SETTINGS,

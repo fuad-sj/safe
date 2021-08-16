@@ -102,31 +102,31 @@ class _RideRequestListItem extends StatelessWidget {
 
     switch (requestStatus) {
       case RideRequest.STATUS_PLACED:
-        bkgndColor = Colors.teal.shade700;
+        bkgndColor = Colors.red.shade900;
         txtColor = Colors.grey.shade100;
         status =
             SafeLocalizations.of(context)!.order_history_order_status_placed;
         break;
       case RideRequest.STATUS_DRIVER_CONFIRMED:
-        bkgndColor = Colors.teal.shade200;
+        bkgndColor = Colors.red.shade600;
         txtColor = Colors.grey.shade800;
         status =
             SafeLocalizations.of(context)!.order_history_order_status_confirmed;
         break;
       case RideRequest.STATUS_TRIP_STARTED:
-        bkgndColor = Colors.teal.shade300;
+        bkgndColor = Colors.red.shade400;
         txtColor = Colors.grey.shade700;
         status =
             SafeLocalizations.of(context)!.order_history_order_status_started;
         break;
       case RideRequest.STATUS_TRIP_COMPLETED:
-        bkgndColor = Colors.teal.shade400;
+        bkgndColor = Colors.red.shade200;
         txtColor = Colors.grey.shade700;
         status =
             SafeLocalizations.of(context)!.order_history_order_status_completed;
         break;
       default:
-        bkgndColor = Colors.teal.shade100;
+        bkgndColor = Colors.red.shade100;
         txtColor = Colors.grey.shade900;
         status =
             SafeLocalizations.of(context)!.order_history_order_status_cancelled;
