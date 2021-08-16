@@ -47,6 +47,7 @@
   "bottom_sheet_driver_picked_cancel_ride": "取消行程",
 
   "bottom_sheet_searching_for_driver_progress": "請求乘車，請稍候...",
+  "bottom_sheet_searching_for_driver_cancel_ride": "取消行程",
 
   "bottom_sheet_select_drop_off_select_dropoff": "選擇下車地點",
   "bottom_sheet_select_drop_off_change": "改變",
