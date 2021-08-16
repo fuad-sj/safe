@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
+import 'package:safe/models/color_constants.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
@@ -85,7 +86,7 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
         children: [
           // Dialog Header
           Container(
-            color: Colors.teal.shade600,
+            color: Colors.black,
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
@@ -130,7 +131,7 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
             child: TextButton(
               style: TextButton.styleFrom(
                 padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 20.0),
-                backgroundColor: Colors.grey.shade600,
+                backgroundColor: ColorConstants.gucciColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(35.0),
                 ),

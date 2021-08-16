@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/controller/ui_helpers.dart';
+import 'package:safe/models/color_constants.dart';
 import 'package:safe/models/driver.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
@@ -42,7 +43,7 @@ class TripDetailsBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
+  double bottomSheetHeight(BuildContext context) {
     return HEIGHT_TRIP_DETAILS;
   }
 
@@ -73,7 +74,7 @@ class _TripDetailsBottomSheetState extends State<TripDetailsBottomSheet>
           SizedBox(height: 10.0),
           Row(
             children: [
-              Icon(Icons.location_on, color: Colors.orangeAccent),
+              Icon(Icons.location_on, color: ColorConstants.gucciColor),
               SizedBox(width: 15.0),
               Text(
                 widget.rideRequest!.dropoff_address_name,

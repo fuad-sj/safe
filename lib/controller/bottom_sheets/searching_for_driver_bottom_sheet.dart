@@ -20,7 +20,7 @@ class SearchingForDriverBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
+  double bottomSheetHeight(BuildContext context) {
     return HEIGHT_SEARCHING_FOR_DRIVER;
   }
 

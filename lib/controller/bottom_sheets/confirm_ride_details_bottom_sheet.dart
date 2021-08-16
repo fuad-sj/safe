@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
+import 'package:safe/models/color_constants.dart';
 import 'package:safe/models/route_details.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
@@ -28,7 +29,7 @@ class ConfirmRideDetailsBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
+  double bottomSheetHeight(BuildContext context) {
     return HEIGHT_RIDE_DETAILS;
   }
 
@@ -105,7 +106,7 @@ class _ConfirmRideDetailsBottomSheetState
           TextButton(
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 20.0),
-              backgroundColor: Colors.orange.shade800,
+              backgroundColor: ColorConstants.gucciColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(35.0),
               ),

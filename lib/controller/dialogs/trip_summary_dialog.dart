@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:safe/controller/ui_helpers.dart';
+import 'package:safe/models/color_constants.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
@@ -53,7 +54,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         SizedBox(height: 10.0),
         Row(
           children: [
-            Icon(Icons.location_on, color: Colors.orangeAccent),
+            Icon(Icons.location_on, color: ColorConstants.gucciColor),
             SizedBox(width: 15.0),
             Text(
               widget.rideRequest.pickup_address_name,
@@ -68,7 +69,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         SizedBox(height: 10.0),
         Row(
           children: [
-            Icon(Icons.location_on, color: Colors.orangeAccent),
+            Icon(Icons.location_on, color: ColorConstants.gucciColor),
             SizedBox(width: 15.0),
             Text(
               widget.rideRequest.dropoff_address_name,
@@ -103,7 +104,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(Icons.location_on, color: Colors.orangeAccent),
+            Icon(Icons.location_on, color: ColorConstants.gucciColor),
             SizedBox(width: 5.0),
             Text(
               SafeLocalizations.of(context)!
@@ -125,7 +126,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(Icons.timer, color: Colors.orangeAccent),
+            Icon(Icons.timer, color: ColorConstants.gucciColor),
             SizedBox(width: 5.0),
             Text(
               SafeLocalizations.of(context)!.dialog_trip_summary_ride_time,
@@ -147,7 +148,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(Icons.attach_money_outlined, color: Colors.orangeAccent),
+            Icon(Icons.attach_money_outlined, color: ColorConstants.gucciColor),
             SizedBox(width: 5.0),
             Text(
               SafeLocalizations.of(context)!
@@ -184,7 +185,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         children: [
           // Dialog Header
           Container(
-            color: Colors.teal.shade600,
+            color: Colors.black,
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
@@ -219,7 +220,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
                           TripCompletionDialog.DIALOG_RESULT_OKAY_PRESSED);
                     },
                     style: ElevatedButton.styleFrom(
-                        primary: Colors.deepOrangeAccent),
+                        primary: ColorConstants.gucciColor),
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       width: double.infinity,

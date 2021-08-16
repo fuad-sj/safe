@@ -31,7 +31,7 @@ class DestinationPickerBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
+  double bottomSheetHeight(BuildContext context) {
     return HEIGHT_DESTINATION_SELECTOR;
   }
 

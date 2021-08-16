@@ -28,7 +28,7 @@ class DriverToPickupBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
+  double bottomSheetHeight(BuildContext context) {
     return HEIGHT_DRIVER_ON_WAY_TO_PICKUP;
   }
 

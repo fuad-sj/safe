@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/destination_picker_bottom_sheet.dart';
 import 'package:safe/models/address.dart';
+import 'package:safe/models/color_constants.dart';
 import 'package:safe/models/google_place_description.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/google_api_util.dart';
@@ -36,8 +37,8 @@ class SelectDropOffPinBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
-    return DestinationPickerBottomSheet.HEIGHT_DESTINATION_SELECTOR;
+  double bottomSheetHeight(BuildContext context) {
+    return MediaQuery.of(context).size.height;
   }
 
   @override
@@ -197,7 +198,7 @@ class _SetPickupBottomSheet extends BaseBottomSheet {
         ) {}
 
   @override
-  double bottomSheetHeight() {
+  double bottomSheetHeight(BuildContext context) {
     return HEIGHT_SET_PICKUP;
   }
 
@@ -270,7 +271,7 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 45.0, vertical: 20.0),
               backgroundColor: widget.destinationAddress != null
-                  ? Colors.orange.shade800
+                  ? ColorConstants.gucciColor
                   : Colors.grey.shade700,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(35.0),

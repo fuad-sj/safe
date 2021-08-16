@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
+import 'package:safe/models/color_constants.dart';
 import 'package:safe/models/driver.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
@@ -25,7 +26,7 @@ class DriverPickedBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
+  double bottomSheetHeight(BuildContext context) {
     return HEIGHT_DRIVER_PICKED;
   }
 
@@ -74,7 +75,7 @@ class _DriverPickedBottomSheetState extends State<DriverPickedBottomSheet>
           TextButton(
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 20.0),
-              backgroundColor: Colors.orange.shade800,
+              backgroundColor: ColorConstants.gucciColor,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(35.0),
               ),
