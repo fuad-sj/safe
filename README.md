@@ -22,3 +22,9 @@ flutter pub run build_runner build
 
 // continuous watching for file changes
 flutter pub run build_runner watch
+
+// generate localization files
+flutter gen-l10n
+
+// cleaning flutter build cache
+flutter clean
