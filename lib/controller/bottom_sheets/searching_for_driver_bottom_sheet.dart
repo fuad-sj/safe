@@ -71,7 +71,8 @@ class _SearchingForDriverBottomSheetState
           SizedBox(height: 10.0),
           Container(
             width: double.infinity,
-            child: Text('Cancel Ride',
+            child: Text(SafeLocalizations.of(context)!
+                .bottom_sheet_searching_for_driver_cancel_ride,
                 textAlign: TextAlign.center, style: TextStyle(fontSize: 12.0)),
           ),
         ],

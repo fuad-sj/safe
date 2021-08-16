@@ -47,6 +47,7 @@
   "bottom_sheet_driver_picked_cancel_ride": "Cancel Ride",
 
   "bottom_sheet_searching_for_driver_progress": "Requesting Ride, Please Wait...",
+  "bottom_sheet_searching_for_driver_cancel_ride": "Cancel Ride",
 
   "bottom_sheet_select_drop_off_select_dropoff": "Select Dropoff Location",
   "bottom_sheet_select_drop_off_change": "Change",

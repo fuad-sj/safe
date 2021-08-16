@@ -626,7 +626,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           ),
 
           if (_UIState == UI_STATE_SELECT_PIN_SELECTED &&
-              _CURRENT_PIN_ICON != null) ...[
+              _CURRENT_PIN_ICON != null &&
+              _currentPosition != null) ...[
             SelectDropOffPinBottomSheet(
               tickerProvider: this,
               showBottomSheet: _UIState == UI_STATE_SELECT_PIN_SELECTED,
