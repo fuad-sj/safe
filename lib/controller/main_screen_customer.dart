@@ -78,6 +78,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   GoogleMapController? _mapController;
 
   bool _geoFireInitialized = false;
+  bool _ignoreGeofireUpdates = false;
 
   int _UIState = UI_STATE_NOTHING_STARTED;
 
@@ -254,40 +255,38 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void resetTripDetails() async {
-    _UIState = UI_STATE_NOTHING_STARTED;
-    _isHamburgerDrawerMode = true;
+    setState(() {
+      _UIState = UI_STATE_NOTHING_STARTED;
+      _isHamburgerDrawerMode = true;
 
-    setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO);
+      setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO);
 
-    _mapPolyLines.clear();
-    _mapMarkers.clear();
-    _mapCircles.clear();
+      _mapPolyLines.clear();
+      _mapMarkers.clear();
+      _mapCircles.clear();
 
-    await stopGeoFireListener();
+      _ignoreGeofireUpdates = false;
 
-    await attachGeoFireListener();
+      zoomCameraToCurrentPosition();
 
-    zoomCameraToCurrentPosition();
+      _selectedDriver = null;
+      _selectedDriverLocationStream?.cancel();
+      _selectedDriverLocationStream = null;
 
-    _selectedDriver = null;
-    _selectedDriverLocationStream?.cancel();
-    _selectedDriverLocationStream = null;
+      _pickupToDropOffRouteDetail = null;
 
-    _pickupToDropOffRouteDetail = null;
+      _isHamburgerVisible = true;
 
-    _isHamburgerVisible = true;
+      _tripStartedLocation = null;
+      _tripStartTimestamp = null;
+      _tripCounterTimer?.cancel();
+      _tripCounterTimer = null;
 
-    _tripStartedLocation = null;
-    _tripStartTimestamp = null;
-    _tripCounterTimer?.cancel();
-    _tripCounterTimer = null;
+      _rideRequestRef = null;
+      _currentRideRequest = null;
 
-    _rideRequestRef = null;
-    _currentRideRequest = null;
-
-    updateAvailableDriversOnMap();
-
-    setState(() {});
+      updateAvailableDriversOnMap();
+    });
   }
 
   Widget _getNavigationItemWidget(
@@ -668,7 +667,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                   ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS);
 
               // stop showing nearby drivers
-              stopGeoFireListener();
+              ignoreGeoFireUpdates();
 
               setState(() {});
             },
@@ -695,7 +694,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                     ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS);
 
                 // stop showing nearby drivers
-                stopGeoFireListener();
+                ignoreGeoFireUpdates();
 
                 setState(() {});
               },
@@ -1207,14 +1206,16 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     final String FIELD_LATITUDE = 'latitude';
     final String FIELD_LONGITUDE = 'longitude';
 
-    _geofireLocationStream?.cancel();
-
     _isNearbyDriverLoadingComplete = false;
 
     _geofireLocationStream = Geofire.queryAtLocation(_currentPosition!.latitude,
             _currentPosition!.longitude, DRIVER_RADIUS_KILOMETERS)
         ?.listen(
       (map) async {
+        if (_ignoreGeofireUpdates) {
+          return;
+        }
+
         if (map != null) {
           var callBack = map[FIELD_CALLBACK];
 
@@ -1272,9 +1273,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     );
   }
 
-  Future<void> stopGeoFireListener() async {
-    _geofireLocationStream?.cancel();
-    _geofireLocationStream = null;
+  void ignoreGeoFireUpdates() {
+    _ignoreGeofireUpdates = true;
   }
 
   void updateAvailableDriversOnMap() {
