@@ -56,7 +56,7 @@ class MainScreenCustomer extends StatefulWidget {
 
 class _MainScreenCustomerState extends State<MainScreenCustomer>
     with TickerProviderStateMixin {
-  static const double DRIVER_RADIUS_KILOMETERS = 6.0;
+  static const double DRIVER_RADIUS_KILOMETERS = 10.0;
 
   static const CameraPosition ADDIS_ABABA_CENTER_LOCATION = CameraPosition(
       target: LatLng(9.00464643580664, 38.767820855962), zoom: 12.0);
@@ -144,9 +144,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     updateLoginCredentials();
 
     loadCurrentUserInfo();
-    loadMapIcons();
 
     setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO);
+
+    Future.delayed(Duration.zero, () async {
+      loadMapIcons();
+      await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
+      _geoFireInitialized = true;
+    });
   }
 
   void updateLoginCredentials() async {
@@ -243,7 +248,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     );
   }
 
-  void resetTripDetails() {
+  void resetTripDetails() async {
     _UIState = UI_STATE_NOTHING_STARTED;
     _isHamburgerDrawerMode = true;
 
@@ -252,7 +257,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _mapPolyLines.clear();
     _mapMarkers.clear();
 
-    attachGeoFireListener();
+    await stopGeoFireListener();
+
+    await attachGeoFireListener();
+
     zoomCameraToCurrentPosition();
 
     _selectedDriver = null;
@@ -607,7 +615,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
               // start listening to nearby drivers once location is acquired
               if (locationAcquired) {
-                await initGeoFireListener();
+                await attachGeoFireListener();
               }
             },
           ),
@@ -651,7 +659,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                   ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS);
 
               // stop showing nearby drivers
-              stopGeofireListener();
+              stopGeoFireListener();
 
               setState(() {});
             },
@@ -678,7 +686,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                     ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS);
 
                 // stop showing nearby drivers
-                stopGeofireListener();
+                stopGeoFireListener();
 
                 setState(() {});
               },
@@ -776,6 +784,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   @override
   void dispose() {
     _tripCounterTimer?.cancel();
+
+    if (_geoFireInitialized) {
+      Geofire.stopListener();
+    }
+
     super.dispose();
   }
 
@@ -1123,26 +1136,18 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     LatLngBounds latLngBounds =
         LatLngBounds(southwest: south, northeast: north);
     _mapController!
-        .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 70));
+        .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 110));
   }
 
-  Future<bool> initGeoFireListener() async {
-    await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
-
-    _geoFireInitialized = true;
-
-    attachGeoFireListener();
-
-    return true;
-  }
-
-  void attachGeoFireListener() {
+  Future<void> attachGeoFireListener() async {
     final String FIELD_CALLBACK = 'callBack';
     final String FIELD_KEY = 'key';
     final String FIELD_LATITUDE = 'latitude';
     final String FIELD_LONGITUDE = 'longitude';
 
-    if (!_geoFireInitialized || _geofireLocationStream != null) return;
+    _geofireLocationStream?.cancel();
+
+    _isNearbyDriverLoadingComplete = false;
 
     _geofireLocationStream = Geofire.queryAtLocation(_currentPosition!.latitude,
             _currentPosition!.longitude, DRIVER_RADIUS_KILOMETERS)
@@ -1196,11 +1201,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     );
   }
 
-  void stopGeofireListener() async {
-    if (!_geoFireInitialized) return;
-
-    await Geofire.stopListener();
-
+  Future<void> stopGeoFireListener() async {
     _geofireLocationStream?.cancel();
     _geofireLocationStream = null;
   }
@@ -1218,7 +1219,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         .toSet();
   }
 
-  void addOrUpdateDriverLocation(DriverLocation driverLoc) async {
+  void addOrUpdateDriverLocation(DriverLocation driverLoc) {
     int prevIndex = _nearByDrivers
         .indexWhere((driver) => (driver.driverID == driverLoc.driverID));
 
