@@ -71,6 +71,9 @@ class RideRequest extends FirebaseDocument {
   static const FIELD_ACTUAL_TRIP_MINUTES = "actual_trip_minutes";
   static const FIELD_ACTUAL_TRIP_KILOMETERS = "actual_trip_kilometers";
 
+  static const FIELD_WILL_CONTINUE_SEARCH = "will_continue_search";
+  static const FIELD_SEARCH_RADIUS = "search_radius";
+
   // END field name declarations
 
   static const int STATUS_DRIVER_NOT_FOUND = -5;
@@ -177,6 +180,10 @@ class RideRequest extends FirebaseDocument {
   double? actual_trip_minutes;
   @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? actual_trip_kilometers;
+
+  bool? will_continue_search;
+  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
+  double? search_radius;
 
   RideRequest();
 
