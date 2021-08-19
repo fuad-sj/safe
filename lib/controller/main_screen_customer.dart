@@ -1174,7 +1174,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     };
 
     zoomCameraToWithinBounds(_pickupToDropOffRouteDetail!.pickUpLoc,
-        _pickupToDropOffRouteDetail!.dropOffLoc, 110);
+        _pickupToDropOffRouteDetail!.dropOffLoc, 150);
   }
 
   void zoomCameraToWithinBounds(
@@ -1198,7 +1198,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     LatLngBounds latLngBounds =
         LatLngBounds(southwest: south, northeast: north);
     _mapController!
-        .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, 110));
+        .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, padding));
   }
 
   Future<void> attachGeoFireListener() async {
