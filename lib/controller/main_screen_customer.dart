@@ -33,7 +33,6 @@ import 'package:safe/models/driver.dart';
 import 'package:safe/models/google_place_description.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
-import 'package:safe/utils/dummy_driver_generator.dart';
 import 'package:safe/utils/google_api_util.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/models/address.dart';
@@ -90,7 +89,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   final double CAR_ICON_SIZE_RATIO = 0.22;
   final double PIN_ICON_SIZE_RATIO = 0.16;
 
-  BitmapDescriptor? _CAR_ICON;
+  BitmapDescriptor? _SILVER_CAR_ICON;
+  BitmapDescriptor? _YELLOW_CAR_ICON;
   BitmapDescriptor? _PICKUP_PIN_ICON;
   BitmapDescriptor? _DROPOFF_PIN_ICON;
 
@@ -233,8 +233,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void loadMapIcons() async {
-    _CAR_ICON = await AlphaNumericUtil.getBytesFromAsset(
+    _SILVER_CAR_ICON = await AlphaNumericUtil.getBytesFromAsset(
         context, 'images/car.png', CAR_ICON_SIZE_RATIO);
+    _YELLOW_CAR_ICON = await AlphaNumericUtil.getBytesFromAsset(
+        context, 'images/yellow_car.png', CAR_ICON_SIZE_RATIO);
 
     _PICKUP_PIN_ICON = await AlphaNumericUtil.getBytesFromAsset(
         context, 'images/dot_red.png', PIN_ICON_SIZE_RATIO);
@@ -952,7 +954,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                     'driver${_selectedDriverCurrentLocation!.driverID}'),
                 position: LatLng(_selectedDriverCurrentLocation!.latitude,
                     _selectedDriverCurrentLocation!.longitude),
-                icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
+                icon: (_selectedDriverCurrentLocation!.car_type == 1
+                        ? _SILVER_CAR_ICON
+                        : _YELLOW_CAR_ICON) ??
+                    BitmapDescriptor.defaultMarker,
                 rotation: 0,
               ),
 
@@ -1152,19 +1157,34 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _geofireLocationStream = Geofire.queryAtLocation(_currentPosition!.latitude,
             _currentPosition!.longitude, DRIVER_RADIUS_KILOMETERS)
         ?.listen(
-      (map) {
+      (map) async {
         if (map != null) {
           var callBack = map[FIELD_CALLBACK];
 
-          switch (callBack) {
-            case Geofire.onKeyEntered:
-              addOrUpdateDriverLocation(
-                DriverLocation(
+          late DriverLocation driverLoc;
+
+          if (callBack == Geofire.onKeyEntered ||
+              callBack == Geofire.onKeyMoved) {
+            String driverId = map[FIELD_KEY];
+            DataSnapshot? snapshot = await FirebaseDatabase.instance
+                .reference()
+                .child(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS)
+                .child(driverId)
+                .get();
+            if (snapshot != null) {
+              driverLoc = DriverLocation.fromSnapshot(snapshot);
+            } else {
+              driverLoc = DriverLocation(
                   driverID: map[FIELD_KEY],
                   latitude: map[FIELD_LATITUDE],
                   longitude: map[FIELD_LONGITUDE],
-                ),
-              );
+                  car_type: 1);
+            }
+          }
+
+          switch (callBack) {
+            case Geofire.onKeyEntered:
+              addOrUpdateDriverLocation(driverLoc);
               if (_isNearbyDriverLoadingComplete) {
                 updateAvailableDriversOnMap();
               }
@@ -1178,13 +1198,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               break;
 
             case Geofire.onKeyMoved:
-              addOrUpdateDriverLocation(
-                DriverLocation(
-                  driverID: map[FIELD_KEY],
-                  latitude: map[FIELD_LATITUDE],
-                  longitude: map[FIELD_LONGITUDE],
-                ),
-              );
+              addOrUpdateDriverLocation(driverLoc);
               updateAvailableDriversOnMap();
               break;
 
@@ -1212,7 +1226,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           (driver) => Marker(
             markerId: MarkerId('driver${driver.driverID}'),
             position: LatLng(driver.latitude, driver.longitude),
-            icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
+            icon:
+                (driver.car_type == 1 ? _SILVER_CAR_ICON : _YELLOW_CAR_ICON) ??
+                    BitmapDescriptor.defaultMarker,
             rotation: driver.orientation ?? 0,
           ),
         )

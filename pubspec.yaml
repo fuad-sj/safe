@@ -81,6 +81,7 @@ flutter:
     - images/pin_location.png
     - images/safe.png
     - images/car_side.png
+    - images/yellow_car.png
 
   fonts:
     - family: Signatra
