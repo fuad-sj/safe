@@ -5,7 +5,7 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 class SearchingForDriverBottomSheet extends BaseBottomSheet {
   static const String KEY = 'SearchingForDriverBottomSheet';
 
-  static const double HEIGHT_SEARCHING_FOR_DRIVER = 250.0;
+  static const double HEIGHT_SEARCHING_FOR_DRIVER = 180.0;
   static const double TOP_CORNER_BORDER_RADIUS = 22.0;
 
   SearchingForDriverBottomSheet({
