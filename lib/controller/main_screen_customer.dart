@@ -830,11 +830,12 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
         if (willContinueSearch && !_zoomAdjustedForContinuedSearch) {
           _zoomAdjustedForContinuedSearch = true;
-          zoomCameraToWithinBounds(
-            LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
-            _currentRideRequest!.dropoff_location!,
-            200,
-          );
+
+          // center camera on pickup location and cycle through different options
+          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
+            _currentRideRequest!.pickup_location!,
+            13.85,
+          ));
 
           _mapCircles = Set.from([
             Circle(
@@ -842,7 +843,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               center: _currentRideRequest!.pickup_location!,
               radius: _currentRideRequest!.search_radius! * 1000.0,
               fillColor: Colors.blue.shade100.withOpacity(0.5),
-              strokeColor: Colors.blue.shade100.withOpacity(0.1),
+              strokeColor: Colors.red.shade100.withOpacity(0.1),
             )
           ]);
         } else if (!willContinueSearch) {
