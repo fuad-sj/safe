@@ -18,7 +18,7 @@ class GoogleApiUtils {
     };
 
     var response = await HttpUtil.getHttpsRequest(
-        REST_API_ROOT_PATH, '/RESTApis/api/v1/cached_geocode', params);
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/geocode', params);
 
     String placeAddress = response['place'];
 
@@ -36,7 +36,7 @@ class GoogleApiUtils {
     };
 
     var response = await HttpUtil.getHttpsRequest(
-        REST_API_ROOT_PATH, '/RESTApis/api/v1/cached_geocode', params);
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/geocode', params);
 
     String placeAddress = response['place'];
 
