@@ -9,6 +9,7 @@ import 'package:safe/constants.dart';
 class GoogleApiUtils {
   // Convert [lat,long] into an human readable address using google maps api
   static Future<Address?> searchCoordinateLatLng(LatLng latLng) async {
+    /*
     Map<String, dynamic> params = {
       'latlng': '${latLng.latitude},${latLng.longitude}',
       'key': '$GoogleMapKey',
@@ -27,6 +28,7 @@ class GoogleApiUtils {
       location: LatLng(latLng.latitude, latLng.longitude),
       placeName: placeAddress,
     );
+    */
   }
 
   // Convert [lat,long] into an human readable address using google maps api
