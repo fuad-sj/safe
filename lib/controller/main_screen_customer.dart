@@ -951,11 +951,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _mapController!
           .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-      Address? address = await GoogleApiUtils.searchCoordinateAddress(position);
-
-      if (address == null) {
-        return false;
-      }
+      Address address = await GoogleApiUtils.searchCoordinateAddress(position);
 
       Provider.of<PickUpAndDropOffLocations>(context, listen: false)
           .updatePickupLocationAddress(address);
