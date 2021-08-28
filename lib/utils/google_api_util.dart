@@ -77,33 +77,26 @@ class GoogleApiUtils {
     return routeDetails;
   }
 
-  static Future<Address?> getPlaceAddressDetails(String placeId) async {
+  static Future<Address> getPlaceAddressDetails(
+      String placeId, String sessionId) async {
     Map<String, dynamic> params = {
-      'place_id': '$placeId',
-      'key': '$GoogleMapKey',
+      'place_id': '${placeId}',
+      'session_id': '${sessionId}',
     };
 
-    try {
-      var response = await HttpUtil.getHttpsRequest(
-          'maps.googleapis.com', '/maps/api/place/details/json', params);
+    var response = await HttpUtil.getHttpsRequest(
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/place_detail', params);
 
-      if (response['status'] != 'OK') return null;
+    var detail = response['detail'];
 
-      var result = response['result'];
-
-      Address address = Address(
-        placeId: placeId,
-        placeName: result['name'],
-        location: LatLng(
-          result['geometry']['location']['lat'],
-          result['geometry']['location']['lng'],
-        ),
-      );
-
-      return address;
-    } catch (err) {}
-
-    return null;
+    return Address(
+      placeId: placeId,
+      placeName: detail['place_name'],
+      location: LatLng(
+        detail['latitude'],
+        detail['longitude'],
+      ),
+    );
   }
 
   static Future<List<GooglePlaceDescription>?> autoCompletePlaceName(

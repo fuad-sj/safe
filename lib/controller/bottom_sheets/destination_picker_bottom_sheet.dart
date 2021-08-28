@@ -242,23 +242,24 @@ class _DestinationPickerBottomSheetState
                             message: SafeLocalizations.of(context)!
                                 .bottom_sheet_destination_picker_progress_dialog_waiting));
 
-                    Address? address =
-                        await GoogleApiUtils.getPlaceAddressDetails(
-                            place.place_id);
-                    Navigator.pop(context);
+                    try {
+                      Address address =
+                          await GoogleApiUtils.getPlaceAddressDetails(
+                              place.place_id, _sessionId);
 
-                    if (address == null) {
-                      // TODO: show error
-                      return;
+                      Navigator.pop(context);
+
+                      Provider.of<PickUpAndDropOffLocations>(context,
+                              listen: false)
+                          .updateDropOffLocationAddress(address);
+                      _placePredictionList?.clear();
+
+                      widget.onActionCallback();
+                    } catch (err) {
+                      Navigator.pop(context);
+
+                      displayToastMessage(err.toString(), context);
                     }
-
-                    Provider.of<PickUpAndDropOffLocations>(context,
-                            listen: false)
-                        .updateDropOffLocationAddress(address);
-
-                    _placePredictionList?.clear();
-
-                    widget.onActionCallback();
                   },
                   place: _placePredictionList![index],
                 );
