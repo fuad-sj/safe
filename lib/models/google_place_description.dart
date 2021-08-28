@@ -11,7 +11,7 @@ class GooglePlaceDescription {
 
   GooglePlaceDescription.fromJson(Map<String, dynamic> json) {
     place_id = json['place_id'];
-    main_name = json['structured_formatting']['main_text'];
-    detailed_name = json['structured_formatting']['secondary_text'];
+    main_name = json['main_name'];
+    detailed_name = json['detailed_name'];
   }
 }

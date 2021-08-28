@@ -106,29 +106,21 @@ class GoogleApiUtils {
     return null;
   }
 
-  static Future<List<GooglePlaceDescription>?> searchForBestMatchingPlace(
-      String placeName) async {
+  static Future<List<GooglePlaceDescription>?> autoCompletePlaceName(
+      String placeName, String sessionId) async {
     Map<String, dynamic> params = {
-      'input': '$placeName',
-      'key': '$GoogleMapKey',
-      'sessiontoken': '1234567890',
-      'components': 'country:et'
+      'search': '${placeName}',
+      'session_id': '${sessionId}',
     };
 
-    try {
-      var response = await HttpUtil.getHttpsRequest(
-          'maps.googleapis.com', '/maps/api/place/autocomplete/json', params);
+    var response = await HttpUtil.getHttpsRequest(
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/auto_complete', params);
 
-      if (response['status'] != 'OK') return null;
+    var predictions = response['matches'];
 
-      var predictions = response['predictions'];
-
-      return (predictions as List)
-          .map((json) => GooglePlaceDescription.fromJson(json))
-          .toList();
-    } catch (err) {}
-
-    return null;
+    return (predictions as List)
+        .map((json) => GooglePlaceDescription.fromJson(json))
+        .toList();
   }
 
   static double _calculateEstimatedFarePrice(RouteDetails directionDetails) {
