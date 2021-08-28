@@ -7,45 +7,38 @@ import 'package:safe/models/route_details.dart';
 import 'package:safe/constants.dart';
 
 class GoogleApiUtils {
+  static const String REST_API_ROOT_PATH =
+      "us-central1-testride-8e2f8.cloudfunctions.net";
+
   // Convert [lat,long] into an human readable address using google maps api
-  static Future<Address?> searchCoordinateLatLng(LatLng latLng) async {
-    /*
+  static Future<Address> searchCoordinateLatLng(LatLng latLng) async {
     Map<String, dynamic> params = {
-      'latlng': '${latLng.latitude},${latLng.longitude}',
-      'key': '$GoogleMapKey',
+      'lat': '${latLng.latitude}',
+      'lng': '${latLng.longitude}',
     };
 
     var response = await HttpUtil.getHttpsRequest(
-        'maps.googleapis.com', "/maps/api/geocode/json", params);
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/cached_geocode', params);
 
-    String st1 = response['results'][0]['address_components'][1]["long_name"];
-    String st2 = response['results'][0]['address_components'][2]["long_name"];
-    String st3 = response['results'][0]['address_components'][3]["long_name"];
-
-    String placeAddress = '$st1, $st2, $st3';
+    String placeAddress = response['place'];
 
     return Address(
       location: LatLng(latLng.latitude, latLng.longitude),
       placeName: placeAddress,
     );
-    */
   }
 
   // Convert [lat,long] into an human readable address using google maps api
-  static Future<Address?> searchCoordinateAddress(Position position) async {
+  static Future<Address> searchCoordinateAddress(Position position) async {
     Map<String, dynamic> params = {
-      'latlng': '${position.latitude},${position.longitude}',
-      'key': '$GoogleMapKey',
+      'lat': '${position.latitude}',
+      'lng': '${position.longitude}',
     };
 
     var response = await HttpUtil.getHttpsRequest(
-        'maps.googleapis.com', "/maps/api/geocode/json", params);
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/cached_geocode', params);
 
-    String st1 = response['results'][0]['address_components'][1]["long_name"];
-    String st2 = response['results'][0]['address_components'][2]["long_name"];
-    String st3 = response['results'][0]['address_components'][3]["long_name"];
-
-    String placeAddress = '$st1, $st2, $st3';
+    String placeAddress = response['place'];
 
     return Address(
       location: LatLng(position.latitude, position.longitude),
