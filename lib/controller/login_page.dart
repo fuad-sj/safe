@@ -9,6 +9,8 @@ import 'package:safe/controller/registration_screen.dart';
 import 'package:safe/controller/verification_page.dart';
 import 'package:package_info/package_info.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:safe/language_selector_dialog.dart';
+import 'package:safe/utils/pref_util.dart';
 
 class LoginPage extends StatefulWidget {
   static const String idScreen = 'LoginPage';
@@ -68,6 +70,25 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!PrefUtil.isUserLanguageLocaleSet()) {
+      /**
+       * !!! VERY IMPORTANT !!!
+       * can't directly call [showDialog], schedule it for next cycle
+       * checkout details: https://stackoverflow.com/a/52062540
+       */
+      Future.delayed(
+        Duration.zero,
+        () async {
+          await showDialog(
+            context: context,
+            builder: (_) => LanguageSelectorDialog(),
+          );
+
+          setState(() {});
+        },
+      );
+    }
+
     return Scaffold(
       body: Column(
         children: [

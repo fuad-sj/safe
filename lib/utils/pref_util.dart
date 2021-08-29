@@ -74,4 +74,8 @@ class PrefUtil {
   static String getUserLanguageLocale() {
     return _prefs.getString(pref_user_language_locale) ?? LANGUAGE_ENGLISH;
   }
+
+  static bool isUserLanguageLocaleSet() {
+    return _prefs.getString(pref_user_language_locale) != null;
+  }
 }
