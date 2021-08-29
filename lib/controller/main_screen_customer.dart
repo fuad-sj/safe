@@ -90,8 +90,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   final double CAR_ICON_SIZE_RATIO = 0.22;
   final double PIN_ICON_SIZE_RATIO = 0.16;
 
-  BitmapDescriptor? _SILVER_CAR_ICON;
-  BitmapDescriptor? _YELLOW_CAR_ICON;
+  BitmapDescriptor? _CAR_ICON;
+
   BitmapDescriptor? _PICKUP_PIN_ICON;
   BitmapDescriptor? _DROPOFF_PIN_ICON;
 
@@ -237,10 +237,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void loadMapIcons() async {
-    _SILVER_CAR_ICON = await AlphaNumericUtil.getBytesFromAsset(
+    _CAR_ICON = await AlphaNumericUtil.getBytesFromAsset(
         context, 'images/car.png', CAR_ICON_SIZE_RATIO);
-    _YELLOW_CAR_ICON = await AlphaNumericUtil.getBytesFromAsset(
-        context, 'images/yellow_car.png', CAR_ICON_SIZE_RATIO);
 
     _PICKUP_PIN_ICON = await AlphaNumericUtil.getBytesFromAsset(
         context, 'images/dot_red.png', PIN_ICON_SIZE_RATIO);
@@ -958,10 +956,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                   (driver) => Marker(
                     markerId: MarkerId('driver${driver.driverID}'),
                     position: LatLng(driver.latitude, driver.longitude),
-                    icon: (driver.car_type == 1
-                            ? _SILVER_CAR_ICON
-                            : _YELLOW_CAR_ICON) ??
-                        BitmapDescriptor.defaultMarker,
+                    icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
                     rotation: driver.orientation ?? 0,
                   ),
                 )
@@ -1008,10 +1003,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                       'driver${_selectedDriverCurrentLocation!.driverID}'),
                   position: LatLng(_selectedDriverCurrentLocation!.latitude,
                       _selectedDriverCurrentLocation!.longitude),
-                  icon: (_selectedDriverCurrentLocation!.car_type == 1
-                          ? _SILVER_CAR_ICON
-                          : _YELLOW_CAR_ICON) ??
-                      BitmapDescriptor.defaultMarker,
+                  icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
                   rotation: 0,
                 ),
 
@@ -1220,21 +1212,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
           if (callBack == Geofire.onKeyEntered ||
               callBack == Geofire.onKeyMoved) {
-            String driverId = map[FIELD_KEY];
-            DataSnapshot? snapshot = await FirebaseDatabase.instance
-                .reference()
-                .child(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS)
-                .child(driverId)
-                .get();
-            if (snapshot != null) {
-              driverLoc = DriverLocation.fromSnapshot(snapshot);
-            } else {
-              driverLoc = DriverLocation(
-                  driverID: map[FIELD_KEY],
-                  latitude: map[FIELD_LATITUDE],
-                  longitude: map[FIELD_LONGITUDE],
-                  car_type: 1);
-            }
+            driverLoc = DriverLocation(
+                driverID: map[FIELD_KEY],
+                latitude: map[FIELD_LATITUDE],
+                longitude: map[FIELD_LONGITUDE],
+                car_type: 1);
           }
 
           switch (callBack) {
@@ -1280,9 +1262,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           (driver) => Marker(
             markerId: MarkerId('driver${driver.driverID}'),
             position: LatLng(driver.latitude, driver.longitude),
-            icon:
-                (driver.car_type == 1 ? _SILVER_CAR_ICON : _YELLOW_CAR_ICON) ??
-                    BitmapDescriptor.defaultMarker,
+            icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
             rotation: driver.orientation ?? 0,
           ),
         )
