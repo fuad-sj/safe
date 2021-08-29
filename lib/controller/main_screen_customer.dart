@@ -249,7 +249,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     );
   }
 
-  void resetTripDetails() async {
+  void resetTripDetails() {
     setState(() {
       _UIState = UI_STATE_NOTHING_STARTED;
       _isHamburgerDrawerMode = true;
