@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -63,6 +65,8 @@ class _SelectDropOffPinBottomSheetState
 
   Address? _destinationAddress;
 
+  Timer? _locationGeocodeTimer;
+
   @override
   void initState() {
     super.initState();
@@ -108,6 +112,12 @@ class _SelectDropOffPinBottomSheetState
   }
 
   @override
+  void dispose() {
+    _locationGeocodeTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget buildContent(BuildContext context) {
     const double TOP_MAP_PADDING = 40;
 
@@ -136,13 +146,27 @@ class _SelectDropOffPinBottomSheetState
             setState(() {});
           },
           onCameraMoveStarted: () {
+            _locationGeocodeTimer?.cancel();
             _destinationAddress = null;
             setState(() {});
           },
           onCameraMove: (CameraPosition newPosition) async {
-            _destinationAddress =
-                await GoogleApiUtils.searchCoordinateLatLng(newPosition.target);
-            setState(() {});
+            _locationGeocodeTimer?.cancel();
+            _locationGeocodeTimer = new Timer(
+              Duration(milliseconds: 100),
+              () async {
+                if (!mounted) return;
+
+                try {
+                  _destinationAddress =
+                  await GoogleApiUtils.searchCoordinateLatLng(
+                      newPosition.target);
+                } catch (err) {
+                  _destinationAddress = null;
+                }
+                setState(() {});
+              },
+            );
           },
         ),
 

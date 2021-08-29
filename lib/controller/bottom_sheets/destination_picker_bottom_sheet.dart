@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
+import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/models/address.dart';
 import 'package:safe/models/google_place_description.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/google_api_util.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:safe/utils/pref_util.dart';
 
 class DestinationPickerBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DestinationPickerBottomSheet';
@@ -53,6 +58,25 @@ class _DestinationPickerBottomSheetState
   TextEditingController _dropOffTextController = TextEditingController();
 
   List<GooglePlaceDescription>? _placePredictionList;
+
+  Timer? _autoCompleteTimer;
+
+  late String _sessionId;
+  String _searchPlace = '';
+
+  @override
+  void initState() {
+    super.initState();
+
+    String formattedDate = DateFormat('dd_kk_mm_ss').format(DateTime.now());
+    _sessionId = '${PrefUtil.getCurrentUserID()}_${formattedDate}';
+  }
+
+  @override
+  void dispose() {
+    _autoCompleteTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget buildContent(BuildContext context) {
@@ -125,17 +149,28 @@ class _DestinationPickerBottomSheetState
                       padding: EdgeInsets.all(3.0),
                       child: TextField(
                         controller: _dropOffTextController,
-                        onChanged: (searchPlace) async {
-                          searchPlace = searchPlace.trim();
-                          if (searchPlace.isEmpty) {
+                        onChanged: (newVal) {
+                          _searchPlace = newVal.trim();
+                          _autoCompleteTimer?.cancel();
+                          if (_searchPlace.isEmpty) {
                             _placePredictionList = null;
-                          } else {
-                            _placePredictionList =
-                                await GoogleApiUtils.searchForBestMatchingPlace(
-                                    searchPlace);
+                            setState(() {});
+                            return;
                           }
 
-                          setState(() {});
+                          _autoCompleteTimer = new Timer(
+                            Duration(milliseconds: 400),
+                            () async {
+                              try {
+                                _placePredictionList =
+                                    await GoogleApiUtils.autoCompletePlaceName(
+                                        _searchPlace, _sessionId);
+                              } catch (err) {
+                                _placePredictionList = null;
+                              }
+                              setState(() {});
+                            },
+                          );
                         },
                         decoration: InputDecoration(
                           hintText: SafeLocalizations.of(context)!
@@ -207,23 +242,24 @@ class _DestinationPickerBottomSheetState
                             message: SafeLocalizations.of(context)!
                                 .bottom_sheet_destination_picker_progress_dialog_waiting));
 
-                    Address? address =
-                        await GoogleApiUtils.getPlaceAddressDetails(
-                            place.place_id);
-                    Navigator.pop(context);
+                    try {
+                      Address address =
+                          await GoogleApiUtils.getPlaceAddressDetails(
+                              place.place_id, _sessionId);
 
-                    if (address == null) {
-                      // TODO: show error
-                      return;
+                      Navigator.pop(context);
+
+                      Provider.of<PickUpAndDropOffLocations>(context,
+                              listen: false)
+                          .updateDropOffLocationAddress(address);
+                      _placePredictionList?.clear();
+
+                      widget.onActionCallback();
+                    } catch (err) {
+                      Navigator.pop(context);
+
+                      displayToastMessage(err.toString(), context);
                     }
-
-                    Provider.of<PickUpAndDropOffLocations>(context,
-                            listen: false)
-                        .updateDropOffLocationAddress(address);
-
-                    _placePredictionList?.clear();
-
-                    widget.onActionCallback();
                   },
                   place: _placePredictionList![index],
                 );

@@ -7,21 +7,20 @@ import 'package:safe/models/route_details.dart';
 import 'package:safe/constants.dart';
 
 class GoogleApiUtils {
+  static const String REST_API_ROOT_PATH =
+      "us-central1-testride-8e2f8.cloudfunctions.net";
+
   // Convert [lat,long] into an human readable address using google maps api
-  static Future<Address?> searchCoordinateLatLng(LatLng latLng) async {
+  static Future<Address> searchCoordinateLatLng(LatLng latLng) async {
     Map<String, dynamic> params = {
-      'latlng': '${latLng.latitude},${latLng.longitude}',
-      'key': '$GoogleMapKey',
+      'lat': '${latLng.latitude}',
+      'lng': '${latLng.longitude}',
     };
 
     var response = await HttpUtil.getHttpsRequest(
-        'maps.googleapis.com', "/maps/api/geocode/json", params);
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/geocode', params);
 
-    String st1 = response['results'][0]['address_components'][1]["long_name"];
-    String st2 = response['results'][0]['address_components'][2]["long_name"];
-    String st3 = response['results'][0]['address_components'][3]["long_name"];
-
-    String placeAddress = '$st1, $st2, $st3';
+    String placeAddress = response['place'];
 
     return Address(
       location: LatLng(latLng.latitude, latLng.longitude),
@@ -30,20 +29,16 @@ class GoogleApiUtils {
   }
 
   // Convert [lat,long] into an human readable address using google maps api
-  static Future<Address?> searchCoordinateAddress(Position position) async {
+  static Future<Address> searchCoordinateAddress(Position position) async {
     Map<String, dynamic> params = {
-      'latlng': '${position.latitude},${position.longitude}',
-      'key': '$GoogleMapKey',
+      'lat': '${position.latitude}',
+      'lng': '${position.longitude}',
     };
 
     var response = await HttpUtil.getHttpsRequest(
-        'maps.googleapis.com', "/maps/api/geocode/json", params);
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/geocode', params);
 
-    String st1 = response['results'][0]['address_components'][1]["long_name"];
-    String st2 = response['results'][0]['address_components'][2]["long_name"];
-    String st3 = response['results'][0]['address_components'][3]["long_name"];
-
-    String placeAddress = '$st1, $st2, $st3';
+    String placeAddress = response['place'];
 
     return Address(
       location: LatLng(position.latitude, position.longitude),
@@ -82,58 +77,43 @@ class GoogleApiUtils {
     return routeDetails;
   }
 
-  static Future<Address?> getPlaceAddressDetails(String placeId) async {
+  static Future<Address> getPlaceAddressDetails(
+      String placeId, String sessionId) async {
     Map<String, dynamic> params = {
-      'place_id': '$placeId',
-      'key': '$GoogleMapKey',
+      'place_id': '${placeId}',
+      'session_id': '${sessionId}',
     };
 
-    try {
-      var response = await HttpUtil.getHttpsRequest(
-          'maps.googleapis.com', '/maps/api/place/details/json', params);
+    var response = await HttpUtil.getHttpsRequest(
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/place_detail', params);
 
-      if (response['status'] != 'OK') return null;
+    var detail = response['detail'];
 
-      var result = response['result'];
-
-      Address address = Address(
-        placeId: placeId,
-        placeName: result['name'],
-        location: LatLng(
-          result['geometry']['location']['lat'],
-          result['geometry']['location']['lng'],
-        ),
-      );
-
-      return address;
-    } catch (err) {}
-
-    return null;
+    return Address(
+      placeId: placeId,
+      placeName: detail['place_name'],
+      location: LatLng(
+        detail['latitude'],
+        detail['longitude'],
+      ),
+    );
   }
 
-  static Future<List<GooglePlaceDescription>?> searchForBestMatchingPlace(
-      String placeName) async {
+  static Future<List<GooglePlaceDescription>?> autoCompletePlaceName(
+      String placeName, String sessionId) async {
     Map<String, dynamic> params = {
-      'input': '$placeName',
-      'key': '$GoogleMapKey',
-      'sessiontoken': '1234567890',
-      'components': 'country:et'
+      'search': '${placeName}',
+      'session_id': '${sessionId}',
     };
 
-    try {
-      var response = await HttpUtil.getHttpsRequest(
-          'maps.googleapis.com', '/maps/api/place/autocomplete/json', params);
+    var response = await HttpUtil.getHttpsRequest(
+        REST_API_ROOT_PATH, '/RESTApis/api/v1/auto_complete', params);
 
-      if (response['status'] != 'OK') return null;
+    var predictions = response['matches'];
 
-      var predictions = response['predictions'];
-
-      return (predictions as List)
-          .map((json) => GooglePlaceDescription.fromJson(json))
-          .toList();
-    } catch (err) {}
-
-    return null;
+    return (predictions as List)
+        .map((json) => GooglePlaceDescription.fromJson(json))
+        .toList();
   }
 
   static double _calculateEstimatedFarePrice(RouteDetails directionDetails) {
