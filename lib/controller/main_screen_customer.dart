@@ -100,7 +100,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   Set<Polyline> _mapPolyLines = Set();
   Set<Marker> _mapMarkers = Set();
-  Set<Circle> _mapCircles = Set();
 
   Position? _currentPosition;
 
@@ -125,8 +124,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   Driver? _selectedDriver;
   DriverLocation? _selectedDriverCurrentLocation;
   StreamSubscription<dynamic>? _selectedDriverLocationStream;
-
-  bool _zoomAdjustedForContinuedSearch = false;
 
   bool get isDriverSelected => _selectedDriver != null;
 
@@ -261,7 +258,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       _mapPolyLines.clear();
       _mapMarkers.clear();
-      _mapCircles.clear();
 
       _ignoreGeofireUpdates = false;
 
@@ -607,7 +603,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             zoomGesturesEnabled: true,
             zoomControlsEnabled: _UIState != UI_STATE_SELECT_PIN_SELECTED,
             markers: _mapMarkers,
-            circles: _mapCircles,
             onMapCreated: (GoogleMapController controller) async {
               _mapController = controller;
               controller.setMapStyle(GoogleMapStyle.mapStyles);
@@ -799,7 +794,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   Future<void> listenToRideStatusUpdates() async {
-    _zoomAdjustedForContinuedSearch = false;
     _rideRequestRef?.snapshots().listen(
       (snapshot) async {
         _currentRideRequest = RideRequest.fromSnapshot(snapshot);
@@ -823,31 +817,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             rideStatus == RideRequest.STATUS_DRIVER_CONFIRMED;
         bool hasTripStarted = rideStatus == RideRequest.STATUS_TRIP_STARTED;
 
-        bool willContinueSearch =
-            _currentRideRequest?.will_continue_search ?? false;
-
-        if (willContinueSearch && !_zoomAdjustedForContinuedSearch) {
-          _zoomAdjustedForContinuedSearch = true;
-
-          // center camera on pickup location and cycle through different options
-          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
-            _currentRideRequest!.pickup_location!,
-            13.85,
-          ));
-
-          _mapCircles = Set.from([
-            Circle(
-              circleId: CircleId('search radius'),
-              center: _currentRideRequest!.pickup_location!,
-              radius: _currentRideRequest!.search_radius! * 1000.0,
-              fillColor: Colors.blue.shade100.withOpacity(0.5),
-              strokeColor: Colors.red.shade100.withOpacity(0.1),
-            )
-          ]);
-        } else if (!willContinueSearch) {
-          _mapCircles.clear();
-        }
-
         if (rideStatus == RideRequest.STATUS_TRIP_COMPLETED) {
           // note: trip summary will be shown next build cycle
           _UIState = UI_STATE_TRIP_COMPLETED;
@@ -855,8 +824,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           return;
         }
 
-        if (rideStatus == RideRequest.STATUS_DRIVER_PICKED &&
-            !willContinueSearch) {
+        if (rideStatus == RideRequest.STATUS_DRIVER_PICKED) {
           _mapMarkers.clear();
         }
 
@@ -950,87 +918,68 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                   : _currentRideRequest!.pickup_location!,
             ),
           };
-          if (willContinueSearch) {
-            Set<Marker> cars = _nearByDrivers
-                .map(
-                  (driver) => Marker(
-                    markerId: MarkerId('driver${driver.driverID}'),
-                    position: LatLng(driver.latitude, driver.longitude),
-                    icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
-                    rotation: driver.orientation ?? 0,
-                  ),
-                )
-                .toSet();
-            _mapMarkers.addAll(cars);
-          }
         }
 
         // cancel any previous driver's location stream
         _selectedDriverCurrentLocation = null;
         _selectedDriverLocationStream?.cancel();
+        _selectedDriverLocationStream = FirebaseDatabase.instance
+            .reference()
+            .child(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS)
+            .child(driverId)
+            .onValue
+            .listen(
+          (locSnapshot) {
+            bool firstTimeLocationAcquired =
+                _selectedDriverCurrentLocation == null;
+            _selectedDriverCurrentLocation =
+                DriverLocation.fromSnapshot(locSnapshot.snapshot);
 
-        if (!willContinueSearch) {
-          // when in search mode, don't look for live update
-          _selectedDriverLocationStream = FirebaseDatabase.instance
-              .reference()
-              .child(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS)
-              .child(driverId)
-              .onValue
-              .listen(
-            (locSnapshot) {
-              bool firstTimeLocationAcquired =
-                  _selectedDriverCurrentLocation == null;
-              _selectedDriverCurrentLocation =
-                  DriverLocation.fromSnapshot(locSnapshot.snapshot);
+            bool has_trip_started = _currentRideRequest!.ride_status ==
+                RideRequest.STATUS_TRIP_STARTED;
+            if (firstTimeLocationAcquired) {
+              zoomCameraToWithinBounds(
+                LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+                has_trip_started
+                    ? _currentRideRequest!.dropoff_location!
+                    : _selectedDriverCurrentLocation!.getLocationLatLng,
+                110,
+              );
+            }
 
-              bool has_trip_started = _currentRideRequest!.ride_status ==
-                  RideRequest.STATUS_TRIP_STARTED;
-              if (firstTimeLocationAcquired) {
-                zoomCameraToWithinBounds(
-                  LatLng(
-                      _currentPosition!.latitude, _currentPosition!.longitude),
-                  has_trip_started
-                      ? _currentRideRequest!.dropoff_location!
-                      : _selectedDriverCurrentLocation!.getLocationLatLng,
-                  110,
-                );
-              }
+            _mapMarkers = {
+              // Car live locations
+              Marker(
+                markerId: MarkerId(
+                    'driver${_selectedDriverCurrentLocation!.driverID}'),
+                position: LatLng(_selectedDriverCurrentLocation!.latitude,
+                    _selectedDriverCurrentLocation!.longitude),
+                icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
+                rotation: 0,
+              ),
 
-              _mapMarkers = {
-                // Car live locations
-                Marker(
-                  markerId: MarkerId(
-                      'driver${_selectedDriverCurrentLocation!.driverID}'),
-                  position: LatLng(_selectedDriverCurrentLocation!.latitude,
-                      _selectedDriverCurrentLocation!.longitude),
-                  icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
-                  rotation: 0,
-                ),
+              // Pickup | Dropoff pins
+              Marker(
+                markerId: MarkerId('pickup id'),
+                icon:
+                    (has_trip_started ? _DROPOFF_PIN_ICON : _PICKUP_PIN_ICON) ??
+                        BitmapDescriptor.defaultMarkerWithHue(
+                            BitmapDescriptor.hueYellow),
+                infoWindow: InfoWindow(
+                    title: has_trip_started
+                        ? _currentRideRequest!.dropoff_address_name
+                        : _currentRideRequest!.pickup_address_name,
+                    snippet: SafeLocalizations.of(context)!
+                        .customer_marker_info_pickup),
+                position: has_trip_started
+                    ? _currentRideRequest!.dropoff_location!
+                    : _currentRideRequest!.pickup_location!,
+              ),
+            };
 
-                // Pickup | Dropoff pins
-                Marker(
-                  markerId: MarkerId('pickup id'),
-                  icon: (has_trip_started
-                          ? _DROPOFF_PIN_ICON
-                          : _PICKUP_PIN_ICON) ??
-                      BitmapDescriptor.defaultMarkerWithHue(
-                          BitmapDescriptor.hueYellow),
-                  infoWindow: InfoWindow(
-                      title: has_trip_started
-                          ? _currentRideRequest!.dropoff_address_name
-                          : _currentRideRequest!.pickup_address_name,
-                      snippet: SafeLocalizations.of(context)!
-                          .customer_marker_info_pickup),
-                  position: has_trip_started
-                      ? _currentRideRequest!.dropoff_location!
-                      : _currentRideRequest!.pickup_location!,
-                ),
-              };
-
-              setState(() {});
-            },
-          );
-        }
+            setState(() {});
+          },
+        );
 
         setState(() {});
       },
