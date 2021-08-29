@@ -4,6 +4,7 @@ import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/models/color_constants.dart';
 import 'package:safe/models/driver.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:safe/utils/phone_call.dart';
 
 class DriverPickedBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DriverPickedBottomSheet';
@@ -69,6 +70,19 @@ class _DriverPickedBottomSheetState extends State<DriverPickedBottomSheet>
                       '${widget.pickedDriver!.car_color} ${widget.pickedDriver!.car_model}',
                       style: TextStyle(color: Colors.black54, fontSize: 12.0)),
                 ],
+              ),
+              Expanded(child: Container()),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () async {
+                  try {
+                    PhoneCaller.callPhone(widget.pickedDriver!.phone_number!);
+                  } catch (err) {}
+                },
+                child: Container(
+                  padding: EdgeInsets.all(5.0),
+                  child: Icon(Icons.phone, color: Colors.blue.shade900),
+                ),
               ),
             ],
           ),

@@ -4,6 +4,7 @@ import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/models/driver.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
+import 'package:safe/utils/phone_call.dart';
 
 class DriverToPickupBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DriverToPickupBottomSheet';
@@ -58,7 +59,8 @@ class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(widget.pickedDriver!.user_name!),
+                  Text(
+                      '${widget.pickedDriver!.user_name!}, ${widget.pickedDriver!.phone_number!}'),
                   SizedBox(height: 4.0),
                   Text(
                       '${widget.pickedDriver!.car_color} ${widget.pickedDriver!.car_model}',
@@ -66,12 +68,29 @@ class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
                 ],
               ),
               Expanded(child: Container()),
-              Text(
-                widget.rideRequest!.driver_to_pickup_duration_str!,
-                style: TextStyle(
-                  fontFamily: 'Brand-Bold',
-                  fontWeight: FontWeight.bold,
-                ),
+              Column(
+                children: [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () async {
+                      try {
+                        PhoneCaller.callPhone(
+                            widget.pickedDriver!.phone_number!);
+                      } catch (err) {}
+                    },
+                    child: Container(
+                      padding: EdgeInsets.all(5.0),
+                      child: Icon(Icons.phone, color: Colors.blue.shade900),
+                    ),
+                  ),
+                  Text(
+                    widget.rideRequest!.driver_to_pickup_duration_str!,
+                    style: TextStyle(
+                      fontFamily: 'Brand-Bold',
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
