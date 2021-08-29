@@ -91,7 +91,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   final double PIN_ICON_SIZE_RATIO = 0.16;
 
   BitmapDescriptor? _CAR_ICON;
-
   BitmapDescriptor? _PICKUP_PIN_ICON;
   BitmapDescriptor? _DROPOFF_PIN_ICON;
 
