@@ -83,6 +83,8 @@ flutter:
     - images/safe.png
     - images/car_side.png
     - images/yellow_car.png
+    - images/minibus.png
+    - images/minivan.png
 
   fonts:
     - family: Signatra

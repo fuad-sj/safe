@@ -12,7 +12,7 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 class ConfirmRideDetailsBottomSheet extends BaseBottomSheet {
   static const String KEY = 'ConfirmRideDetailsBottomSheet';
 
-  static const double HEIGHT_RIDE_DETAILS = 240.0;
+  static const double HEIGHT_RIDE_DETAILS = 370.0;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   RouteDetails? routeDetails;
@@ -48,7 +48,13 @@ class ConfirmRideDetailsBottomSheet extends BaseBottomSheet {
 class _ConfirmRideDetailsBottomSheetState
     extends State<ConfirmRideDetailsBottomSheet>
     implements BottomSheetWidgetBuilder {
+  static const int CAR_TYPE_ANY = 1;
+  static const int CAR_TYPE_MINIVAN = 2;
+  static const int CAR_TYPE_MINIBUS = 3;
+
   bool _isStudent = false;
+
+  int _selectedCarType = CAR_TYPE_ANY;
 
   @override
   void initState() {
@@ -72,47 +78,89 @@ class _ConfirmRideDetailsBottomSheetState
       return ColorConstants.gucciColor;
     }
 
+    Widget _getCarTypeWidget(int carType) {
+      String carImage, typeDescription;
+
+      switch (carType) {
+        case CAR_TYPE_MINIVAN:
+          carImage = 'images/minivan.png';
+          typeDescription = SafeLocalizations.of(context)!
+              .bottom_sheet_confirm_ride_details_minivan;
+          break;
+        case CAR_TYPE_MINIBUS:
+          carImage = 'images/minibus.png';
+          typeDescription = SafeLocalizations.of(context)!
+              .bottom_sheet_confirm_ride_details_minibus;
+          break;
+        case CAR_TYPE_ANY:
+        default:
+          carImage = 'images/car_side.png';
+          typeDescription = SafeLocalizations.of(context)!
+              .bottom_sheet_confirm_ride_details_car;
+          break;
+      }
+
+      bool isSelected = carType == _selectedCarType;
+
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          setState(() {
+            _selectedCarType = carType;
+          });
+        },
+        child: Container(
+          color: isSelected ? Colors.grey.shade100 : Colors.white,
+          width: double.infinity,
+          child: Row(
+            children: [
+              Image.asset(carImage, height: 70.0, width: 80.0),
+              SizedBox(width: 16.0),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(typeDescription,
+                      style: TextStyle(
+                          fontSize: 18.0,
+                          fontFamily: 'Brand-Bold',
+                          fontWeight: (isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal))),
+                  Text(widget.routeDetails!.distanceText,
+                      style: TextStyle(fontSize: 16.0, color: Colors.grey)),
+                ],
+              ),
+              Expanded(child: Container()),
+              Text(
+                '~ ' +
+                    AlphaNumericUtil.formatDouble(
+                        widget.routeDetails!.estimatedFarePrice *
+                            (carType == CAR_TYPE_MINIVAN
+                                ? 1.1
+                                : (carType == CAR_TYPE_MINIBUS ? 1.03 : 1)),
+                        0) +
+                    ' ' +
+                    SafeLocalizations.of(context)!
+                        .bottom_sheet_confirm_ride_details_etb,
+                style: TextStyle(
+                  fontFamily: 'Brand-Bold',
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: EdgeInsets.symmetric(vertical: 17.0, horizontal: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            color: Colors.grey.shade50,
-            width: double.infinity,
-            child: Row(
-              children: [
-                Image.asset('images/car_side.png', height: 70.0, width: 80.0),
-                SizedBox(width: 16.0),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        SafeLocalizations.of(context)!
-                            .bottom_sheet_confirm_ride_details_car,
-                        style: TextStyle(
-                            fontSize: 18.0, fontFamily: 'Brand-Bold')),
-                    Text(widget.routeDetails!.distanceText,
-                        style: TextStyle(fontSize: 16.0, color: Colors.grey)),
-                  ],
-                ),
-                Expanded(child: Container()),
-                Text(
-                  '~ ' +
-                      AlphaNumericUtil.formatDouble(
-                          widget.routeDetails!.estimatedFarePrice, 0) +
-                      ' ' +
-                      SafeLocalizations.of(context)!
-                          .bottom_sheet_confirm_ride_details_etb,
-                  style: TextStyle(
-                    fontFamily: 'Brand-Bold',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          ...[CAR_TYPE_ANY, CAR_TYPE_MINIVAN, CAR_TYPE_MINIBUS]
+              .map((e) => _getCarTypeWidget(e)),
 
           // Cash + Is Student
           SizedBox(height: 10),
@@ -160,13 +208,17 @@ class _ConfirmRideDetailsBottomSheetState
           TextButton(
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 20.0),
-              backgroundColor: ColorConstants.gucciColor,
+              backgroundColor: _selectedCarType == CAR_TYPE_ANY
+                  ? ColorConstants.gucciColor
+                  : Colors.grey.shade400,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(35.0),
               ),
             ),
             onPressed: () {
-              widget.onActionCallback();
+              if (_selectedCarType == CAR_TYPE_ANY) {
+                widget.onActionCallback();
+              }
             },
             child: Container(
               width: double.infinity,
