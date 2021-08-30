@@ -19,6 +19,8 @@
   "customer_marker_info_pickup": "接人的地方",
   "customer_marker_info_dropoff": "下車地點",
 
+  "dialog_trip_summary_discounted_trip_fare": "Discounted Trip Fare",
+  "dialog_trip_summary_student_discount": "Student Discount",
   "dialog_trip_summary_total": "全部的",
   "dialog_trip_summary_birr": "Birr",
   "dialog_trip_summary_base_fare": "基地製作",
@@ -35,6 +37,7 @@
   "dialog_cancel_ride_title": "取消請求？",
   "dialog_cancel_ride_dismiss": "解僱",
 
+  "bottom_sheet_confirm_ride_details_is_student": "Is Student?",
   "bottom_sheet_confirm_ride_details_car": "車",
   "bottom_sheet_confirm_ride_details_etb": "ETB",
   "bottom_sheet_confirm_ride_details_cash": "現金",

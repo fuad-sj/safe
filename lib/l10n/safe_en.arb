@@ -19,6 +19,8 @@
   "customer_marker_info_pickup": "Pickup Location",
   "customer_marker_info_dropoff": "DropOff Location",
 
+  "dialog_trip_summary_discounted_trip_fare": "Discounted Trip Fare",
+  "dialog_trip_summary_student_discount": "Student Discount",
   "dialog_trip_summary_total": "Total",
   "dialog_trip_summary_birr": "Birr",
   "dialog_trip_summary_base_fare": "Base Fare",
@@ -35,7 +37,8 @@
   "dialog_cancel_ride_title": "Cancelling Request?",
   "dialog_cancel_ride_dismiss": "Dismiss",
 
-  "bottom_sheet_confirm_ride_details_car": "car",
+  "bottom_sheet_confirm_ride_details_is_student": "Is Student?",
+  "bottom_sheet_confirm_ride_details_car": "Vehicle",
   "bottom_sheet_confirm_ride_details_etb": "ETB",
   "bottom_sheet_confirm_ride_details_cash": "Cash",
   "bottom_sheet_confirm_ride_details_confirm_request": "Confirm Request",

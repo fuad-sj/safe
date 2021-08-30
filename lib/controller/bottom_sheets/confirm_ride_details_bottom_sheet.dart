@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
@@ -11,7 +12,7 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 class ConfirmRideDetailsBottomSheet extends BaseBottomSheet {
   static const String KEY = 'ConfirmRideDetailsBottomSheet';
 
-  static const double HEIGHT_RIDE_DETAILS = 220.0;
+  static const double HEIGHT_RIDE_DETAILS = 240.0;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   RouteDetails? routeDetails;
@@ -47,13 +48,34 @@ class ConfirmRideDetailsBottomSheet extends BaseBottomSheet {
 class _ConfirmRideDetailsBottomSheetState
     extends State<ConfirmRideDetailsBottomSheet>
     implements BottomSheetWidgetBuilder {
+  bool _isStudent = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+        .setIsStudent(false); // initially set it to false
+  }
+
   @override
   Widget buildContent(BuildContext context) {
+    Color _getCheckboxColor(Set<MaterialState> states) {
+      const Set<MaterialState> interactiveStates = <MaterialState>{
+        MaterialState.pressed,
+        MaterialState.hovered,
+        MaterialState.focused,
+      };
+      if (states.any(interactiveStates.contains)) {
+        return Colors.blue;
+      }
+      return ColorConstants.gucciColor;
+    }
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 17.0, horizontal: 16.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Container(
@@ -66,8 +88,9 @@ class _ConfirmRideDetailsBottomSheetState
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(SafeLocalizations.of(context)!
-                        .bottom_sheet_confirm_ride_details_car,
+                    Text(
+                        SafeLocalizations.of(context)!
+                            .bottom_sheet_confirm_ride_details_car,
                         style: TextStyle(
                             fontSize: 18.0, fontFamily: 'Brand-Bold')),
                     Text(widget.routeDetails!.distanceText,
@@ -78,7 +101,8 @@ class _ConfirmRideDetailsBottomSheetState
                 Text(
                   '~ ' +
                       AlphaNumericUtil.formatDouble(
-                          widget.routeDetails!.estimatedFarePrice, 0) + ' ' +
+                          widget.routeDetails!.estimatedFarePrice, 0) +
+                      ' ' +
                       SafeLocalizations.of(context)!
                           .bottom_sheet_confirm_ride_details_etb,
                   style: TextStyle(
@@ -90,17 +114,47 @@ class _ConfirmRideDetailsBottomSheetState
             ),
           ),
 
-          // Cash Option
+          // Cash + Is Student
+          SizedBox(height: 10),
           Row(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             children: [
-              Icon(FontAwesomeIcons.moneyBill,
-                  size: 18.0, color: Colors.black54),
-              SizedBox(width: 16.0),
-              Text(SafeLocalizations.of(context)!
-                  .bottom_sheet_confirm_ride_details_cash),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(SafeLocalizations.of(context)!
+                      .bottom_sheet_confirm_ride_details_cash),
+                  SizedBox(width: 16.0),
+                  Icon(FontAwesomeIcons.moneyBill,
+                      size: 18.0, color: Colors.black54),
+                ],
+              ),
+              Expanded(child: Container()),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(SafeLocalizations.of(context)!
+                      .bottom_sheet_confirm_ride_details_is_student),
+                  Checkbox(
+                    checkColor: Colors.white,
+                    fillColor:
+                        MaterialStateProperty.resolveWith(_getCheckboxColor),
+                    value: _isStudent,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _isStudent = value!;
+
+                        Provider.of<PickUpAndDropOffLocations>(context,
+                                listen: false)
+                            .setIsStudent(_isStudent);
+                      });
+                    },
+                  ),
+                ],
+              ),
             ],
           ),
+          SizedBox(height: 10),
 
           // Request car
           TextButton(

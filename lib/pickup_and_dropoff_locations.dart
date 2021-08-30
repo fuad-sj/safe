@@ -4,6 +4,7 @@ import 'package:safe/models/address.dart';
 class PickUpAndDropOffLocations extends ChangeNotifier {
   Address? pickUpLocation;
   Address? dropOffLocation;
+  bool? isStudent;
 
   void updatePickupLocationAddress(Address address) {
     pickUpLocation = address;
@@ -12,6 +13,11 @@ class PickUpAndDropOffLocations extends ChangeNotifier {
 
   void updateDropOffLocationAddress(Address address) {
     dropOffLocation = address;
+    notifyListeners();
+  }
+
+  void setIsStudent(bool is_student) {
+    isStudent = is_student;
     notifyListeners();
   }
 }

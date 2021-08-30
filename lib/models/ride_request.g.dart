@@ -26,6 +26,7 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) {
     ..dropoff_address_name = json['dropoff_address_name'] as String
     ..date_ride_created =
         FirebaseDocument.DateTimeFromJson(json['date_ride_created'])
+    ..is_student = json['is_student'] as bool?
     ..driver_id = json['driver_id'] as String?
     ..driver_name = json['driver_name'] as String?
     ..driver_phone = json['driver_phone'] as String?
@@ -58,6 +59,11 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) {
         FirebaseDocument.DoubleFromJson(json['actual_trip_minutes'])
     ..actual_trip_kilometers =
         FirebaseDocument.DoubleFromJson(json['actual_trip_kilometers'])
+    ..has_student_discount = json['has_student_discount'] as bool?
+    ..student_discount =
+        FirebaseDocument.DoubleFromJson(json['student_discount'])
+    ..adjusted_trip_fare =
+        FirebaseDocument.DoubleFromJson(json['adjusted_trip_fare'])
     ..will_continue_search = json['will_continue_search'] as bool?
     ..search_radius = FirebaseDocument.DoubleFromJson(json['search_radius']);
 }
@@ -83,6 +89,7 @@ Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
       'dropoff_address_name': instance.dropoff_address_name,
       'date_ride_created':
           FirebaseDocument.DateTimeToJson(instance.date_ride_created),
+      'is_student': instance.is_student,
       'driver_id': instance.driver_id,
       'driver_name': instance.driver_name,
       'driver_phone': instance.driver_phone,
@@ -110,6 +117,9 @@ Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
       'actual_trip_fare': instance.actual_trip_fare,
       'actual_trip_minutes': instance.actual_trip_minutes,
       'actual_trip_kilometers': instance.actual_trip_kilometers,
+      'has_student_discount': instance.has_student_discount,
+      'student_discount': instance.student_discount,
+      'adjusted_trip_fare': instance.adjusted_trip_fare,
       'will_continue_search': instance.will_continue_search,
       'search_radius': instance.search_radius,
     };

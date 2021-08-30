@@ -1014,6 +1014,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     Address dropOffAddress =
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
             .dropOffLocation!;
+    bool isStudent =
+        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+            .isStudent ?? false;
 
     RideRequest ride = RideRequest();
 
@@ -1027,6 +1030,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     ride.dropoff_location = dropOffAddress.location;
     ride.dropoff_address_name = dropOffAddress.placeName;
     ride.date_ride_created = DateTime.now();
+    ride.is_student = isStudent;
 
     _rideRequestRef = await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_RIDES)

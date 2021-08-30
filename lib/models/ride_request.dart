@@ -34,6 +34,8 @@ class RideRequest extends FirebaseDocument {
 
   static const FIELD_DATE_RIDE_CREATED = 'date_ride_created';
 
+  static const FIELD_IS_STUDENT = 'is_student';
+
   static const FIELD_DRIVER_ID = 'driver_id';
   static const FIELD_DRIVER_NAME = 'driver_name';
   static const FIELD_DRIVER_PHONE = 'driver_phone';
@@ -70,6 +72,10 @@ class RideRequest extends FirebaseDocument {
   static const FIELD_ACTUAL_TRIP_FARE = "actual_trip_fare";
   static const FIELD_ACTUAL_TRIP_MINUTES = "actual_trip_minutes";
   static const FIELD_ACTUAL_TRIP_KILOMETERS = "actual_trip_kilometers";
+
+  static const FIELD_HAS_STUDENT_DISCOUNT = "has_student_discount";
+  static const FIELD_STUDENT_DISCOUNT = "student_discount";
+  static const FIELD_ADJUSTED_TRIP_FARE = "adjusted_trip_fare";
 
   static const FIELD_WILL_CONTINUE_SEARCH = "will_continue_search";
   static const FIELD_SEARCH_RADIUS = "search_radius";
@@ -138,6 +144,8 @@ class RideRequest extends FirebaseDocument {
       toJson: FirebaseDocument.DateTimeToJson)
   DateTime? date_ride_created;
 
+  bool? is_student;
+
   String? driver_id;
   String? driver_name;
   String? driver_phone;
@@ -180,6 +188,12 @@ class RideRequest extends FirebaseDocument {
   double? actual_trip_minutes;
   @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? actual_trip_kilometers;
+
+  bool? has_student_discount;
+  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
+  double? student_discount;
+  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
+  double? adjusted_trip_fare;
 
   bool? will_continue_search;
   @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)

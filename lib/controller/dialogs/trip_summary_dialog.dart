@@ -17,6 +17,16 @@ class TripCompletionDialog extends StatefulWidget {
 }
 
 class _TripCompletionDialogState extends State<TripCompletionDialog> {
+  bool get hasStudentDiscount {
+    return (widget.rideRequest.has_student_discount ?? false) == true;
+  }
+
+  double get actualPaidAmount {
+    return hasStudentDiscount
+        ? widget.rideRequest.adjusted_trip_fare!
+        : widget.rideRequest.actual_trip_fare!;
+  }
+
   Widget _getTripSummaryWidget(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,8 +45,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                AlphaNumericUtil.formatDouble(
-                    widget.rideRequest.actual_trip_fare!, 2),
+                AlphaNumericUtil.formatDouble(actualPaidAmount, 2),
                 style: TextStyle(fontSize: 30.0),
               ),
               SizedBox(width: 5.0),
@@ -165,6 +174,56 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         ),
         SizedBox(height: 10.0),
         greyVerticalDivider(0.4),
+
+        if (hasStudentDiscount) ...[
+          // Student Discount
+          greyVerticalDivider(0.4),
+          SizedBox(height: 10.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(Icons.attach_money_outlined,
+                  color: ColorConstants.gucciColor),
+              SizedBox(width: 5.0),
+              Text(
+                SafeLocalizations.of(context)!
+                    .dialog_trip_summary_student_discount,
+                style: TextStyle(fontSize: 12.0),
+              ),
+              Expanded(child: Container()),
+              Text(
+                '${AlphaNumericUtil.formatDouble(widget.rideRequest.student_discount!, 2)} birr',
+                style: TextStyle(fontSize: 12.0),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.0),
+          greyVerticalDivider(0.4),
+
+          // Discounted Price
+          greyVerticalDivider(0.4),
+          SizedBox(height: 10.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(Icons.attach_money_outlined,
+                  color: ColorConstants.gucciColor),
+              SizedBox(width: 5.0),
+              Text(
+                SafeLocalizations.of(context)!
+                    .dialog_trip_summary_discounted_trip_fare,
+                style: TextStyle(fontSize: 12.0),
+              ),
+              Expanded(child: Container()),
+              Text(
+                '${AlphaNumericUtil.formatDouble(widget.rideRequest.adjusted_trip_fare!, 2)} birr',
+                style: TextStyle(fontSize: 12.0),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.0),
+          greyVerticalDivider(0.4),
+        ],
       ],
     );
   }

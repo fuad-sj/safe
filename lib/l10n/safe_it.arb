@@ -19,6 +19,8 @@
   "customer_marker_info_pickup": "Bakka Ka'umsaa",
   "customer_marker_info_dropoff": "Bakka Ga'umsaa",
 
+  "dialog_trip_summary_discounted_trip_fare": "Discounted Trip Fare",
+  "dialog_trip_summary_student_discount": "Student Discount",
   "dialog_trip_summary_total": "Ida'ama",
   "dialog_trip_summary_birr": "Qarshii",
   "dialog_trip_summary_base_fare": "Kaffaltii Jalqabaa",
@@ -35,6 +37,7 @@
   "dialog_cancel_ride_title": "Gaaffii Haquu?",
   "dialog_cancel_ride_dismiss": "Haqi",
 
+  "bottom_sheet_confirm_ride_details_is_student": "Is Student?",
   "bottom_sheet_confirm_ride_details_car": "Konkolaataa",
   "bottom_sheet_confirm_ride_details_etb": "ETB",
   "bottom_sheet_confirm_ride_details_cash": "Qarshii",
