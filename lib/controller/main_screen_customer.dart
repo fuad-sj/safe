@@ -277,6 +277,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       _rideRequestRef = null;
       _currentRideRequest = null;
+
+      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+          .updatePickupLocationAddress(null);
+      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+          .updateDropOffLocationAddress(null);
+      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+          .updateScheduledDuration(null);
     });
   }
 

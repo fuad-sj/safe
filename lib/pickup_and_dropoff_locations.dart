@@ -6,12 +6,12 @@ class PickUpAndDropOffLocations extends ChangeNotifier {
   Address? dropOffLocation;
   Duration? scheduledDuration;
 
-  void updatePickupLocationAddress(Address address) {
+  void updatePickupLocationAddress(Address? address) {
     pickUpLocation = address;
     notifyListeners();
   }
 
-  void updateDropOffLocationAddress(Address address) {
+  void updateDropOffLocationAddress(Address? address) {
     dropOffLocation = address;
     notifyListeners();
   }
