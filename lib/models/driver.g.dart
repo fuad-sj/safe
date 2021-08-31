@@ -19,7 +19,7 @@ Driver _$DriverFromJson(Map<String, dynamic> json) {
         (json['device_registration_tokens'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList()
-    ..driver_type = json['driver_type'] as int?
+    ..car_type = json['car_type'] as int?
     ..profile_status = json['profile_status'] as int?
     ..car_color = json['car_color'] as String?
     ..car_number = json['car_number'] as String?
@@ -61,7 +61,7 @@ Map<String, dynamic> _$DriverToJson(Driver instance) => <String, dynamic>{
       'is_active': instance.is_active,
       'is_logged_in': instance.is_logged_in,
       'device_registration_tokens': instance.device_registration_tokens,
-      'driver_type': instance.driver_type,
+      'car_type': instance.car_type,
       'profile_status': instance.profile_status,
       'car_color': instance.car_color,
       'car_number': instance.car_number,

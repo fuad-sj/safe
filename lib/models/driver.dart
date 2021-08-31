@@ -11,7 +11,7 @@ part 'driver.g.dart';
 class Driver extends Customer {
   static const FIREBASE_STORAGE_PATH_DRIVER_FILES = 'driver_files';
 
-  static const FIELD_DRIVER_TYPE = 'driver_type';
+  static const FIELD_CAR_TYPE = 'car_type';
 
   static const FIELD_PROFILE_STATUS = 'profile_status';
 
@@ -52,8 +52,8 @@ class Driver extends Customer {
 
   // END field name declarations
 
-  static const int DRIVER_TYPE_CODE_3 = 1;
-  static const int DRIVER_TYPE_CODE_1 = 2;
+  static const int CAR_TYPE_CODE_3 = 1;
+  static const int CAR_TYPE_CODE_1 = 2;
 
   static const int PROFILE_STATUS_REJECTED = -11;
   static const int PROFILE_STATUS_UPLOADED = 1;
@@ -65,7 +65,7 @@ class Driver extends Customer {
   static const int IMG_STATUS_ACCEPTED = 2;
   static const int IMG_STATUS_REJECTED = 3;
 
-  int? driver_type;
+  int? car_type;
 
   int? profile_status;
 
