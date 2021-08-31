@@ -28,6 +28,7 @@ import 'package:safe/language_selector_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
 import 'package:safe/models/driver.dart';
+import 'package:safe/models/firebase_document.dart';
 import 'package:safe/models/google_place_description.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
@@ -981,22 +982,28 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
             .dropOffLocation!;
 
-    RideRequest ride = RideRequest();
+    Map<String, dynamic> rideFields = new Map();
 
-    ride.ride_status = RideRequest.STATUS_PLACED;
-    ride.customer_id = PrefUtil.getCurrentUserID();
-    ride.customer_name = _currentCustomer!.user_name!;
-    ride.customer_phone = _currentCustomer!.phone_number!;
-    ride.customer_device_token = await FirebaseMessaging.instance.getToken();
-    ride.pickup_location = pickUpAddress.location;
-    ride.pickup_address_name = pickUpAddress.placeName;
-    ride.dropoff_location = dropOffAddress.location;
-    ride.dropoff_address_name = dropOffAddress.placeName;
-    ride.date_ride_created = DateTime.now();
+    rideFields[RideRequest.FIELD_RIDE_STATUS] = RideRequest.STATUS_PLACED;
+    rideFields[RideRequest.FIELD_CUSTOMER_ID] = PrefUtil.getCurrentUserID();
+    rideFields[RideRequest.FIELD_CUSTOMER_NAME] = _currentCustomer!.user_name!;
+    rideFields[RideRequest.FIELD_CUSTOMER_PHONE] =
+        _currentCustomer!.phone_number!;
+    rideFields[RideRequest.FIELD_CUSTOMER_DEVICE_TOKEN] =
+        await FirebaseMessaging.instance.getToken();
+    rideFields[RideRequest.FIELD_PICKUP_LOCATION] =
+        FirebaseDocument.LatLngToJson(pickUpAddress.location);
+    rideFields[RideRequest.FIELD_PICKUP_ADDRESS_NAME] = pickUpAddress.placeName;
+    rideFields[RideRequest.FIELD_DROPOFF_LOCATION] =
+        FirebaseDocument.LatLngToJson(dropOffAddress.location);
+    rideFields[RideRequest.FIELD_DROPOFF_ADDRESS_NAME] =
+        dropOffAddress.placeName;
+    rideFields[RideRequest.FIELD_DATE_RIDE_CREATED] =
+        FieldValue.serverTimestamp();
 
     _rideRequestRef = await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_RIDES)
-        .add(ride.toJson());
+        .add(rideFields);
   }
 
   Future<void> cancelCurrentRideRequest() async {
