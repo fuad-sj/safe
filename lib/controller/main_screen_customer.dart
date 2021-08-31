@@ -675,19 +675,19 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                         .main_screen_creating_order_progress),
               );
 
-              await createNewRideRequest();
+              _UIState = await createNewRideRequest();
 
               Navigator.pop(context);
 
               // Will update UI when either driver is assigned OR trip is cancelled
               await listenToRideStatusUpdates();
 
-              setBottomMapPadding(
-                  SearchingForDriverBottomSheet.HEIGHT_SEARCHING_FOR_DRIVER);
+              setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
+                  ? 0
+                  : SearchingForDriverBottomSheet.HEIGHT_SEARCHING_FOR_DRIVER);
 
               _isHamburgerDrawerMode = true;
 
-              _UIState = UI_STATE_SEARCHING_FOR_DRIVER;
               setState(() {});
             },
           ),
@@ -974,13 +974,16 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     return false;
   }
 
-  Future<void> createNewRideRequest() async {
+  Future<int> createNewRideRequest() async {
     Address pickUpAddress =
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
             .pickUpLocation!;
     Address dropOffAddress =
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
             .dropOffLocation!;
+    Duration? scheduledDuration =
+        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+            .scheduledDuration;
 
     Map<String, dynamic> rideFields = new Map();
 
@@ -1000,10 +1003,19 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         dropOffAddress.placeName;
     rideFields[RideRequest.FIELD_DATE_RIDE_CREATED] =
         FieldValue.serverTimestamp();
+    rideFields[RideRequest.FIELD_IS_SCHEDULED] = scheduledDuration != null;
+    if (scheduledDuration != null) {
+      rideFields[RideRequest.FIELD_SCHEDULED_AFTER_SECONDS] =
+          scheduledDuration.inSeconds;
+    }
 
     _rideRequestRef = await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_RIDES)
         .add(rideFields);
+
+    return scheduledDuration != null
+        ? UI_STATE_NOTHING_STARTED
+        : UI_STATE_SEARCHING_FOR_DRIVER;
   }
 
   Future<void> cancelCurrentRideRequest() async {

@@ -4,6 +4,7 @@ import 'package:safe/models/address.dart';
 class PickUpAndDropOffLocations extends ChangeNotifier {
   Address? pickUpLocation;
   Address? dropOffLocation;
+  Duration? scheduledDuration;
 
   void updatePickupLocationAddress(Address address) {
     pickUpLocation = address;
@@ -12,6 +13,11 @@ class PickUpAndDropOffLocations extends ChangeNotifier {
 
   void updateDropOffLocationAddress(Address address) {
     dropOffLocation = address;
+    notifyListeners();
+  }
+
+  void updateScheduledDuration(Duration? duration) {
+    scheduledDuration = duration;
     notifyListeners();
   }
 }

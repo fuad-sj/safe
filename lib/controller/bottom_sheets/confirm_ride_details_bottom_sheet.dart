@@ -48,7 +48,6 @@ class _ConfirmRideDetailsBottomSheetState
     implements BottomSheetWidgetBuilder {
   @override
   Widget buildContent(BuildContext context) {
-
     return Container(
       padding: EdgeInsets.symmetric(vertical: 17.0, horizontal: 16.0),
       child: Column(
@@ -65,8 +64,9 @@ class _ConfirmRideDetailsBottomSheetState
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(SafeLocalizations.of(context)!
-                        .bottom_sheet_confirm_ride_details_car,
+                    Text(
+                        SafeLocalizations.of(context)!
+                            .bottom_sheet_confirm_ride_details_car,
                         style: TextStyle(
                             fontSize: 18.0, fontFamily: 'Brand-Bold')),
                     Text(widget.routeDetails!.distanceText,
@@ -77,7 +77,8 @@ class _ConfirmRideDetailsBottomSheetState
                 Text(
                   '~ ' +
                       AlphaNumericUtil.formatDouble(
-                          widget.routeDetails!.estimatedFarePrice, 0) + ' ' +
+                          widget.routeDetails!.estimatedFarePrice, 0) +
+                      ' ' +
                       SafeLocalizations.of(context)!
                           .bottom_sheet_confirm_ride_details_etb,
                   style: TextStyle(
@@ -102,32 +103,99 @@ class _ConfirmRideDetailsBottomSheetState
           ),
 
           // Request car
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 20.0),
-              backgroundColor: Colors.orange.shade800,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(35.0),
-              ),
-            ),
-            onPressed: () {
-              widget.onActionCallback();
-            },
-            child: Container(
-              width: double.infinity,
-              child: Center(
-                child: Text(
-                  SafeLocalizations.of(context)!
-                      .bottom_sheet_confirm_ride_details_confirm_request,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Open Sans',
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 35.0, vertical: 20.0),
+                    backgroundColor: Colors.orange.shade800,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(35.0),
+                    ),
+                  ),
+                  onPressed: () {
+                    widget.onActionCallback();
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    child: Center(
+                      child: Text(
+                        SafeLocalizations.of(context)!
+                            .bottom_sheet_confirm_ride_details_confirm_request,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Open Sans',
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              SizedBox(width: 32.0),
+              GestureDetector(
+                onTap: () {
+                  DateTime now = DateTime.now();
+                  showDatePicker(
+                          context: context,
+                          initialDate: now,
+                          firstDate: now,
+                          // allow upto 30 days into the future
+                          lastDate: now.add(Duration(days: 30)))
+                      .then((pickedDate) {
+                    if (pickedDate == null) {
+                      Provider.of<PickUpAndDropOffLocations>(context,
+                              listen: false)
+                          .updateScheduledDuration(null);
+                    } else {
+                      showTimePicker(
+                        context: context,
+                        initialTime:
+                            TimeOfDay(hour: now.hour, minute: now.minute),
+                      ).then((pickedTime) {
+                        if (pickedTime == null) {
+                          Provider.of<PickUpAndDropOffLocations>(context,
+                                  listen: false)
+                              .updateScheduledDuration(null);
+                        } else {
+                          DateTime scheduledTime = new DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute);
+
+                          Duration bookingDuration =
+                              scheduledTime.difference(now);
+
+                          Provider.of<PickUpAndDropOffLocations>(context,
+                                  listen: false)
+                              .updateScheduledDuration(
+                                  bookingDuration.inSeconds < 0
+                                      ? null
+                                      : bookingDuration);
+                        }
+                      });
+                    }
+                  });
+                },
+                behavior: HitTestBehavior.opaque,
+                child: CircleAvatar(
+                  backgroundColor:
+                      Provider.of<PickUpAndDropOffLocations>(context)
+                                  .scheduledDuration !=
+                              null
+                          ? Colors.teal.shade700
+                          : Colors.grey.shade500,
+                  child: Icon(Icons.calendar_today_outlined,
+                      color: Colors.white, size: 26.0),
+                  radius: 25.0,
+                ),
+              ),
+            ],
           ),
         ],
       ),
