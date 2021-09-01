@@ -6,7 +6,7 @@ class DriverLocation {
   late double latitude;
   late double longitude;
 
-  late int car_type;
+  int? car_type;
 
   double? orientation;
 
@@ -14,7 +14,7 @@ class DriverLocation {
     required this.driverID,
     required this.latitude,
     required this.longitude,
-    required this.car_type,
+    this.car_type,
   });
 
   LatLng get getLocationLatLng => LatLng(latitude, longitude);

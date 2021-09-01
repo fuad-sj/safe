@@ -11,15 +11,13 @@ part 'driver.g.dart';
 class Driver extends Customer {
   static const FIREBASE_STORAGE_PATH_DRIVER_FILES = 'driver_files';
 
-  static const FIELD_DRIVER_TYPE = 'driver_type';
+  static const FIELD_CAR_TYPE = 'car_type';
 
   static const FIELD_PROFILE_STATUS = 'profile_status';
 
   static const FIELD_CAR_COLOR = 'car_color';
   static const FIELD_CAR_NUMBER = 'car_number';
   static const FIELD_CAR_MODEL = 'car_model';
-
-  static const FIELD_IS_DRIVER_ONLINE = 'is_driver_online';
 
   static const FIELD_LINK_IMG_COMMON_PROFILE = 'link_img_common_profile';
   static const FIELD_IMG_STATUS_COMMON_PROFILE = 'img_status_common_profile';
@@ -54,8 +52,8 @@ class Driver extends Customer {
 
   // END field name declarations
 
-  static const int DRIVER_TYPE_CODE_3 = 1;
-  static const int DRIVER_TYPE_CODE_1 = 2;
+  static const int CAR_TYPE_CODE_3 = 1;
+  static const int CAR_TYPE_CODE_1 = 2;
 
   static const int PROFILE_STATUS_REJECTED = -11;
   static const int PROFILE_STATUS_UPLOADED = 1;
@@ -67,15 +65,13 @@ class Driver extends Customer {
   static const int IMG_STATUS_ACCEPTED = 2;
   static const int IMG_STATUS_REJECTED = 3;
 
-  int? driver_type;
+  int? car_type;
 
   int? profile_status;
 
   String? car_color;
   String? car_number;
   String? car_model;
-
-  bool? is_driver_online;
 
   String? link_img_common_profile;
   int? img_status_common_profile;

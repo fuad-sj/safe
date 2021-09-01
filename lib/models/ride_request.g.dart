@@ -27,6 +27,8 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) {
     ..date_ride_created =
         FirebaseDocument.DateTimeFromJson(json['date_ride_created'])
     ..is_student = json['is_student'] as bool?
+    ..is_scheduled = json['is_scheduled'] as bool?
+    ..scheduled_after_seconds = json['scheduled_after_seconds'] as int?
     ..driver_id = json['driver_id'] as String?
     ..driver_name = json['driver_name'] as String?
     ..driver_phone = json['driver_phone'] as String?
@@ -90,6 +92,8 @@ Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
       'date_ride_created':
           FirebaseDocument.DateTimeToJson(instance.date_ride_created),
       'is_student': instance.is_student,
+      'is_scheduled': instance.is_scheduled,
+      'scheduled_after_seconds': instance.scheduled_after_seconds,
       'driver_id': instance.driver_id,
       'driver_name': instance.driver_name,
       'driver_phone': instance.driver_phone,

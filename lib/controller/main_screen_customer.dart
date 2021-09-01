@@ -30,6 +30,7 @@ import 'package:safe/language_selector_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
 import 'package:safe/models/driver.dart';
+import 'package:safe/models/firebase_document.dart';
 import 'package:safe/models/google_place_description.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
@@ -277,6 +278,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       _rideRequestRef = null;
       _currentRideRequest = null;
+
+      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+          .updatePickupLocationAddress(null);
+      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+          .updateDropOffLocationAddress(null);
+      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+          .updateScheduledDuration(null);
 
       updateAvailableDriversOnMap();
     });
@@ -707,19 +715,19 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                         .main_screen_creating_order_progress),
               );
 
-              await createNewRideRequest();
+              _UIState = await createNewRideRequest();
 
               Navigator.pop(context);
 
               // Will update UI when either driver is assigned OR trip is cancelled
               await listenToRideStatusUpdates();
 
-              setBottomMapPadding(
-                  SearchingForDriverBottomSheet.HEIGHT_SEARCHING_FOR_DRIVER);
+              setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
+                  ? 0
+                  : SearchingForDriverBottomSheet.HEIGHT_SEARCHING_FOR_DRIVER);
 
               _isHamburgerDrawerMode = true;
 
-              _UIState = UI_STATE_SEARCHING_FOR_DRIVER;
               setState(() {});
             },
           ),
@@ -1007,34 +1015,52 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     return false;
   }
 
-  Future<void> createNewRideRequest() async {
+  Future<int> createNewRideRequest() async {
     Address pickUpAddress =
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
             .pickUpLocation!;
     Address dropOffAddress =
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
             .dropOffLocation!;
+    Duration? scheduledDuration =
+        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+            .scheduledDuration;
     bool isStudent =
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
             .isStudent ?? false;
 
-    RideRequest ride = RideRequest();
+    Map<String, dynamic> rideFields = new Map();
 
-    ride.ride_status = RideRequest.STATUS_PLACED;
-    ride.customer_id = PrefUtil.getCurrentUserID();
-    ride.customer_name = _currentCustomer!.user_name!;
-    ride.customer_phone = _currentCustomer!.phone_number!;
-    ride.customer_device_token = await FirebaseMessaging.instance.getToken();
-    ride.pickup_location = pickUpAddress.location;
-    ride.pickup_address_name = pickUpAddress.placeName;
-    ride.dropoff_location = dropOffAddress.location;
-    ride.dropoff_address_name = dropOffAddress.placeName;
-    ride.date_ride_created = DateTime.now();
-    ride.is_student = isStudent;
+    rideFields[RideRequest.FIELD_RIDE_STATUS] = RideRequest.STATUS_PLACED;
+    rideFields[RideRequest.FIELD_CUSTOMER_ID] = PrefUtil.getCurrentUserID();
+    rideFields[RideRequest.FIELD_CUSTOMER_NAME] = _currentCustomer!.user_name!;
+    rideFields[RideRequest.FIELD_CUSTOMER_PHONE] =
+        _currentCustomer!.phone_number!;
+    rideFields[RideRequest.FIELD_CUSTOMER_DEVICE_TOKEN] =
+        await FirebaseMessaging.instance.getToken();
+    rideFields[RideRequest.FIELD_PICKUP_LOCATION] =
+        FirebaseDocument.LatLngToJson(pickUpAddress.location);
+    rideFields[RideRequest.FIELD_PICKUP_ADDRESS_NAME] = pickUpAddress.placeName;
+    rideFields[RideRequest.FIELD_DROPOFF_LOCATION] =
+        FirebaseDocument.LatLngToJson(dropOffAddress.location);
+    rideFields[RideRequest.FIELD_DROPOFF_ADDRESS_NAME] =
+        dropOffAddress.placeName;
+    rideFields[RideRequest.FIELD_DATE_RIDE_CREATED] =
+        FieldValue.serverTimestamp();
+    rideFields[RideRequest.FIELD_IS_STUDENT] = isStudent;
+    rideFields[RideRequest.FIELD_IS_SCHEDULED] = scheduledDuration != null;
+    if (scheduledDuration != null) {
+      rideFields[RideRequest.FIELD_SCHEDULED_AFTER_SECONDS] =
+          scheduledDuration.inSeconds;
+    }
 
     _rideRequestRef = await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_RIDES)
-        .add(ride.toJson());
+        .add(rideFields);
+
+    return scheduledDuration != null
+        ? UI_STATE_NOTHING_STARTED
+        : UI_STATE_SEARCHING_FOR_DRIVER;
   }
 
   Future<void> cancelCurrentRideRequest() async {

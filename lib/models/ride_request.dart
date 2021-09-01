@@ -36,6 +36,9 @@ class RideRequest extends FirebaseDocument {
 
   static const FIELD_IS_STUDENT = 'is_student';
 
+  static const FIELD_IS_SCHEDULED = 'is_scheduled';
+  static const FIELD_SCHEDULED_AFTER_SECONDS = 'scheduled_after_seconds';
+
   static const FIELD_DRIVER_ID = 'driver_id';
   static const FIELD_DRIVER_NAME = 'driver_name';
   static const FIELD_DRIVER_PHONE = 'driver_phone';
@@ -145,6 +148,9 @@ class RideRequest extends FirebaseDocument {
   DateTime? date_ride_created;
 
   bool? is_student;
+
+  bool? is_scheduled;
+  int? scheduled_after_seconds;
 
   String? driver_id;
   String? driver_name;
