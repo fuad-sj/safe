@@ -16,6 +16,7 @@ import 'package:safe/controller/bottom_sheets/select_dropoff_pin.dart';
 import 'package:safe/controller/bottom_sheets/trip_details_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/where_to_bottom_sheet.dart';
 import 'package:safe/controller/customer_order_history.dart';
+import 'package:safe/controller/customer_profile_screen.dart';
 import 'package:safe/controller/dialogs/ride_cancellation_dialog.dart';
 import 'package:safe/controller/dialogs/trip_summary_dialog.dart';
 import 'package:safe/controller/login_page.dart';
@@ -94,6 +95,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   BitmapDescriptor? _PICKUP_PIN_ICON;
   BitmapDescriptor? _DROPOFF_PIN_ICON;
 
+  late ImageProvider _defaultProfileImage;
+  late ImageProvider _networkProfileImage;
+  bool _networkProfileLoaded = false;
+
   static const double SIZE_CURRENT_PIN_IMAGE = 45.0;
   Image? _CURRENT_PIN_ICON;
 
@@ -124,6 +129,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   DriverLocation? _selectedDriverCurrentLocation;
   StreamSubscription<dynamic>? _selectedDriverLocationStream;
 
+  String get _getCustomerID => FirebaseAuth.instance.currentUser!.uid;
+
   bool get isDriverSelected => _selectedDriver != null;
 
   bool get isDriverGoingToPickup => (_currentRideRequest != null &&
@@ -138,8 +145,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   @override
-  initState() {
+  void initState() {
     super.initState();
+
+    _defaultProfileImage = AssetImage('images/user_icon.png');
 
     updateLoginCredentials();
 
@@ -217,19 +226,42 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void loadCurrentUserInfo() async {
-    String? userId = FirebaseAuth.instance.currentUser?.uid;
+    _currentCustomer = Customer.fromSnapshot(
+      await FirebaseFirestore.instance
+          .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .get(),
+    );
 
-    if (userId != null) {
-      Customer customer = Customer.fromSnapshot(
-        await FirebaseFirestore.instance
-            .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
-            .doc(userId)
-            .get(),
-      );
-      if (customer.documentExists()) {
-        _currentCustomer = customer;
-      }
+    if (!_currentCustomer!.documentExists()) {
+      _currentCustomer = null;
     }
+
+    loadNetworkProfileImage();
+  }
+
+  void loadNetworkProfileImage() async {
+    _networkProfileLoaded = false;
+    if (_currentCustomer == null ||
+        _currentCustomer!.link_img_profile == null) {
+      setState(() {});
+      return;
+    }
+
+    _networkProfileImage = NetworkImage(_currentCustomer!.link_img_profile!);
+
+    _networkProfileImage
+        .resolve(new ImageConfiguration())
+        .addListener(ImageStreamListener(
+          (_, __) {
+            _networkProfileLoaded = true;
+            setState(() {});
+          },
+          onError: (_, __) {
+            _networkProfileLoaded = false;
+            setState(() {});
+          },
+        ));
   }
 
   void loadMapIcons() async {
@@ -431,7 +463,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
                       padding: EdgeInsets.only(left: horizontalPadding),
@@ -448,18 +479,44 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                                 fontFamily: "Brand-Bold"),
                           ),
                           SizedBox(height: 6.0),
-                          Text(
-                              SafeLocalizations.of(context)!
-                                  .nav_header_edit_profile,
-                              style: TextStyle(color: Colors.grey.shade500)),
+                          GestureDetector(
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => CustomerProfileScreen()),
+                              );
+
+                              _currentCustomer = Customer.fromSnapshot(
+                                await FirebaseFirestore.instance
+                                    .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+                                    .doc(_getCustomerID)
+                                    .get(),
+                              );
+
+                              if (!_currentCustomer!.documentExists()) {
+                                _currentCustomer = null;
+                              }
+
+                              loadNetworkProfileImage();
+                            },
+                            child: Text(
+                                SafeLocalizations.of(context)!
+                                    .nav_header_edit_profile,
+                                style: TextStyle(color: Colors.blue.shade500)),
+                          ),
                         ],
                       ),
                     ),
-                    Container(
-                      padding: EdgeInsets.only(right: horizontalPadding),
-                      child: Image.asset('images/user_icon.png',
-                          height: 65.0, width: 65.0),
+                    Expanded(child: Container()),
+                    CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      backgroundImage: _networkProfileLoaded
+                          ? _networkProfileImage
+                          : _defaultProfileImage,
+                      radius: 30.0,
                     ),
+                    SizedBox(width: 16.0),
                   ],
                 ),
               ),
