@@ -156,17 +156,18 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       final User? firebaseUser = FirebaseAuth.instance.currentUser;
 
       if (firebaseUser != null) {
-        Customer customer = Customer();
+        Map<String, dynamic> customerFields = new Map();
 
-        customer.user_name = _customerName.trim();
-        customer.phone_number = firebaseUser.phoneNumber!;
-        customer.is_active = true;
-        customer.is_logged_in = false;
+        customerFields[Customer.FIELD_USER_NAME] = _customerName.trim();
+        customerFields[Customer.FIELD_PHONE_NUMBER] = firebaseUser.phoneNumber!;
+        customerFields[Customer.FIELD_IS_ACTIVE] = true;
+        customerFields[Customer.FIELD_IS_LOGGED_IN] = true;
+        customerFields[Customer.FIELD_DATE_CREATED] = FieldValue.serverTimestamp();
 
         await FirebaseFirestore.instance
             .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
             .doc(firebaseUser.uid)
-            .set(customer.toJson());
+            .set(customerFields);
 
         await PrefUtil.setLoginStatus(PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW);
 
