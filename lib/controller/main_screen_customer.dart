@@ -329,6 +329,12 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           builder: (_) => LanguageSelectorDialog(),
         );
         break;
+
+      case MenuOption.MENU_OPTION_SIGNOUT:
+        FirebaseAuth.instance.signOut();
+        Navigator.pushNamedAndRemoveUntil(
+            context, LoginPage.idScreen, (route) => false);
+        break;
     }
   }
 
