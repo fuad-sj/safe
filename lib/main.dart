@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:safe/controller/login_page.dart';
 import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/registration_screen.dart';
+import 'package:safe/controller/customer_profile_screen.dart';
 import 'package:safe/current_locale.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/pref_util.dart';
@@ -50,6 +51,7 @@ class MainApp extends StatelessWidget {
             RegistrationScreen.idScreen: (_) => RegistrationScreen(),
             LoginPage.idScreen: (_) => LoginPage(),
             MainScreenCustomer.idScreen: (_) => MainScreenCustomer(),
+            CustomerProfileScreen.idScreen: (_) => CustomerProfileScreen(),
           },
           debugShowCheckedModeBanner: false,
         );

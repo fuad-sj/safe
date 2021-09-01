@@ -10,6 +10,7 @@ Driver _$DriverFromJson(Map<String, dynamic> json) {
   return Driver()
     ..phone_number = json['phone_number'] as String?
     ..user_name = json['user_name'] as String?
+    ..email = json['email'] as String?
     ..date_created = FirebaseDocument.DateTimeFromJson(json['date_created'])
     ..date_last_login =
         FirebaseDocument.DateTimeFromJson(json['date_last_login'])
@@ -19,6 +20,7 @@ Driver _$DriverFromJson(Map<String, dynamic> json) {
         (json['device_registration_tokens'] as List<dynamic>?)
             ?.map((e) => e as String)
             .toList()
+    ..link_img_profile = json['link_img_profile'] as String?
     ..car_type = json['car_type'] as int?
     ..profile_status = json['profile_status'] as int?
     ..car_color = json['car_color'] as String?
@@ -55,12 +57,14 @@ Driver _$DriverFromJson(Map<String, dynamic> json) {
 Map<String, dynamic> _$DriverToJson(Driver instance) => <String, dynamic>{
       'phone_number': instance.phone_number,
       'user_name': instance.user_name,
+      'email': instance.email,
       'date_created': FirebaseDocument.DateTimeToJson(instance.date_created),
       'date_last_login':
           FirebaseDocument.DateTimeToJson(instance.date_last_login),
       'is_active': instance.is_active,
       'is_logged_in': instance.is_logged_in,
       'device_registration_tokens': instance.device_registration_tokens,
+      'link_img_profile': instance.link_img_profile,
       'car_type': instance.car_type,
       'profile_status': instance.profile_status,
       'car_color': instance.car_color,
