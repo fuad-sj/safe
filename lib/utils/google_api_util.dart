@@ -118,12 +118,11 @@ class GoogleApiUtils {
 
   static double _calculateEstimatedFarePrice(RouteDetails directionDetails) {
     double timeTraveledFare =
-        ((directionDetails.durationValue + 0.0) / 60.0) * 0.2;
+        ((directionDetails.durationValue + 0.0) / 60.0) * 1.0;
     double distanceTraveledFare =
-        ((directionDetails.distanceValue + 0.0) / 1000) * 0.2;
-    double totalPrice = timeTraveledFare + distanceTraveledFare;
+        ((directionDetails.distanceValue + 0.0) / 1000) * 10.0;
+    double totalPrice = timeTraveledFare + distanceTraveledFare + 60;
 
-    totalPrice *= 43;
     return totalPrice;
   }
 }
