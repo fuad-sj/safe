@@ -42,9 +42,9 @@ class Customer extends FirebaseDocument {
   DateTime? date_last_login;
 
   @JsonKey(defaultValue: true)
-  late bool is_active;
+  bool? is_active;
   @JsonKey(defaultValue: false)
-  late bool is_logged_in;
+  bool? is_logged_in;
 
   List<String>? device_registration_tokens;
 

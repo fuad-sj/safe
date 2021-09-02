@@ -8,7 +8,7 @@ import 'package:safe/constants.dart';
 
 class GoogleApiUtils {
   static const String REST_API_ROOT_PATH =
-      "us-central1-testride-8e2f8.cloudfunctions.net";
+      "us-central1-waliif-ride-adea0.cloudfunctions.net";
 
   // Convert [lat,long] into an human readable address using google maps api
   static Future<Address> searchCoordinateLatLng(LatLng latLng) async {
