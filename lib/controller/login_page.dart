@@ -30,6 +30,8 @@ class _LoginPageState extends State<LoginPage> {
 
   String? _appVersionNumber;
 
+  bool _languageDialogShown = false;
+
   void _setPhoneControllerText(String newPhone) {
     _phoneController.value = TextEditingValue(
       text: newPhone,
@@ -70,7 +72,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!PrefUtil.isUserLanguageLocaleSet()) {
+    if (!PrefUtil.isUserLanguageLocaleSet() && !_languageDialogShown) {
+      _languageDialogShown = true;
       /**
        * !!! VERY IMPORTANT !!!
        * can't directly call [showDialog], schedule it for next cycle
