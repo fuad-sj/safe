@@ -85,5 +85,9 @@
   "registration_register_customer": "註冊客戶",
   "registration_registration_progress": "正在註冊，請稍候...",
   "registration_registration_congratulations": "恭喜，您的帳戶已創建",
-  "registration_registration_new_customer_has_been_created": "尚未創建新用戶帳戶"
+  "registration_registration_new_customer_has_been_created": "尚未創建新用戶帳戶",
+
+  "dialog_driver_not_found_title": "Driver Not Found",
+  "dialog_driver_not_found_body": "We were currently unable to find a driver within your vicinity, please try again after a little while.",
+  "dialog_driver_not_found_dismiss": "Dismiss"
 }
