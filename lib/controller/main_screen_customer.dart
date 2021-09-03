@@ -17,6 +17,7 @@ import 'package:safe/controller/bottom_sheets/trip_details_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/where_to_bottom_sheet.dart';
 import 'package:safe/controller/customer_order_history.dart';
 import 'package:safe/controller/customer_profile_screen.dart';
+import 'package:safe/controller/dialogs/driver_not_found_dialog.dart';
 import 'package:safe/controller/dialogs/ride_cancellation_dialog.dart';
 import 'package:safe/controller/dialogs/trip_summary_dialog.dart';
 import 'package:safe/controller/login_page.dart';
@@ -70,7 +71,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   static const int UI_STATE_DRIVER_CONFIRMED = 6;
   static const int UI_STATE_TRIP_STARTED = 8;
   static const int UI_STATE_TRIP_COMPLETED = 9;
-  static const int UI_STATE_TRIP_SUMMARY_SHOWN = 10;
+  static const int UI_STATE_DRIVER_NOT_FOUND = 10;
+  static const int UI_STATE_NOTICE_DIALOG_SHOWN = 20;
 
   final PolylinePoints _POLYLINE_POINTS_DECODER = PolylinePoints();
 
@@ -484,7 +486,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                               await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => CustomerProfileScreen()),
+                                    builder: (context) =>
+                                        CustomerProfileScreen()),
                               );
 
                               _currentCustomer = Customer.fromSnapshot(
@@ -595,9 +598,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   Widget build(BuildContext context) {
     const double TOP_MAP_PADDING = 40;
 
-    if (_UIState == UI_STATE_TRIP_COMPLETED) {
-      _UIState = UI_STATE_TRIP_SUMMARY_SHOWN;
-
+    if (_UIState == UI_STATE_TRIP_COMPLETED ||
+        _UIState == UI_STATE_DRIVER_NOT_FOUND) {
+      bool isTripCompletionDialog = _UIState == UI_STATE_TRIP_COMPLETED;
+      _UIState = UI_STATE_NOTICE_DIALOG_SHOWN;
       /**
        * !!! VERY IMPORTANT !!!
        * can't directly call [showDialog], schedule it for next cycle
@@ -607,10 +611,15 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         Duration.zero,
         () async {
           await showDialog(
-            context: context,
-            builder: (_) =>
-                TripCompletionDialog(rideRequest: _currentRideRequest!),
-          );
+              context: context,
+              builder: (_) {
+                if (isTripCompletionDialog) {
+                  return TripCompletionDialog(
+                      rideRequest: _currentRideRequest!);
+                } else {
+                  return DriverNotFoundDialog();
+                }
+              });
 
           resetTripDetails();
         },
@@ -838,8 +847,12 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         int rideStatus = _currentRideRequest!.ride_status;
 
         // driver couldn't be found, or error happened.
-        if (RideRequest.isRideRequestCancelled(rideStatus)) {
+        if (rideStatus == RideRequest.STATUS_DRIVER_NOT_FOUND ||
+            RideRequest.isRideRequestCancelled(rideStatus)) {
           resetTripDetails();
+
+          if (rideStatus == RideRequest.STATUS_DRIVER_NOT_FOUND)
+            _UIState = UI_STATE_DRIVER_NOT_FOUND;
 
           return;
         } else if (!RideRequest.hasDriverBeenPicked(rideStatus)) {
