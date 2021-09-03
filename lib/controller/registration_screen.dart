@@ -57,7 +57,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image(
-                    image: AssetImage('images/safe.png'),
+                    image: AssetImage('images/logo.png'),
                     //  height: MediaQuery.of(context).size.height * 0.30,
                     width: 150.0,
                   ),

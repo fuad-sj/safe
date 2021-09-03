@@ -122,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Image(
-                  image: AssetImage('images/safe.png'),
+                  image: AssetImage('images/logo.png'),
                   //  height: MediaQuery.of(context).size.height * 0.30,
                   width: 150.0,
                 ),
