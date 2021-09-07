@@ -8,7 +8,8 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 class WhereToBottomSheet extends BaseBottomSheet {
   static const String KEY = 'WhereToBottomSheet';
 
-  static const double HEIGHT_WHERE_TO = 190.0;
+  static const double HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT = 180;
+  static const double HEIGHT_WHERE_TO_PERCENT = 0.23;
   static const double TOP_CORNER_BORDER_RADIUS = 22.0;
 
   WhereToBottomSheet({
@@ -23,11 +24,14 @@ class WhereToBottomSheet extends BaseBottomSheet {
 
   @override
   double bottomSheetHeight(BuildContext context) {
-    return HEIGHT_WHERE_TO;
+    double sheetHeight =
+        MediaQuery.of(context).size.height * HEIGHT_WHERE_TO_PERCENT;
+
+    return sheetHeight;
   }
 
   @override
-  double topCornerRadius() {
+  double topCornerRadius(BuildContext context) {
     return TOP_CORNER_BORDER_RADIUS;
   }
 

@@ -9,7 +9,7 @@ import 'package:safe/utils/phone_call.dart';
 class DriverPickedBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DriverPickedBottomSheet';
 
-  static const double HEIGHT_DRIVER_PICKED = 180.0;
+  static const double HEIGHT_DRIVER_PICKED_PERCENT = 0.36;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   Driver? pickedDriver;
@@ -28,11 +28,14 @@ class DriverPickedBottomSheet extends BaseBottomSheet {
 
   @override
   double bottomSheetHeight(BuildContext context) {
-    return HEIGHT_DRIVER_PICKED;
+    double sheetHeight =
+        MediaQuery.of(context).size.height * HEIGHT_DRIVER_PICKED_PERCENT;
+
+    return sheetHeight;
   }
 
   @override
-  double topCornerRadius() {
+  double topCornerRadius(BuildContext context) {
     return TOP_CORNER_BORDER_RADIUS;
   }
 

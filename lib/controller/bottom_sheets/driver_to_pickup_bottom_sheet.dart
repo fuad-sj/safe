@@ -9,7 +9,7 @@ import 'package:safe/utils/phone_call.dart';
 class DriverToPickupBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DriverToPickupBottomSheet';
 
-  static const double HEIGHT_DRIVER_ON_WAY_TO_PICKUP = 100.0;
+  static const double HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT = 0.25;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   RideRequest? rideRequest;
@@ -30,11 +30,14 @@ class DriverToPickupBottomSheet extends BaseBottomSheet {
 
   @override
   double bottomSheetHeight(BuildContext context) {
-    return HEIGHT_DRIVER_ON_WAY_TO_PICKUP;
+    double sheetHeight =
+        MediaQuery.of(context).size.height * HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT;
+
+    return sheetHeight;
   }
 
   @override
-  double topCornerRadius() {
+  double topCornerRadius(BuildContext context) {
     return TOP_CORNER_BORDER_RADIUS;
   }
 

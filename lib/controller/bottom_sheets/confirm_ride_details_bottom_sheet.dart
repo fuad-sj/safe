@@ -12,7 +12,7 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 class ConfirmRideDetailsBottomSheet extends BaseBottomSheet {
   static const String KEY = 'ConfirmRideDetailsBottomSheet';
 
-  static const double HEIGHT_RIDE_DETAILS = 370.0;
+  static const double HEIGHT_RIDE_DETAILS_PERCENT = 0.43;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   RouteDetails? routeDetails;
@@ -31,11 +31,14 @@ class ConfirmRideDetailsBottomSheet extends BaseBottomSheet {
 
   @override
   double bottomSheetHeight(BuildContext context) {
-    return HEIGHT_RIDE_DETAILS;
+    double sheetHeight =
+        MediaQuery.of(context).size.height * HEIGHT_RIDE_DETAILS_PERCENT;
+
+    return sheetHeight;
   }
 
   @override
-  double topCornerRadius() {
+  double topCornerRadius(BuildContext context) {
     return TOP_CORNER_BORDER_RADIUS;
   }
 

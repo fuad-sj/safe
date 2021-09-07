@@ -22,7 +22,7 @@ abstract class BaseBottomSheet extends StatefulWidget {
 
   double bottomSheetHeight(BuildContext context);
 
-  double topCornerRadius();
+  double topCornerRadius(BuildContext context);
 
   State<StatefulWidget> buildState();
 
