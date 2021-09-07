@@ -9,7 +9,7 @@ import 'package:safe/utils/phone_call.dart';
 class DriverToPickupBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DriverToPickupBottomSheet';
 
-  static const double HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT = 0.25;
+  static const double HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT = 0.18;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   RideRequest? rideRequest;
@@ -30,8 +30,8 @@ class DriverToPickupBottomSheet extends BaseBottomSheet {
 
   @override
   double bottomSheetHeight(BuildContext context) {
-    double sheetHeight =
-        MediaQuery.of(context).size.height * HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT;
+    double sheetHeight = MediaQuery.of(context).size.height *
+        HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT;
 
     return sheetHeight;
   }
@@ -63,7 +63,7 @@ class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      '${widget.pickedDriver!.user_name!}, ${widget.pickedDriver!.phone_number!}'),
+                      '${widget.pickedDriver!.user_name!}, ${widget.pickedDriver!.phone_number!}, ${widget.pickedDriver!.car_number}'),
                   SizedBox(height: 4.0),
                   Text(
                       '${widget.pickedDriver!.car_color} ${widget.pickedDriver!.car_model}',

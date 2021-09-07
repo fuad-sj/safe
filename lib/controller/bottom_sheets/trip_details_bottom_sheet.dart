@@ -14,7 +14,7 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 class TripDetailsBottomSheet extends BaseBottomSheet {
   static const String KEY = 'TripDetailsBottomSheet';
 
-  static const double HEIGHT_TRIP_DETAILS_PERCENT = 0.4;
+  static const double HEIGHT_TRIP_DETAILS_PERCENT = 0.24;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   RideRequest? rideRequest;

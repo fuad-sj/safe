@@ -9,7 +9,7 @@ import 'package:safe/utils/phone_call.dart';
 class DriverPickedBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DriverPickedBottomSheet';
 
-  static const double HEIGHT_DRIVER_PICKED_PERCENT = 0.36;
+  static const double HEIGHT_DRIVER_PICKED_PERCENT = 0.18;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   Driver? pickedDriver;
@@ -70,7 +70,7 @@ class _DriverPickedBottomSheetState extends State<DriverPickedBottomSheet>
                   ),
                   SizedBox(height: 4.0),
                   Text(
-                      '${widget.pickedDriver!.car_color} ${widget.pickedDriver!.car_model}',
+                      '${widget.pickedDriver!.car_color}, ${widget.pickedDriver!.car_model}, ${widget.pickedDriver!.car_number}',
                       style: TextStyle(color: Colors.black54, fontSize: 12.0)),
                 ],
               ),
