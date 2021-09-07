@@ -873,8 +873,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             RideRequest.isRideRequestCancelled(rideStatus)) {
           resetTripDetails();
 
-          if (rideStatus == RideRequest.STATUS_DRIVER_NOT_FOUND)
-            _UIState = UI_STATE_DRIVER_NOT_FOUND;
+          if (rideStatus == RideRequest.STATUS_DRIVER_NOT_FOUND) {
+            setState(() {
+              _UIState = UI_STATE_DRIVER_NOT_FOUND;
+            });
+          }
 
           return;
         } else if (!RideRequest.hasDriverBeenPicked(rideStatus)) {
