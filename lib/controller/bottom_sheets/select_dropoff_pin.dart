@@ -40,8 +40,7 @@ class SelectDropOffPinBottomSheet extends BaseBottomSheet {
 
   @override
   double bottomSheetHeight(BuildContext context) {
-    double sheetHeight = MediaQuery.of(context).size.height *
-        DestinationPickerBottomSheet.HEIGHT_DESTINATION_SELECTOR_PERCENT;
+    double sheetHeight = MediaQuery.of(context).size.height;
 
     return sheetHeight;
   }
