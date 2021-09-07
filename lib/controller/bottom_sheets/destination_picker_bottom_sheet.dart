@@ -17,7 +17,7 @@ import 'package:safe/utils/pref_util.dart';
 class DestinationPickerBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DestinationPickerBottomSheet';
 
-  static const double HEIGHT_DESTINATION_SELECTOR = 750.0;
+  static const double HEIGHT_DESTINATION_SELECTOR_PERCENT = 0.8;
   static const double TOP_CORNER_BORDER_RADIUS = 22.0;
 
   VoidCallback onSelectPinCalled;
@@ -36,12 +36,15 @@ class DestinationPickerBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
-    return HEIGHT_DESTINATION_SELECTOR;
+  double bottomSheetHeight(BuildContext context) {
+    double sheetHeight =
+        MediaQuery.of(context).size.height * HEIGHT_DESTINATION_SELECTOR_PERCENT;
+
+    return sheetHeight;
   }
 
   @override
-  double topCornerRadius() {
+  double topCornerRadius(BuildContext context) {
     return TOP_CORNER_BORDER_RADIUS;
   }
 

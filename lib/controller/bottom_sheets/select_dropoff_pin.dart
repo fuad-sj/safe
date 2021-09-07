@@ -38,12 +38,15 @@ class SelectDropOffPinBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
-    return DestinationPickerBottomSheet.HEIGHT_DESTINATION_SELECTOR;
+  double bottomSheetHeight(BuildContext context) {
+    double sheetHeight = MediaQuery.of(context).size.height *
+        DestinationPickerBottomSheet.HEIGHT_DESTINATION_SELECTOR_PERCENT;
+
+    return sheetHeight;
   }
 
   @override
-  double topCornerRadius() {
+  double topCornerRadius(BuildContext context) {
     return TOP_CORNER_BORDER_RADIUS;
   }
 
@@ -121,7 +124,11 @@ class _SelectDropOffPinBottomSheetState
     const double TOP_MAP_PADDING = 40;
 
     double mapWidth = MediaQuery.of(context).size.width;
-    double mapHeight = DestinationPickerBottomSheet.HEIGHT_DESTINATION_SELECTOR;
+    double mapHeight = MediaQuery.of(context).size.height *
+        DestinationPickerBottomSheet.HEIGHT_DESTINATION_SELECTOR_PERCENT;
+
+    double pickerHeight = MediaQuery.of(context).size.height *
+        _SetPickupBottomSheet.HEIGHT_SET_PICKUP_PERCENT;
 
     return Stack(
       children: [
@@ -130,7 +137,7 @@ class _SelectDropOffPinBottomSheetState
         GoogleMap(
           padding: EdgeInsets.only(
             top: TOP_MAP_PADDING,
-            bottom: _SetPickupBottomSheet.HEIGHT_SET_PICKUP + 15,
+            bottom: pickerHeight + 15,
           ),
           mapType: MapType.normal,
           myLocationEnabled: true,
@@ -158,8 +165,8 @@ class _SelectDropOffPinBottomSheetState
 
                 try {
                   _destinationAddress =
-                  await GoogleApiUtils.searchCoordinateLatLng(
-                      newPosition.target);
+                      await GoogleApiUtils.searchCoordinateLatLng(
+                          newPosition.target);
                 } catch (err) {
                   _destinationAddress = null;
                 }
@@ -175,7 +182,7 @@ class _SelectDropOffPinBottomSheetState
         Positioned(
           top: (mapHeight -
                   (SelectDropOffPinBottomSheet.SIZE_CURRENT_PIN_IMAGE +
-                      _SetPickupBottomSheet.HEIGHT_SET_PICKUP)) /
+                      pickerHeight)) /
               2,
           left:
               (mapWidth - SelectDropOffPinBottomSheet.SIZE_CURRENT_PIN_IMAGE) /
@@ -203,7 +210,7 @@ class _SelectDropOffPinBottomSheetState
 class _SetPickupBottomSheet extends BaseBottomSheet {
   static const String KEY = 'WhereToBottomSheet';
 
-  static const double HEIGHT_SET_PICKUP = 230.0;
+  static const double HEIGHT_SET_PICKUP_PERCENT = 0.28;
   static const double TOP_CORNER_BORDER_RADIUS = 22.0;
 
   VoidCallback onBackSelected;
@@ -221,12 +228,15 @@ class _SetPickupBottomSheet extends BaseBottomSheet {
         ) {}
 
   @override
-  double bottomSheetHeight() {
-    return HEIGHT_SET_PICKUP;
+  double bottomSheetHeight(BuildContext context) {
+    double sheetHeight =
+        MediaQuery.of(context).size.height * HEIGHT_SET_PICKUP_PERCENT;
+
+    return sheetHeight;
   }
 
   @override
-  double topCornerRadius() {
+  double topCornerRadius(BuildContext context) {
     return TOP_CORNER_BORDER_RADIUS;
   }
 

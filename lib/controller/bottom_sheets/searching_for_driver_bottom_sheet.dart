@@ -5,7 +5,7 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 class SearchingForDriverBottomSheet extends BaseBottomSheet {
   static const String KEY = 'SearchingForDriverBottomSheet';
 
-  static const double HEIGHT_SEARCHING_FOR_DRIVER = 250.0;
+  static const double HEIGHT_SEARCHING_FOR_DRIVER_PERCENT = 0.25;
   static const double TOP_CORNER_BORDER_RADIUS = 22.0;
 
   SearchingForDriverBottomSheet({
@@ -20,12 +20,15 @@ class SearchingForDriverBottomSheet extends BaseBottomSheet {
         );
 
   @override
-  double bottomSheetHeight() {
-    return HEIGHT_SEARCHING_FOR_DRIVER;
+  double bottomSheetHeight(BuildContext context) {
+    double sheetHeight = MediaQuery.of(context).size.height *
+        HEIGHT_SEARCHING_FOR_DRIVER_PERCENT;
+
+    return sheetHeight;
   }
 
   @override
-  double topCornerRadius() {
+  double topCornerRadius(BuildContext context) {
     return TOP_CORNER_BORDER_RADIUS;
   }
 
@@ -47,8 +50,9 @@ class _SearchingForDriverBottomSheetState
           SizedBox(height: 12.0),
           SizedBox(
               width: double.infinity,
-              child: Text(SafeLocalizations.of(context)!
-                  .bottom_sheet_searching_for_driver_progress,
+              child: Text(
+                  SafeLocalizations.of(context)!
+                      .bottom_sheet_searching_for_driver_progress,
                   style:
                       TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold))),
           SizedBox(height: 22.0),
@@ -71,9 +75,11 @@ class _SearchingForDriverBottomSheetState
           SizedBox(height: 10.0),
           Container(
             width: double.infinity,
-            child: Text(SafeLocalizations.of(context)!
-                .bottom_sheet_searching_for_driver_cancel_ride,
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 12.0)),
+            child: Text(
+                SafeLocalizations.of(context)!
+                    .bottom_sheet_searching_for_driver_cancel_ride,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12.0)),
           ),
         ],
       ),

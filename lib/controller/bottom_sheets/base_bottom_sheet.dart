@@ -20,9 +20,9 @@ abstract class BaseBottomSheet extends StatefulWidget {
     this.fixedToBottom = false,
   }) : super(key: key);
 
-  double bottomSheetHeight();
+  double bottomSheetHeight(BuildContext context);
 
-  double topCornerRadius();
+  double topCornerRadius(BuildContext context);
 
   State<StatefulWidget> buildState();
 
@@ -45,10 +45,10 @@ abstract class BaseBottomSheet extends StatefulWidget {
 
     if (fixedToBottom) {
       radius = BorderRadius.only(
-          topLeft: Radius.circular(topCornerRadius()),
-          topRight: Radius.circular(topCornerRadius()));
+          topLeft: Radius.circular(topCornerRadius(context)),
+          topRight: Radius.circular(topCornerRadius(context)));
     } else {
-      radius = BorderRadius.all(Radius.circular(topCornerRadius()));
+      radius = BorderRadius.all(Radius.circular(topCornerRadius(context)));
     }
 
     return Positioned(
@@ -60,7 +60,7 @@ abstract class BaseBottomSheet extends StatefulWidget {
         curve: Curves.bounceIn,
         duration: Duration(milliseconds: animationDuration()),
         child: Container(
-          height: showBottomSheet ? bottomSheetHeight() : 0,
+          height: showBottomSheet ? bottomSheetHeight(context) : 0,
           decoration: (showBottomSheet == false)
               ? null
               : BoxDecoration(

@@ -156,7 +156,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     loadCurrentUserInfo();
 
-    setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO);
+    setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
 
     Future.delayed(Duration.zero, () async {
       loadMapIcons();
@@ -287,7 +287,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _UIState = UI_STATE_NOTHING_STARTED;
       _isHamburgerDrawerMode = true;
 
-      setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO);
+      setBottomMapPadding(
+          WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
 
       _mapPolyLines.clear();
       _mapMarkers.clear();
@@ -627,6 +628,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     }
 
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       key: _scaffoldKey,
@@ -655,7 +657,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
               setState(() {
                 // once location is acquired, add a bottom padding to the map
-                setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO);
+                setBottomMapPadding(
+                    screenHeight * WhereToBottomSheet.HEIGHT_WHERE_TO_PERCENT);
               });
 
               bool locationAcquired = await zoomCameraToCurrentPosition();
@@ -680,8 +683,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             actionCallback: () {
               _UIState = UI_STATE_WHERE_TO_SELECTED;
 
-              setBottomMapPadding(
-                  DestinationPickerBottomSheet.HEIGHT_DESTINATION_SELECTOR);
+              setBottomMapPadding(screenHeight *
+                  DestinationPickerBottomSheet
+                      .HEIGHT_DESTINATION_SELECTOR_PERCENT);
 
               _isHamburgerDrawerMode = false;
 
@@ -702,8 +706,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               _UIState = UI_STATE_DROPOFF_SET;
 
               _isHamburgerDrawerMode = false;
-              setBottomMapPadding(
-                  ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS);
+              setBottomMapPadding(screenHeight *
+                  ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS_PERCENT);
 
               // stop showing nearby drivers
               ignoreGeoFireUpdates();
@@ -729,8 +733,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 _UIState = UI_STATE_DROPOFF_SET;
 
                 _isHamburgerDrawerMode = false;
-                setBottomMapPadding(
-                    ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS);
+                setBottomMapPadding(screenHeight *
+                    ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS_PERCENT);
 
                 // stop showing nearby drivers
                 ignoreGeoFireUpdates();
@@ -763,7 +767,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
               setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
                   ? 0
-                  : SearchingForDriverBottomSheet.HEIGHT_SEARCHING_FOR_DRIVER);
+                  : (screenHeight *
+                      SearchingForDriverBottomSheet
+                          .HEIGHT_SEARCHING_FOR_DRIVER_PERCENT));
 
               _isHamburgerDrawerMode = true;
 
@@ -891,6 +897,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         Color? pathColor;
         String? encodedPathRoute;
         int? lineWidth;
+        double? bottomSheetHeightPercent;
 
         if (isDriverPicked) {
           pathColor = Color(0xff299bfb);
@@ -898,7 +905,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               _currentRideRequest!.driver_to_pickup_encoded_points!;
           lineWidth = 3;
 
-          setBottomMapPadding(DriverPickedBottomSheet.HEIGHT_DRIVER_PICKED);
+          bottomSheetHeightPercent =
+              DriverPickedBottomSheet.HEIGHT_DRIVER_PICKED_PERCENT;
           _isHamburgerVisible = false;
 
           _UIState = UI_STATE_DRIVER_PICKED;
@@ -908,8 +916,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               _currentRideRequest!.driver_to_pickup_encoded_points!;
           lineWidth = 5;
 
-          setBottomMapPadding(
-              DriverToPickupBottomSheet.HEIGHT_DRIVER_ON_WAY_TO_PICKUP);
+          bottomSheetHeightPercent =
+              DriverToPickupBottomSheet.HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT;
 
           _UIState = UI_STATE_DRIVER_CONFIRMED;
         } else if (hasTripStarted) {
@@ -933,8 +941,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             },
           );
 
-          setBottomMapPadding(TripDetailsBottomSheet.HEIGHT_TRIP_DETAILS);
+          bottomSheetHeightPercent =
+              TripDetailsBottomSheet.HEIGHT_TRIP_DETAILS_PERCENT;
           _UIState = UI_STATE_TRIP_STARTED;
+        }
+
+        if (bottomSheetHeightPercent != null) {
+          setBottomMapPadding(
+              MediaQuery.of(context).size.height * bottomSheetHeightPercent);
         }
 
         if (encodedPathRoute != null) {
