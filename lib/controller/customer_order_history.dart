@@ -157,8 +157,11 @@ class _RideRequestListItem extends StatelessWidget {
                           fontWeight: _bold,
                           color: statusTheme.colorTxt,
                           fontSize: 14.0)),
-                  Expanded(child: Container()),
-                  Icon(Icons.double_arrow),
+                  if (request.ride_status ==
+                      RideRequest.STATUS_TRIP_COMPLETED) ...[
+                    Expanded(child: Container()),
+                    Icon(Icons.double_arrow),
+                  ],
                 ],
               ),
               Text(
