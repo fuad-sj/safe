@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:safe/controller/dialogs/trip_summary_dialog.dart';
 import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/ride_request.dart';
@@ -41,6 +42,7 @@ class _CustomerOrderHistoryState extends State<CustomerOrderHistory> {
         .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .collection(FIRESTORE_PATHS.SUB_COL_CUSTOMERS_RIDE_HISTORY)
+        .orderBy(RideRequest.FIELD_DATE_RIDE_CREATED, descending: true)
         .snapshots()
         .listen((requestSnapshots) {
       if (requestSnapshots.docs.isNotEmpty) {
@@ -74,146 +76,118 @@ class _CustomerOrderHistoryState extends State<CustomerOrderHistory> {
         itemCount: _requests.length,
         itemBuilder: (context, index) {
           RideRequest request = _requests[index];
-          return _RideRequestListItem(request: request);
+          return _RideRequestListItem(
+            request: request,
+            onRequestSelected: (RideRequest request) {
+              showDialog(
+                  context: context,
+                  builder: (_) => TripCompletionDialog(rideRequest: request));
+            },
+          );
         },
       ),
     );
   }
 }
 
-class _RequestStatusResources {
-  Color colorBkgnd, colorTxt;
+class _StatusTextTheme {
+  Color colorTxt;
   String txtStatus;
 
-  _RequestStatusResources(
-      {required this.colorBkgnd,
-      required this.colorTxt,
-      required this.txtStatus});
+  _StatusTextTheme({required this.colorTxt, required this.txtStatus});
 }
 
 class _RideRequestListItem extends StatelessWidget {
   final RideRequest request;
+  final Function(RideRequest) onRequestSelected;
 
-  const _RideRequestListItem({required this.request});
-
-  _RequestStatusResources getResourceForOrderStatus(BuildContext context, int requestStatus) {
-    Color bkgndColor, txtColor;
-    String status;
-
-    switch (requestStatus) {
-      case RideRequest.STATUS_PLACED:
-        bkgndColor = Colors.teal.shade700;
-        txtColor = Colors.grey.shade100;
-        status =
-            SafeLocalizations.of(context)!.order_history_order_status_placed;
-        break;
-      case RideRequest.STATUS_DRIVER_CONFIRMED:
-        bkgndColor = Colors.teal.shade200;
-        txtColor = Colors.grey.shade800;
-        status =
-            SafeLocalizations.of(context)!.order_history_order_status_confirmed;
-        break;
-      case RideRequest.STATUS_TRIP_STARTED:
-        bkgndColor = Colors.teal.shade300;
-        txtColor = Colors.grey.shade700;
-        status =
-            SafeLocalizations.of(context)!.order_history_order_status_started;
-        break;
-      case RideRequest.STATUS_TRIP_COMPLETED:
-        bkgndColor = Colors.teal.shade400;
-        txtColor = Colors.grey.shade700;
-        status =
-            SafeLocalizations.of(context)!.order_history_order_status_completed;
-        break;
-      default:
-        bkgndColor = Colors.teal.shade100;
-        txtColor = Colors.grey.shade900;
-        status =
-            SafeLocalizations.of(context)!.order_history_order_status_cancelled;
-        break;
-    }
-
-    return _RequestStatusResources(
-        colorBkgnd: bkgndColor, colorTxt: txtColor, txtStatus: status);
-  }
+  const _RideRequestListItem(
+      {required this.request, required this.onRequestSelected});
 
   @override
   Widget build(BuildContext context) {
     FontWeight _bold = FontWeight.bold;
 
-    _RequestStatusResources orderResource =
-        getResourceForOrderStatus(context, request.ride_status);
+    _StatusTextTheme getStatusTextTheme(int requestStatus) {
+      Color txtColor;
+      String status;
 
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: Container(
-        padding: EdgeInsets.all(10.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Order status
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(1.0),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5)),
-                    color: orderResource.colorBkgnd,
-                    child: Center(
-                      child: Text(orderResource.txtStatus,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                              fontWeight: _bold,
-                              color: orderResource.colorTxt)),
-                    ),
-                  ),
-                  height: 40,
-                  width: MediaQuery.of(context).size.width * 0.5,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(SafeLocalizations.of(context)!.order_history_date,
-                        style: TextStyle(fontWeight: _bold)),
-                    SizedBox(
-                      width: 5.0,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Text(
-                          //   order.date_created.toString(),
-                          AlphaNumericUtil.formatDate(
-                              request.date_ride_created)),
-                    ),
-                  ],
-                )
-              ],
-            ),
+      if (requestStatus == RideRequest.STATUS_TRIP_COMPLETED) {
+        txtColor = Colors.teal.shade900;
+        status =
+            SafeLocalizations.of(context)!.order_history_order_status_completed;
+      } else if (RideRequest.isRideRequestCancelled(requestStatus)) {
+        txtColor = Colors.red.shade900;
+        status =
+            SafeLocalizations.of(context)!.order_history_order_status_cancelled;
+      } else {
+        txtColor = Colors.blue.shade900;
+        status =
+            SafeLocalizations.of(context)!.order_history_order_status_started;
+      }
 
-            // Pickup
-            SizedBox(height: 25.0),
-            Row(
-              children: [
-                Image.asset('images/dot_red.png', height: 16.0, width: 16.0),
-                SizedBox(width: 18.0),
-                Text(request.pickup_address_name),
-              ],
-            ),
-            SizedBox(height: 10.0),
-            greyVerticalDivider(0.3),
-            SizedBox(height: 10.0),
-            Row(
-              children: [
-                Image.asset('images/dot_blue.png', height: 16.0, width: 16.0),
-                SizedBox(width: 18.0),
-                Text(request.dropoff_address_name),
-              ],
-            ),
-            SizedBox(height: 10.0),
-          ],
+      return _StatusTextTheme(colorTxt: txtColor, txtStatus: status);
+    }
+
+    _StatusTextTheme statusTheme = getStatusTextTheme(request.ride_status);
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        if (request.ride_status == RideRequest.STATUS_TRIP_COMPLETED) {
+          onRequestSelected(request);
+        }
+      },
+      child: Card(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Container(
+          padding: EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Order status
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(statusTheme.txtStatus,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                          fontWeight: _bold,
+                          color: statusTheme.colorTxt,
+                          fontSize: 14.0)),
+                  Expanded(child: Container()),
+                  Icon(Icons.double_arrow),
+                ],
+              ),
+              Text(
+                //   order.date_created.toString(),
+                AlphaNumericUtil.formatDate(request.date_ride_created),
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 10.0),
+              ),
+
+              // Pickup
+              SizedBox(height: 25.0),
+              Row(
+                children: [
+                  Image.asset('images/dot_red.png', height: 16.0, width: 16.0),
+                  SizedBox(width: 18.0),
+                  Text(request.pickup_address_name),
+                ],
+              ),
+              SizedBox(height: 10.0),
+              greyVerticalDivider(0.3),
+              SizedBox(height: 10.0),
+              Row(
+                children: [
+                  Image.asset('images/dot_blue.png', height: 16.0, width: 16.0),
+                  SizedBox(width: 18.0),
+                  Text(request.dropoff_address_name),
+                ],
+              ),
+              SizedBox(height: 10.0),
+            ],
+          ),
         ),
       ),
     );

@@ -25,9 +25,14 @@ class AlphaNumericUtil {
   }
 
   static final _dateFormatter = DateFormat('dd/MM/yyyy');
+  static final _longDateFormatter = DateFormat('dd-MM-yyyy hh:mm');
 
   static String formatDate(DateTime? date) {
     return date == null ? "" : _dateFormatter.format(date);
+  }
+
+  static String formatDateLongVersion(DateTime? date) {
+    return date == null ? "" : _longDateFormatter.format(date);
   }
 
   static double parseDouble(String val) {
