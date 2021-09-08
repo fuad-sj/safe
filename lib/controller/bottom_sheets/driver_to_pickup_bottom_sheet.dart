@@ -9,7 +9,7 @@ import 'package:safe/utils/phone_call.dart';
 class DriverToPickupBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DriverToPickupBottomSheet';
 
-  static const double HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT = 0.18;
+  static const double HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT = 0.12;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   RideRequest? rideRequest;
@@ -49,6 +49,46 @@ class DriverToPickupBottomSheet extends BaseBottomSheet {
 
 class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
     implements BottomSheetWidgetBuilder {
+  late ImageProvider _defaultDriverProfileImage;
+  late ImageProvider _driverProfileImage;
+  bool _networkProfileLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _defaultDriverProfileImage = AssetImage('images/user_icon.png');
+    Future.delayed(Duration.zero, () async {
+      loadDriverProfile();
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant DriverToPickupBottomSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    loadDriverProfile();
+  }
+
+  Future<void> loadDriverProfile() async {
+    if ((widget.pickedDriver?.link_img_common_profile ?? null) == null) return;
+    _driverProfileImage =
+        NetworkImage(widget.pickedDriver!.link_img_common_profile!);
+
+    _driverProfileImage
+        .resolve(new ImageConfiguration())
+        .addListener(ImageStreamListener(
+          (_, __) {
+            _networkProfileLoaded = true;
+            setState(() {});
+          },
+          onError: (_, __) {
+            _networkProfileLoaded = false;
+            setState(() {});
+          },
+        ));
+  }
+
   @override
   Widget buildContent(BuildContext context) {
     return Container(
@@ -57,17 +97,34 @@ class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
         children: [
           Row(
             children: [
-              Image.asset('images/car_side.png', height: 70.0, width: 80.0),
+              CircleAvatar(
+                backgroundColor: Colors.transparent,
+                backgroundImage: _networkProfileLoaded
+                    ? _driverProfileImage
+                    : _defaultDriverProfileImage,
+                radius: 30.0,
+              ),
               SizedBox(width: 16.0),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                      '${widget.pickedDriver!.user_name!}, ${widget.pickedDriver!.phone_number!}, ${widget.pickedDriver!.car_number}'),
+                      '${widget.pickedDriver!.user_name!}, ${widget.pickedDriver!.phone_number!}'),
                   SizedBox(height: 4.0),
-                  Text(
-                      '${widget.pickedDriver!.car_color} ${widget.pickedDriver!.car_model}',
-                      style: TextStyle(color: Colors.black54, fontSize: 12.0)),
+                  Row(
+                    children: [
+                      Text(
+                          '${widget.pickedDriver!.car_color}, ${widget.pickedDriver!.car_model}',
+                          style:
+                              TextStyle(color: Colors.black54, fontSize: 12.0)),
+                      SizedBox(width: 4.0),
+                      Text('${widget.pickedDriver!.car_number}',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 14.0)),
+                    ],
+                  ),
                 ],
               ),
               Expanded(child: Container()),

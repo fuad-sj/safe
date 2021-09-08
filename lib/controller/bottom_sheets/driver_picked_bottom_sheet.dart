@@ -56,36 +56,25 @@ class _DriverPickedBottomSheetState extends State<DriverPickedBottomSheet>
         children: [
           Row(
             children: [
-              Icon(Icons.directions_car, color: Colors.redAccent),
+              Image.asset('images/car_side.png', height: 70.0, width: 80.0),
               SizedBox(width: 12.0),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${widget.pickedDriver!.user_name}, ${widget.pickedDriver!.phone_number}',
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Text('${widget.pickedDriver!.car_model}',
+                          style:
+                              TextStyle(color: Colors.black54, fontSize: 12.0)),
+                      SizedBox(width: 4.0),
+                      Text('${widget.pickedDriver!.car_number}',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              fontSize: 14.0)),
+                    ],
                   ),
-                  SizedBox(height: 4.0),
-                  Text(
-                      '${widget.pickedDriver!.car_color}, ${widget.pickedDriver!.car_model}, ${widget.pickedDriver!.car_number}',
-                      style: TextStyle(color: Colors.black54, fontSize: 12.0)),
                 ],
-              ),
-              Expanded(child: Container()),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () async {
-                  try {
-                    PhoneCaller.callPhone(widget.pickedDriver!.phone_number!);
-                  } catch (err) {}
-                },
-                child: Container(
-                  padding: EdgeInsets.all(5.0),
-                  child: Icon(Icons.phone, color: Colors.blue.shade900),
-                ),
               ),
             ],
           ),
