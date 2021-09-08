@@ -145,6 +145,7 @@ class _RideRequestListItem extends StatelessWidget {
           padding: EdgeInsets.all(10.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Order status
               Row(
