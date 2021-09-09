@@ -165,8 +165,7 @@ class _RideRequestListItem extends StatelessWidget {
                 ],
               ),
               Text(
-                //   order.date_created.toString(),
-                AlphaNumericUtil.formatDate(request.date_ride_created),
+                AlphaNumericUtil.formatDateLongVersion(request.date_ride_created),
                 style: TextStyle(color: Colors.grey.shade700, fontSize: 10.0),
               ),
 
