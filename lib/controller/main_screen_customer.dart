@@ -864,6 +864,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       Geofire.stopListener();
     }
 
+    _geofireLocationStream?.cancel();
+
     super.dispose();
   }
 
