@@ -1335,8 +1335,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     if (_nearbyDriverLocations.containsKey(driverLoc.driverID)) {
       DriverLocation prevLocation = _nearbyDriverLocations[driverLoc.driverID]!;
 
-      driverLoc.orientation = Geolocator.bearingBetween(prevLocation.latitude,
+      double angle = Geolocator.bearingBetween(prevLocation.latitude,
           prevLocation.longitude, driverLoc.latitude, driverLoc.longitude);
+
+      if (angle < 0) angle += 360.0;
+      angle += 90.0;
+      if (angle > 360.0) angle -= 360.0;
+
+      driverLoc.orientation = angle;
     } else {
       driverLoc.orientation =
           _RANDOM_GENERATOR.nextDouble() * 360.0; // start off @ a random angle
