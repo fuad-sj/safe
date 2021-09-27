@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -47,6 +48,7 @@ import 'package:safe/utils/map_style.dart';
 import 'package:safe/utils/pref_util.dart';
 import 'package:vector_math/vector_math.dart' as vectors;
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'dart:math';
 
 class MainScreenCustomer extends StatefulWidget {
   static const String idScreen = "mainScreenRider";
@@ -75,6 +77,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   static const int UI_STATE_NOTICE_DIALOG_SHOWN = 20;
 
   final PolylinePoints _POLYLINE_POINTS_DECODER = PolylinePoints();
+  final Random _RANDOM_GENERATOR = new Random();
 
   GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
@@ -85,7 +88,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   int _UIState = UI_STATE_NOTHING_STARTED;
 
-  List<DriverLocation> _nearByDrivers = [];
+  HashMap<String, DriverLocation> _nearbyDriverLocations =
+      HashMap<String, DriverLocation>();
 
   bool _isHamburgerVisible = true;
   bool _isHamburgerDrawerMode = true;
@@ -1233,51 +1237,48 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             _currentPosition!.longitude, DRIVER_RADIUS_KILOMETERS)
         ?.listen(
       (map) async {
-        if (_ignoreGeofireUpdates) {
+        if (map == null || _ignoreGeofireUpdates) {
           return;
         }
 
-        if (map != null) {
-          var callBack = map[FIELD_CALLBACK];
+        var callBack = map[FIELD_CALLBACK];
 
-          switch (callBack) {
-            case Geofire.onKeyEntered:
-              addOrUpdateDriverLocation(
-                DriverLocation(
-                  driverID: map[FIELD_KEY],
-                  latitude: map[FIELD_LATITUDE],
-                  longitude: map[FIELD_LONGITUDE],
-                ),
-              );
-              if (_isNearbyDriverLoadingComplete) {
-                updateAvailableDriversOnMap();
-              }
-              break;
-
-            case Geofire.onKeyExited:
-              String driver_ID = map[FIELD_KEY];
-              _nearByDrivers
-                  .removeWhere((driver) => (driver.driverID == driver_ID));
+        switch (callBack) {
+          case Geofire.onKeyEntered:
+            setDriverLocationAndBearing(
+              DriverLocation(
+                driverID: map[FIELD_KEY],
+                latitude: map[FIELD_LATITUDE],
+                longitude: map[FIELD_LONGITUDE],
+              ),
+            );
+            if (_isNearbyDriverLoadingComplete) {
               updateAvailableDriversOnMap();
-              break;
+            }
+            break;
 
-            case Geofire.onKeyMoved:
-              addOrUpdateDriverLocation(
-                DriverLocation(
-                  driverID: map[FIELD_KEY],
-                  latitude: map[FIELD_LATITUDE],
-                  longitude: map[FIELD_LONGITUDE],
-                ),
-              );
-              updateAvailableDriversOnMap();
-              break;
+          case Geofire.onKeyExited:
+            String driver_ID = map[FIELD_KEY];
+            _nearbyDriverLocations.remove(driver_ID);
+            updateAvailableDriversOnMap();
+            break;
 
-            case Geofire.onGeoQueryReady:
-              _isNearbyDriverLoadingComplete = true;
-              updateAvailableDriversOnMap();
+          case Geofire.onKeyMoved:
+            setDriverLocationAndBearing(
+              DriverLocation(
+                driverID: map[FIELD_KEY],
+                latitude: map[FIELD_LATITUDE],
+                longitude: map[FIELD_LONGITUDE],
+              ),
+            );
+            updateAvailableDriversOnMap();
+            break;
 
-              break;
-          }
+          case Geofire.onGeoQueryReady:
+            _isNearbyDriverLoadingComplete = true;
+            updateAvailableDriversOnMap();
+
+            break;
         }
 
         setState(() {});
@@ -1290,51 +1291,28 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void updateAvailableDriversOnMap() {
-    _mapMarkers = _nearByDrivers
-        .map(
-          (driver) => Marker(
-            markerId: MarkerId('driver${driver.driverID}'),
-            position: LatLng(driver.latitude, driver.longitude),
-            icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
-            rotation: driver.orientation ?? 0,
-          ),
-        )
+    _mapMarkers = _nearbyDriverLocations.values
+        .map((driver) => Marker(
+              markerId: MarkerId('driver${driver.driverID}'),
+              position: LatLng(driver.latitude, driver.longitude),
+              icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
+              rotation: driver.orientation ?? 0,
+            ))
         .toSet();
   }
 
-  void addOrUpdateDriverLocation(DriverLocation driverLoc) async {
-    int prevIndex = _nearByDrivers
-        .indexWhere((driver) => (driver.driverID == driverLoc.driverID));
+  void setDriverLocationAndBearing(DriverLocation driverLoc) {
+    if (_nearbyDriverLocations.containsKey(driverLoc.driverID)) {
+      DriverLocation prevLocation = _nearbyDriverLocations[driverLoc.driverID]!;
 
-    if (prevIndex != -1) {
-      double prev_lat = _nearByDrivers[prevIndex].latitude;
-      double prev_long = _nearByDrivers[prevIndex].longitude;
-
-      double delta_lat = driverLoc.latitude - prev_lat;
-      double delta_lng = driverLoc.longitude - prev_long;
-
-      double bearing = vectors.degrees(atan(delta_lng / delta_lat)) + 90;
-
-      if (prev_lat < driverLoc.latitude && prev_long < driverLoc.longitude) {
-        // Do nothing;
-      } else if (prev_lat >= driverLoc.latitude &&
-          prev_long < driverLoc.longitude) {
-        bearing = 180 - bearing;
-      } else if (prev_lat >= driverLoc.latitude &&
-          prev_long >= driverLoc.longitude) {
-        bearing = bearing + 180;
-      } else if (prev_lat < driverLoc.latitude &&
-          prev_long >= driverLoc.longitude) {
-        bearing = 360 - bearing;
-      }
-
-      _nearByDrivers[prevIndex].latitude = driverLoc.latitude;
-      _nearByDrivers[prevIndex].longitude = driverLoc.longitude;
-      _nearByDrivers[prevIndex].orientation = bearing;
+      driverLoc.orientation = Geolocator.bearingBetween(prevLocation.latitude,
+          prevLocation.longitude, driverLoc.latitude, driverLoc.longitude);
     } else {
-      driverLoc.orientation = 0; // start off as 0 degrees
-      _nearByDrivers.add(driverLoc);
+      driverLoc.orientation =
+          _RANDOM_GENERATOR.nextDouble() * 360.0; // start off @ a random angle
     }
+
+    _nearbyDriverLocations[driverLoc.driverID] = driverLoc;
   }
 }
 
