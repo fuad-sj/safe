@@ -11,10 +11,15 @@ class WhereToBottomSheet extends BaseBottomSheet {
   static const double HEIGHT_WHERE_TO_PERCENT = 0.23;
   static const double TOP_CORNER_BORDER_RADIUS = 22.0;
 
+  bool enableButtonSelection;
+  VoidCallback onDisabledCallback;
+
   WhereToBottomSheet({
     required TickerProvider tickerProvider,
     required bool showBottomSheet,
     required VoidCallback actionCallback,
+    required this.enableButtonSelection,
+    required this.onDisabledCallback,
   }) : super(
           tickerProvider: tickerProvider,
           showBottomSheet: showBottomSheet,
@@ -63,22 +68,30 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
           Text(Provider.of<PickUpAndDropOffLocations>(context)
                   .pickUpLocation
                   ?.placeName ??
-              SafeLocalizations.of(context)!.bottom_sheet_where_to_current_location),
+              SafeLocalizations.of(context)!
+                  .bottom_sheet_where_to_current_location),
           SizedBox(height: 25.0),
           TextButton(
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
-              backgroundColor: Colors.orange.shade800,
+              backgroundColor: widget.enableButtonSelection
+                  ? Colors.orange.shade800
+                  : Colors.grey.shade700,
               textStyle: const TextStyle(fontSize: 20, color: Colors.white),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(35.0),
               ),
             ),
             onPressed: () {
-              widget.onActionCallback();
+              if (widget.enableButtonSelection) {
+                widget.onActionCallback();
+              } else {
+                widget.onDisabledCallback();
+              }
             },
             child: Text(
-              SafeLocalizations.of(context)!.bottom_sheet_where_to_enter_destination,
+              SafeLocalizations.of(context)!
+                  .bottom_sheet_where_to_enter_destination,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,

@@ -1,6 +1,8 @@
 {
   "@@locale": "am",
 
+  "generic_message_no_internet": "internet is not working",
+
   "main_screen_creating_order_progress": "ትዛዞት እየተፈጠረው, ትንሽ ይጠብቁ...",
 
   "nav_option_my_trips": "ትእዛዞች",

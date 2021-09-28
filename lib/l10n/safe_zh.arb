@@ -1,6 +1,8 @@
 {
   "@@locale": "zh",
 
+  "generic_message_no_internet": "internet is not working",
+
   "main_screen_creating_order_progress": "正在创建订单，请稍候...",
 
   "nav_option_my_trips": "遊樂設施",
