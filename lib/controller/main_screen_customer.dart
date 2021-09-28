@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:safe/controller/bottom_sheets/driver_picked_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/driver_to_pickup_bottom_sheet.dart';
@@ -16,6 +17,7 @@ import 'package:safe/controller/bottom_sheets/destination_picker_bottom_sheet.da
 import 'package:safe/controller/bottom_sheets/select_dropoff_pin.dart';
 import 'package:safe/controller/bottom_sheets/trip_details_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/where_to_bottom_sheet.dart';
+import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/customer_order_history.dart';
 import 'package:safe/controller/customer_profile_screen.dart';
 import 'package:safe/controller/dialogs/driver_not_found_dialog.dart';
@@ -50,6 +52,7 @@ import 'package:safe/utils/pref_util.dart';
 import 'package:vector_math/vector_math.dart' as vectors;
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'dart:math';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class MainScreenCustomer extends StatefulWidget {
   static const String idScreen = "mainScreenRider";
@@ -146,6 +149,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   bool get isTripStarted => (_currentRideRequest != null &&
       _currentRideRequest!.ride_status == RideRequest.STATUS_TRIP_STARTED);
 
+  bool _isInternetWorking = false;
+
+  final Connectivity _connectivity = Connectivity();
+  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+
   void setBottomMapPadding(double height) {
     const double MAP_BUFFER_HEIGHT = 5.0 + 15;
     _mapBottomPadding = height + MAP_BUFFER_HEIGHT;
@@ -157,17 +165,59 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     _defaultProfileImage = AssetImage('images/user_icon.png');
 
+    initConnectivity();
+
     updateLoginCredentials();
 
     loadCurrentUserInfo();
 
     setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
 
+    _connectivitySubscription =
+        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+
     Future.delayed(Duration.zero, () async {
       loadMapIcons();
       await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
       _geoFireInitialized = true;
     });
+  }
+
+  @override
+  void dispose() {
+    _tripCounterTimer?.cancel();
+
+    if (_geoFireInitialized) {
+      Geofire.stopListener();
+    }
+
+    _connectivitySubscription.cancel();
+
+    _geofireLocationStream?.cancel();
+
+    super.dispose();
+  }
+
+  Future<void> _updateConnectionStatus(ConnectivityResult result) async {
+    setState(() {
+      _isInternetWorking = result != ConnectivityResult.none;
+    });
+  }
+
+  Future<void> initConnectivity() async {
+    late ConnectivityResult result;
+    try {
+      result = await _connectivity.checkConnectivity();
+    } catch (e) {
+      print(e.toString());
+      return;
+    }
+
+    if (!mounted) {
+      return Future.value(null);
+    }
+
+    return _updateConnectionStatus(result);
   }
 
   void updateLoginCredentials() async {
@@ -706,6 +756,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           WhereToBottomSheet(
             tickerProvider: this,
             showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
+            enableButtonSelection: _isInternetWorking,
             actionCallback: () {
               _UIState = UI_STATE_WHERE_TO_SELECTED;
 
@@ -716,6 +767,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               _isHamburgerDrawerMode = false;
 
               setState(() {});
+            },
+            onDisabledCallback: () {
+              displayToastMessage(
+                  SafeLocalizations.of(context)!.generic_message_no_internet,
+                  context);
             },
           ),
 
@@ -776,28 +832,34 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             showBottomSheet: _UIState == UI_STATE_DROPOFF_SET,
             routeDetails: _pickupToDropOffRouteDetail,
             actionCallback: () async {
-              showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (context) => CustomProgressDialog(
-                    message: SafeLocalizations.of(context)!
-                        .main_screen_creating_order_progress),
-              );
+              if (!_isInternetWorking) {
+                displayToastMessage(
+                    SafeLocalizations.of(context)!.generic_message_no_internet,
+                    context);
+              } else {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => CustomProgressDialog(
+                      message: SafeLocalizations.of(context)!
+                          .main_screen_creating_order_progress),
+                );
 
-              _UIState = await createNewRideRequest();
+                _UIState = await createNewRideRequest();
 
-              Navigator.pop(context);
+                Navigator.pop(context);
 
-              // Will update UI when either driver is assigned OR trip is cancelled
-              await listenToRideStatusUpdates();
+                // Will update UI when either driver is assigned OR trip is cancelled
+                await listenToRideStatusUpdates();
 
-              setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
-                  ? 0
-                  : (screenHeight *
-                      SearchingForDriverBottomSheet
-                          .HEIGHT_SEARCHING_FOR_DRIVER_PERCENT));
+                setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
+                    ? 0
+                    : (screenHeight *
+                        SearchingForDriverBottomSheet
+                            .HEIGHT_SEARCHING_FOR_DRIVER_PERCENT));
 
-              _isHamburgerDrawerMode = true;
+                _isHamburgerDrawerMode = true;
+              }
 
               setState(() {});
             },
@@ -858,19 +920,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _tripCounterTimer?.cancel();
-
-    if (_geoFireInitialized) {
-      Geofire.stopListener();
-    }
-
-    _geofireLocationStream?.cancel();
-
-    super.dispose();
   }
 
   Future<void> listenToRideStatusUpdates() async {

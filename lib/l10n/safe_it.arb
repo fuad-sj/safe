@@ -1,6 +1,8 @@
 {
   "@@locale": "it",
 
+  "generic_message_no_internet": "internet is not working",
+
   "main_screen_creating_order_progress": "Creating Order, Please Wait...",
 
   "nav_option_my_trips": "Ajaja ko",
