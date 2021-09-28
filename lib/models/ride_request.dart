@@ -25,6 +25,7 @@ class RideRequest extends FirebaseDocument {
   static const FIELD_CUSTOMER_NAME = 'customer_name';
   static const FIELD_CUSTOMER_PHONE = 'customer_phone';
   static const FIELD_CUSTOMER_DEVICE_TOKEN = 'customer_device_token';
+  static const FIELD_CUSTOMER_EMAIL = 'customer_email';
 
   static const FIELD_PICKUP_LOCATION = 'pickup_location';
   static const FIELD_PICKUP_ADDRESS_NAME = 'pickup_address_name';
@@ -129,6 +130,7 @@ class RideRequest extends FirebaseDocument {
   late String customer_name;
   late String customer_phone;
   String? customer_device_token;
+  String? customer_email;
 
   @JsonKey(
       fromJson: FirebaseDocument.LatLngFromJson,

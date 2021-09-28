@@ -1175,6 +1175,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         _currentCustomer!.phone_number!;
     rideFields[RideRequest.FIELD_CUSTOMER_DEVICE_TOKEN] =
         await FirebaseMessaging.instance.getToken();
+    rideFields[RideRequest.FIELD_CUSTOMER_EMAIL] =
+        _currentCustomer!.email ?? '';
     rideFields[RideRequest.FIELD_PICKUP_LOCATION] =
         FirebaseDocument.LatLngToJson(pickUpAddress.location);
     rideFields[RideRequest.FIELD_PICKUP_ADDRESS_NAME] = pickUpAddress.placeName;
