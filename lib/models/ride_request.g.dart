@@ -19,6 +19,7 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) {
     ..customer_name = json['customer_name'] as String
     ..customer_phone = json['customer_phone'] as String
     ..customer_device_token = json['customer_device_token'] as String?
+    ..customer_email = json['customer_email'] as String?
     ..pickup_location = FirebaseDocument.LatLngFromJson(json['pickup_location'])
     ..pickup_address_name = json['pickup_address_name'] as String
     ..dropoff_location =
@@ -75,6 +76,7 @@ Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
       'customer_name': instance.customer_name,
       'customer_phone': instance.customer_phone,
       'customer_device_token': instance.customer_device_token,
+      'customer_email': instance.customer_email,
       'pickup_location':
           FirebaseDocument.LatLngToJson(instance.pickup_location),
       'pickup_address_name': instance.pickup_address_name,
