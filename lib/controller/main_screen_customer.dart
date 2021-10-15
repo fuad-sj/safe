@@ -955,7 +955,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
         if (rideStatus == RideRequest.STATUS_TRIP_COMPLETED) {
           // note: trip summary will be shown next build cycle
-          _UIState = UI_STATE_TRIP_COMPLETED;
+          // prevent summary dialog being shown multiple times
+          if (_UIState != UI_STATE_NOTICE_DIALOG_SHOWN) {
+            _UIState = UI_STATE_TRIP_COMPLETED;
+          }
           setState(() {});
           return;
         }

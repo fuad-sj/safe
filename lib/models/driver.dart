@@ -19,6 +19,9 @@ class Driver extends Customer {
   static const FIELD_CAR_NUMBER = 'car_number';
   static const FIELD_CAR_MODEL = 'car_model';
 
+  static const FIELD_DRIVER_RATING = 'driver_rating';
+  static const FIELD_NUM_RATING = 'num_rating';
+
   static const FIELD_LINK_IMG_COMMON_PROFILE = 'link_img_common_profile';
   static const FIELD_IMG_STATUS_COMMON_PROFILE = 'img_status_common_profile';
   static const FIELD_LINK_IMG_COMMON_LIBRE = 'link_img_common_libre';
@@ -72,6 +75,9 @@ class Driver extends Customer {
   String? car_color;
   String? car_number;
   String? car_model;
+
+  double? driver_rating;
+  int? num_rating;
 
   String? link_img_common_profile;
   int? img_status_common_profile;

@@ -1,9 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:safe/controller/ui_helpers.dart';
+import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/color_constants.dart';
+import 'package:safe/models/driver.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class TripCompletionDialog extends StatefulWidget {
   static final String DIALOG_RESULT_OKAY_PRESSED = "dialog_result_okay_pressed";
@@ -17,6 +22,10 @@ class TripCompletionDialog extends StatefulWidget {
 }
 
 class _TripCompletionDialogState extends State<TripCompletionDialog> {
+  TextEditingController _commentController = TextEditingController();
+
+  double _driverRating = 5.0;
+
   bool get hasStudentDiscount {
     return (widget.rideRequest.has_student_discount ?? false) == true;
   }
@@ -224,8 +233,101 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
           SizedBox(height: 10.0),
           greyVerticalDivider(0.4),
         ],
+
+        greyVerticalDivider(0.4),
+        SizedBox(height: 10.0),
+        Text(
+          SafeLocalizations.of(context)!.dialog_trip_summary_rate_your_driver,
+          style: TextStyle(fontSize: 12.0),
+        ),
+
+        // TODO: populate stars
+        greyVerticalDivider(0.4),
+        SizedBox(height: 10.0),
+        Center(
+          child: RatingBar.builder(
+            initialRating: 5,
+            minRating: 1,
+            direction: Axis.horizontal,
+            allowHalfRating: false,
+            itemCount: 5,
+            itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
+            itemBuilder: (context, _) => Icon(
+              Icons.star,
+              color: Colors.amber,
+            ),
+            onRatingUpdate: (double rating) {
+              _driverRating = rating;
+            },
+          ),
+        ),
+        SizedBox(height: 10.0),
+        greyVerticalDivider(0.4),
+
+        // Comment
+        greyVerticalDivider(0.4),
+        SizedBox(height: 10.0),
+        TextField(
+          keyboardType: TextInputType.text,
+          controller: _commentController,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.white, width: 2.0),
+            ),
+            contentPadding:
+                const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
+            labelText: SafeLocalizations.of(context)!
+                .dialog_trip_summary_leave_comment,
+            //labelStyle: TextStyle(color: Colors.white),
+            hintText: SafeLocalizations.of(context)!
+                .dialog_trip_summary_leave_comment_hint,
+            //hintStyle: TextStyle(color: Colors.grey),
+            fillColor: Colors.white,
+          ),
+        ),
+        SizedBox(height: 10.0),
+        greyVerticalDivider(0.4),
       ],
     );
+  }
+
+  Future<void> updateRatingAndComment() async {
+    Driver driver = Driver.fromSnapshot(
+      await FirebaseFirestore.instance
+          .collection(FIRESTORE_PATHS.COL_DRIVERS)
+          .doc(widget.rideRequest.driver_id)
+          .get(),
+    );
+
+    double previous_rating = driver.driver_rating ?? 0;
+    int num_ratings = driver.num_rating ?? 0;
+
+    double new_computed_rating =
+        (previous_rating * (num_ratings + 0.0) + _driverRating) /
+            (num_ratings + 1.0);
+
+    num_ratings++;
+
+    Map<String, dynamic> driverFields = Map();
+
+    driverFields[Driver.FIELD_DRIVER_RATING] = new_computed_rating;
+    driverFields[Driver.FIELD_NUM_RATING] = num_ratings;
+
+    await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_DRIVERS)
+        .doc(widget.rideRequest.driver_id)
+        .set(driverFields, SetOptions(merge: true));
+
+    String comment = _commentController.text.trim();
+    Map<String, dynamic> rideFields = Map();
+
+    rideFields[RideRequest.FIELD_CLIENT_TRIGGERED_EVENT] = false;
+    rideFields[RideRequest.FIELD_CUSTOMER_COMMENT] = comment;
+
+    await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_RIDES)
+        .doc(widget.rideRequest.documentID)
+        .set(rideFields, SetOptions(merge: true));
   }
 
   @override
@@ -274,7 +376,19 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
-                      // pop off the dialog
+                      showDialog(
+                        context: context,
+                        barrierDismissible: false,
+                        builder: (context) => CustomProgressDialog(
+                            message: "Please wait..."),
+                      );
+
+                      await updateRatingAndComment();
+
+                      // pop off progress dialog
+                      Navigator.pop(context);
+
+                      // pop off container trip summary dialog
                       Navigator.pop(context,
                           TripCompletionDialog.DIALOG_RESULT_OKAY_PRESSED);
                     },

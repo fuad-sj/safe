@@ -31,6 +31,9 @@
   "dialog_trip_summary_total_trip_fare": "አጠቃላይ ጉዞ ዎጋ",
   "dialog_trip_summary_trip_completed": "ጉዞው ተጠናቅዋል",
   "dialog_trip_summary_done": "ተሳክትዋል",
+  "dialog_trip_summary_rate_your_driver": "Rate Your Driver",
+  "dialog_trip_summary_leave_comment": "Leave Comment",
+  "dialog_trip_summary_leave_comment_hint": "Comment...",
 
   "dialog_cancel_ride_cancel_cancelling_request": "ትራዋ ተቕርጥዋል , እባክዎን ይጠብቁን",
   "dialog_cancel_ride_cancel_reason_waited_too_long": "ብዙ ቆየሁ",

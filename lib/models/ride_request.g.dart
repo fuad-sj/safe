@@ -68,7 +68,8 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) {
     ..adjusted_trip_fare =
         FirebaseDocument.DoubleFromJson(json['adjusted_trip_fare'])
     ..will_continue_search = json['will_continue_search'] as bool?
-    ..search_radius = FirebaseDocument.DoubleFromJson(json['search_radius']);
+    ..search_radius = FirebaseDocument.DoubleFromJson(json['search_radius'])
+    ..customer_comment = json['customer_comment'] as String?;
 }
 
 Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
@@ -128,4 +129,5 @@ Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
       'adjusted_trip_fare': instance.adjusted_trip_fare,
       'will_continue_search': instance.will_continue_search,
       'search_radius': instance.search_radius,
+      'customer_comment': instance.customer_comment,
     };

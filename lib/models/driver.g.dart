@@ -26,6 +26,8 @@ Driver _$DriverFromJson(Map<String, dynamic> json) {
     ..car_color = json['car_color'] as String?
     ..car_number = json['car_number'] as String?
     ..car_model = json['car_model'] as String?
+    ..driver_rating = (json['driver_rating'] as num?)?.toDouble()
+    ..num_rating = json['num_rating'] as int?
     ..link_img_common_profile = json['link_img_common_profile'] as String?
     ..img_status_common_profile = json['img_status_common_profile'] as int?
     ..link_img_common_libre = json['link_img_common_libre'] as String?
@@ -70,6 +72,8 @@ Map<String, dynamic> _$DriverToJson(Driver instance) => <String, dynamic>{
       'car_color': instance.car_color,
       'car_number': instance.car_number,
       'car_model': instance.car_model,
+      'driver_rating': instance.driver_rating,
+      'num_rating': instance.num_rating,
       'link_img_common_profile': instance.link_img_common_profile,
       'img_status_common_profile': instance.img_status_common_profile,
       'link_img_common_libre': instance.link_img_common_libre,

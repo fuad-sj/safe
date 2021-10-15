@@ -55,6 +55,7 @@ dependencies:
   url_launcher: ^6.0.9
   email_validator: ^2.0.1
   connectivity_plus: ^1.1.0
+  flutter_rating_bar: ^4.0.0
 
 dev_dependencies:
   flutter_test:
