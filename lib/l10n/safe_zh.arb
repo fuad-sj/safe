@@ -67,7 +67,9 @@
   "bottom_sheet_trip_details_distance_covered": "覆蓋距離",
   "bottom_sheet_trip_details_ride_time": "乘車時間",
 
+  "bottom_sheet_where_to_hello_there": "Hello there",
   "bottom_sheet_where_to_where_to": "去哪兒？",
+  "bottom_sheet_where_to_where_are_you_going": "Where are you going?",
   "bottom_sheet_where_to_current_location": "當前位置",
   "bottom_sheet_where_to_enter_destination": "輸入目的地",
 

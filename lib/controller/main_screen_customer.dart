@@ -757,6 +757,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             tickerProvider: this,
             showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
             enableButtonSelection: _isInternetWorking,
+            customerName: _currentCustomer?.user_name,
             actionCallback: () {
               _UIState = UI_STATE_WHERE_TO_SELECTED;
 
@@ -1167,7 +1168,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             .scheduledDuration;
     bool isStudent =
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-            .isStudent ?? false;
+                .isStudent ??
+            false;
 
     Map<String, dynamic> rideFields = new Map();
 
