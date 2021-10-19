@@ -50,6 +50,7 @@
   "bottom_sheet_confirm_ride_details_cash": "現金",
   "bottom_sheet_confirm_ride_details_confirm_request": "確認請求",
 
+  "bottom_sheet_destination_picker_trip": "Trip",
   "bottom_sheet_destination_picker_pickup_location": "接人的地方",
   "bottom_sheet_destination_picker_destination_location": "去哪兒？",
   "bottom_sheet_destination_picker_pin_your_location": "在地圖上固定您的位置",

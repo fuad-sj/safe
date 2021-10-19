@@ -50,6 +50,7 @@
   "bottom_sheet_confirm_ride_details_cash": "Qarshii",
   "bottom_sheet_confirm_ride_details_confirm_request": "Gaaffii Mirkaneessi",
 
+  "bottom_sheet_destination_picker_trip": "Trip",
   "bottom_sheet_destination_picker_pickup_location": "Bakka Ka'umsaa",
   "bottom_sheet_destination_picker_destination_location": "Gara Eessaatti?",
   "bottom_sheet_destination_picker_pin_your_location": "Argama Kee Kaartaa Irratti Galcha",

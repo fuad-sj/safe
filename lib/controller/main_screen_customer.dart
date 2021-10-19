@@ -784,6 +784,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               _UIState = UI_STATE_SELECT_PIN_SELECTED;
               setState(() {});
             },
+            onDismissDialog: () {
+              cancelCurrentRideRequest();
+              resetTripDetails();
+            },
             callback: () async {
               await getRouteDetails(context);
               _UIState = UI_STATE_DROPOFF_SET;

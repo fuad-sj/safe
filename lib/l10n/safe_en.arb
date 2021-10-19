@@ -50,6 +50,7 @@
   "bottom_sheet_confirm_ride_details_cash": "Cash",
   "bottom_sheet_confirm_ride_details_confirm_request": "Confirm Request",
 
+  "bottom_sheet_destination_picker_trip": "Trip",
   "bottom_sheet_destination_picker_pickup_location": "Pickup Location",
   "bottom_sheet_destination_picker_destination_location": "Where to?",
   "bottom_sheet_destination_picker_pin_your_location": "Pin your location on the map",
