@@ -121,7 +121,7 @@ class GoogleApiUtils {
         ((directionDetails.durationValue + 0.0) / 60.0) * 1.0;
     double distanceTraveledFare =
         ((directionDetails.distanceValue + 0.0) / 1000) * 10.0;
-    double totalPrice = timeTraveledFare + distanceTraveledFare + 60;
+    double totalPrice = timeTraveledFare + distanceTraveledFare + 50;
 
     return totalPrice;
   }
