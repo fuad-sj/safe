@@ -6,76 +6,73 @@ part of 'ride_request.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-RideRequest _$RideRequestFromJson(Map<String, dynamic> json) {
-  return RideRequest()
-    ..client_triggered_event = json['client_triggered_event'] as bool?
-    ..ride_status = json['ride_status'] as int
-    ..cancel_source = json['cancel_source'] as int?
-    ..cancel_source_trigger_source_id =
-        json['cancel_source_trigger_source_id'] as String?
-    ..cancel_code = json['cancel_code'] as int?
-    ..cancel_reason = json['cancel_reason'] as String?
-    ..customer_id = json['customer_id'] as String?
-    ..customer_name = json['customer_name'] as String
-    ..customer_phone = json['customer_phone'] as String
-    ..customer_device_token = json['customer_device_token'] as String?
-    ..customer_email = json['customer_email'] as String?
-    ..pickup_location = FirebaseDocument.LatLngFromJson(json['pickup_location'])
-    ..pickup_address_name = json['pickup_address_name'] as String
-    ..dropoff_location =
-        FirebaseDocument.LatLngFromJson(json['dropoff_location'])
-    ..dropoff_address_name = json['dropoff_address_name'] as String
-    ..date_ride_created =
-        FirebaseDocument.DateTimeFromJson(json['date_ride_created'])
-    ..is_student = json['is_student'] as bool?
-    ..is_scheduled = json['is_scheduled'] as bool?
-    ..scheduled_after_seconds = json['scheduled_after_seconds'] as int?
-    ..driver_id = json['driver_id'] as String?
-    ..driver_name = json['driver_name'] as String?
-    ..driver_phone = json['driver_phone'] as String?
-    ..driver_device_token = json['driver_device_token'] as String?
-    ..driver_to_pickup_distance_meters = FirebaseDocument.DoubleFromJson(
-        json['driver_to_pickup_distance_meters'])
-    ..driver_to_pickup_distance_str =
-        json['driver_to_pickup_distance_str'] as String?
-    ..driver_to_pickup_duration_seconds = FirebaseDocument.DoubleFromJson(
-        json['driver_to_pickup_duration_seconds'])
-    ..driver_to_pickup_duration_str =
-        json['driver_to_pickup_duration_str'] as String?
-    ..driver_to_pickup_encoded_points =
-        json['driver_to_pickup_encoded_points'] as String?
-    ..estimated_fare = FirebaseDocument.DoubleFromJson(json['estimated_fare'])
-    ..actual_pickup_location =
-        FirebaseDocument.LatLngFromJson(json['actual_pickup_location'])
-    ..actual_dropoff_location =
-        FirebaseDocument.LatLngFromJson(json['actual_dropoff_location'])
-    ..actual_pickup_to_initial_dropoff_encoded_points =
-        json['actual_pickup_to_initial_dropoff_encoded_points'] as String?
-    ..car_model = json['car_model'] as String?
-    ..car_color = json['car_color'] as String?
-    ..car_number = json['car_number'] as String?
-    ..trigger_source_driver_id = json['trigger_source_driver_id'] as String?
-    ..base_fare = FirebaseDocument.DoubleFromJson(json['base_fare'])
-    ..actual_trip_fare =
-        FirebaseDocument.DoubleFromJson(json['actual_trip_fare'])
-    ..actual_trip_minutes =
-        FirebaseDocument.DoubleFromJson(json['actual_trip_minutes'])
-    ..actual_trip_kilometers =
-        FirebaseDocument.DoubleFromJson(json['actual_trip_kilometers'])
-    ..has_student_discount = json['has_student_discount'] as bool?
-    ..student_discount =
-        FirebaseDocument.DoubleFromJson(json['student_discount'])
-    ..adjusted_trip_fare =
-        FirebaseDocument.DoubleFromJson(json['adjusted_trip_fare'])
-    ..will_continue_search = json['will_continue_search'] as bool?
-    ..search_radius = FirebaseDocument.DoubleFromJson(json['search_radius'])
-    ..customer_comment = json['customer_comment'] as String?;
-}
+RideRequest _$RideRequestFromJson(Map<String, dynamic> json) => RideRequest()
+  ..client_triggered_event = json['client_triggered_event'] as bool?
+  ..ride_status = json['ride_status'] as int
+  ..is_dev_test_order = json['is_dev_test_order'] as bool?
+  ..cancel_source = json['cancel_source'] as int?
+  ..cancel_source_trigger_source_id =
+      json['cancel_source_trigger_source_id'] as String?
+  ..cancel_code = json['cancel_code'] as int?
+  ..cancel_reason = json['cancel_reason'] as String?
+  ..customer_id = json['customer_id'] as String?
+  ..customer_name = json['customer_name'] as String
+  ..customer_phone = json['customer_phone'] as String
+  ..customer_device_token = json['customer_device_token'] as String?
+  ..customer_email = json['customer_email'] as String?
+  ..pickup_location = FirebaseDocument.LatLngFromJson(json['pickup_location'])
+  ..pickup_address_name = json['pickup_address_name'] as String
+  ..dropoff_location = FirebaseDocument.LatLngFromJson(json['dropoff_location'])
+  ..dropoff_address_name = json['dropoff_address_name'] as String
+  ..date_ride_created =
+      FirebaseDocument.DateTimeFromJson(json['date_ride_created'])
+  ..is_student = json['is_student'] as bool?
+  ..is_scheduled = json['is_scheduled'] as bool?
+  ..scheduled_after_seconds = json['scheduled_after_seconds'] as int?
+  ..driver_id = json['driver_id'] as String?
+  ..driver_name = json['driver_name'] as String?
+  ..driver_phone = json['driver_phone'] as String?
+  ..driver_device_token = json['driver_device_token'] as String?
+  ..driver_to_pickup_distance_meters =
+      FirebaseDocument.DoubleFromJson(json['driver_to_pickup_distance_meters'])
+  ..driver_to_pickup_distance_str =
+      json['driver_to_pickup_distance_str'] as String?
+  ..driver_to_pickup_duration_seconds =
+      FirebaseDocument.DoubleFromJson(json['driver_to_pickup_duration_seconds'])
+  ..driver_to_pickup_duration_str =
+      json['driver_to_pickup_duration_str'] as String?
+  ..driver_to_pickup_encoded_points =
+      json['driver_to_pickup_encoded_points'] as String?
+  ..estimated_fare = FirebaseDocument.DoubleFromJson(json['estimated_fare'])
+  ..actual_pickup_location =
+      FirebaseDocument.LatLngFromJson(json['actual_pickup_location'])
+  ..actual_dropoff_location =
+      FirebaseDocument.LatLngFromJson(json['actual_dropoff_location'])
+  ..actual_pickup_to_initial_dropoff_encoded_points =
+      json['actual_pickup_to_initial_dropoff_encoded_points'] as String?
+  ..car_model = json['car_model'] as String?
+  ..car_color = json['car_color'] as String?
+  ..car_number = json['car_number'] as String?
+  ..trigger_source_driver_id = json['trigger_source_driver_id'] as String?
+  ..base_fare = FirebaseDocument.DoubleFromJson(json['base_fare'])
+  ..actual_trip_fare = FirebaseDocument.DoubleFromJson(json['actual_trip_fare'])
+  ..actual_trip_minutes =
+      FirebaseDocument.DoubleFromJson(json['actual_trip_minutes'])
+  ..actual_trip_kilometers =
+      FirebaseDocument.DoubleFromJson(json['actual_trip_kilometers'])
+  ..has_student_discount = json['has_student_discount'] as bool?
+  ..student_discount = FirebaseDocument.DoubleFromJson(json['student_discount'])
+  ..adjusted_trip_fare =
+      FirebaseDocument.DoubleFromJson(json['adjusted_trip_fare'])
+  ..will_continue_search = json['will_continue_search'] as bool?
+  ..search_radius = FirebaseDocument.DoubleFromJson(json['search_radius'])
+  ..customer_comment = json['customer_comment'] as String?;
 
 Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
     <String, dynamic>{
       'client_triggered_event': instance.client_triggered_event,
       'ride_status': instance.ride_status,
+      'is_dev_test_order': instance.is_dev_test_order,
       'cancel_source': instance.cancel_source,
       'cancel_source_trigger_source_id':
           instance.cancel_source_trigger_source_id,
