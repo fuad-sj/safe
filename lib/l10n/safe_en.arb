@@ -43,7 +43,7 @@
   "dialog_cancel_ride_dismiss": "Dismiss",
 
   "bottom_sheet_confirm_ride_details_is_student": "Is Student?",
-  "bottom_sheet_confirm_ride_details_car": "Any Car",
+  "bottom_sheet_confirm_ride_details_car": "Economy",
   "bottom_sheet_confirm_ride_details_minibus": "Minibus",
   "bottom_sheet_confirm_ride_details_minivan": "Minivan",
   "bottom_sheet_confirm_ride_details_etb": "ETB",
@@ -58,12 +58,13 @@
 
   "bottom_sheet_driver_picked_cancel_ride": "Cancel Ride",
 
-  "bottom_sheet_searching_for_driver_progress": "Requesting Ride, Please Wait...",
+  "bottom_sheet_searching_for_driver_progress": "Looking For Available Drivers ...",
   "bottom_sheet_searching_for_driver_cancel_ride": "Cancel Ride",
 
   "bottom_sheet_select_drop_off_select_dropoff": "Select Dropoff Location",
   "bottom_sheet_select_drop_off_change": "Change",
   "bottom_sheet_select_drop_off_select_pickup": "Set Pickup Location",
+  "bottom_sheet_select_drop_off_select_confirm": "Confirm Dropoff",
 
   "bottom_sheet_trip_details_distance_covered": "Distance Covered",
   "bottom_sheet_trip_details_ride_time": "Ride Time",
@@ -88,7 +89,7 @@
   "login_logging_in": "Logging In, Please Wait...",
   "login_error_logging_in": "Error logging in",
 
-  "registration_customer_profile_image": "Profile Image",
+  "registration_customer_profile_image": "Upload Profile",
   "registration_customer_profile_image_needed": "Please Select a Profile Image",
   "registration_customer_name": "Name",
   "registration_customer_name_hint": "Name",

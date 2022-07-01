@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:otp_text_field/otp_field.dart';
 import 'package:otp_text_field/otp_text_field.dart';
+import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:otp_text_field/style.dart';
 import 'package:safe/auth_service.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
@@ -8,7 +9,6 @@ import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/registration_screen.dart';
 
-// ignore: must_be_immutable
 class VerifyPhone extends StatefulWidget {
   final String verificationId;
 
@@ -20,34 +20,37 @@ class VerifyPhone extends StatefulWidget {
 
 class _VerifyPhoneState extends State<VerifyPhone> {
   late String _smsCode;
+  final RoundedLoadingButtonController _verificationBtnController =
+      RoundedLoadingButtonController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Color(0xffffffff),
       appBar: new AppBar(
-          backgroundColor: Color(0xfe7a110a),
+          backgroundColor: Color(0xffffffff),
           elevation: 0.0,
-          leading: new BackButton(color: Colors.black),
-          title: Text('Please enter OTP'),
+          leading: new BackButton(color: Color(0xff7a110a)),
           actions: <Widget>[]),
       body: Center(
         child: Padding(
-          padding: const EdgeInsets.only(top: 40.0),
+          padding: const EdgeInsets.only(top: 10.0, left: 5.0),
           child: Column(
             children: [
               Container(
+                  padding: const EdgeInsets.only(right: 80.0),
                   child: Text(
-                "Verification Code",
-                style: TextStyle(
-                    color: Color(0xff000000),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 30,
-                    fontFamily: 'Open Sans'),
-              )),
+                    "what\'s the Code ?",
+                    style: TextStyle(
+                        color: Color(0xff000000),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 30,
+                        fontFamily: 'Open Sans'),
+                  )),
               Container(
                   padding: const EdgeInsets.only(top: 20.0, bottom: 10.0),
                   child: Text(
-                    "Please enter the OTP sent to  \n your Phone Text message",
+                    "Enter the Code sent to " ,
                     style: TextStyle(
                         color: Color(0xff000000), fontFamily: 'Open Sans'),
                   )),
@@ -55,13 +58,13 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                 length: 6,
                 width: MediaQuery.of(context).size.width,
                 textFieldAlignment: MainAxisAlignment.spaceAround,
-                fieldWidth: 55,
-                fieldStyle: FieldStyle.box,
+                fieldWidth: 50,
+                fieldStyle: FieldStyle.underline,
                 outlineBorderRadius: 15,
-                style: TextStyle(fontSize: 17),
+                style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
                 keyboardType: TextInputType.number,
                 onCompleted: (pin) {
-                  print("Completed: " + pin);
+                  //    print("Completed: " + pin);
                   setState(() {
                     _smsCode = pin;
                   });
@@ -69,56 +72,26 @@ class _VerifyPhoneState extends State<VerifyPhone> {
               ),
               Container(
                 padding: const EdgeInsets.only(top: 10.0),
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 0.5,
-                      blurRadius: 6,
-                      offset: Offset(0, 5), // changes position of shadow
-                    ),
-                  ],
-                ),
                 width: MediaQuery.of(context).size.width * 0.5,
-                child: ElevatedButton(
-                    style: ButtonStyle(
-                        backgroundColor:
-                            MaterialStateProperty.all(Color(0xff7a110a)),
-                        shape:
-                            MaterialStateProperty.all<RoundedRectangleBorder>(
-                                RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                        ))),
-                    child: Center(
-                        child: Text(
-                      'Verify',
-                      style: TextStyle(
-                          color: Color(0xffffffff),
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Open Sans'),
-                    )),
-                    onPressed: () async {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => CustomProgressDialog(
-                            message: 'Verifying SMS, Please Wait...'),
-                      );
+                child: RoundedLoadingButton(
+                  color: Color(0xff077f59),
+                  child: Text('Verify'),
+                  controller: _verificationBtnController,
+                  onPressed: () async {
+                    String? errMessage =
+                        await AuthService.signInWithSMSVerificationCode(
+                            context,
+                            MainScreenCustomer.idScreen,
+                            RegistrationScreen.idScreen,
+                            _smsCode,
+                            widget.verificationId);
 
-                      String? errMessage =
-                          await AuthService.signInWithSMSVerificationCode(
-                              context,
-                              MainScreenCustomer.idScreen,
-                              RegistrationScreen.idScreen,
-                              _smsCode,
-                              widget.verificationId);
-
-                      if (errMessage != null) {
-                        Navigator.pop(context);
-
-                        displayToastMessage(errMessage, context);
-                      }
-                    }),
+                    if (errMessage != null) {
+                      Navigator.pop(context);
+                      displayToastMessage(errMessage, context);
+                    }
+                  },
+                ),
               )
             ],
           ),

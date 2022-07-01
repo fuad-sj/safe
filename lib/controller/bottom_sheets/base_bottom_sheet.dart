@@ -38,7 +38,7 @@ abstract class BaseBottomSheet extends StatefulWidget {
   Widget wrapContent(BuildContext context, WidgetBuilder builder) {
     double screenWidth = MediaQuery.of(context).size.width;
 
-    double padding = screenWidth * 0.00; // 2% of screen width
+    double padding = screenWidth * 0.02; // 2% of screen width
     double offset = fixedToBottom || (showBottomSheet == false) ? 0 : padding;
 
     BorderRadius radius;
@@ -50,6 +50,7 @@ abstract class BaseBottomSheet extends StatefulWidget {
     } else {
       radius = BorderRadius.all(Radius.circular(topCornerRadius(context)));
     }
+
 
     return Positioned(
       bottom: offset * 1.5,

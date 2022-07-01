@@ -5,6 +5,7 @@ import 'package:safe/utils/http_util.dart';
 import 'package:safe/models/address.dart';
 import 'package:safe/models/route_details.dart';
 import 'package:safe/constants.dart';
+import 'package:safe/models/sys_config.dart';
 
 class GoogleApiUtils {
   static const String REST_API_ROOT_PATH =
@@ -48,7 +49,7 @@ class GoogleApiUtils {
 
   // Given a starting and ending point, generate the path and compute distance/time
   static Future<RouteDetails> getRouteDetailsFromStartToDestination(
-      LatLng startPosition, LatLng destPosition) async {
+      LatLng startPosition, LatLng destPosition, SysConfig? sysConfig) async {
     Map<String, dynamic> params = {
       'mode': 'driving',
       'transit_routing_preference': 'less_driving',
@@ -72,7 +73,7 @@ class GoogleApiUtils {
     routeDetails.dropOffLoc = destPosition;
 
     routeDetails.estimatedFarePrice =
-        _calculateEstimatedFarePrice(routeDetails);
+        _calculateEstimatedFarePrice(routeDetails, sysConfig);
 
     return routeDetails;
   }
@@ -116,12 +117,22 @@ class GoogleApiUtils {
         .toList();
   }
 
-  static double _calculateEstimatedFarePrice(RouteDetails directionDetails) {
+  static double _calculateEstimatedFarePrice(
+      RouteDetails directionDetails,  SysConfig? sysConfig) {
+
+    double base_fare =
+    (sysConfig == null) ? 90.0 : sysConfig.rate_normal_base_fare!;
+    double per_km =
+    (sysConfig == null) ? 10.0 : sysConfig.rate_normal_per_km_charge!;
+    double per_minute =
+    (sysConfig == null) ? 1.0 : sysConfig.rate_normal_per_minute_charge!;
+
+
     double timeTraveledFare =
-        ((directionDetails.durationValue + 0.0) / 60.0) * 1.0;
+        ((directionDetails.durationValue + 0.0) / 60.0) * per_minute;
     double distanceTraveledFare =
-        ((directionDetails.distanceValue + 0.0) / 1000) * 10.0;
-    double totalPrice = timeTraveledFare + distanceTraveledFare + 50;
+        ((directionDetails.distanceValue + 0.0) / 1000) * per_km;
+    double totalPrice = timeTraveledFare + distanceTraveledFare + base_fare;
 
     return totalPrice;
   }

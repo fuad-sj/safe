@@ -64,6 +64,7 @@
   "bottom_sheet_select_drop_off_select_dropoff": "መድረሻ ቦታ ይምረጡ",
   "bottom_sheet_select_drop_off_change": "ለመቀየር",
   "bottom_sheet_select_drop_off_select_pickup": "መነሻ ቦት ያስገቡ",
+  "bottom_sheet_select_drop_off_select_confirm": "መድረሻ ቦታ ያረጋግጡ",
 
   "bottom_sheet_trip_details_distance_covered": "የተጛዙት ርቀት",
   "bottom_sheet_trip_details_ride_time": "የተጛዙበት ሰአት",

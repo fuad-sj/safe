@@ -55,8 +55,6 @@ class _ConfirmRideDetailsBottomSheetState
   static const int CAR_TYPE_MINIVAN = 2;
   static const int CAR_TYPE_MINIBUS = 3;
 
-  bool _isStudent = false;
-
   int _selectedCarType = CAR_TYPE_ANY;
 
   @override
@@ -69,6 +67,14 @@ class _ConfirmRideDetailsBottomSheetState
 
   @override
   Widget buildContent(BuildContext context) {
+    double HSpace(double ratio) {
+      return ratio * MediaQuery.of(context).size.width;
+    }
+
+    double VSpace(double ratio) {
+      return ratio * MediaQuery.of(context).size.height;
+    }
+
     Color _getCheckboxColor(Set<MaterialState> states) {
       const Set<MaterialState> interactiveStates = <MaterialState>{
         MaterialState.pressed,
@@ -86,18 +92,18 @@ class _ConfirmRideDetailsBottomSheetState
 
       switch (carType) {
         case CAR_TYPE_MINIVAN:
-          carImage = 'images/minivan.png';
+          carImage = 'images/minivan_safe.png';
           typeDescription = SafeLocalizations.of(context)!
               .bottom_sheet_confirm_ride_details_minivan;
           break;
         case CAR_TYPE_MINIBUS:
-          carImage = 'images/minibus.png';
+          carImage = 'images/minbus_safe.png';
           typeDescription = SafeLocalizations.of(context)!
               .bottom_sheet_confirm_ride_details_minibus;
           break;
         case CAR_TYPE_ANY:
         default:
-          carImage = 'images/car_side.png';
+          carImage = 'images/economy.png';
           typeDescription = SafeLocalizations.of(context)!
               .bottom_sheet_confirm_ride_details_car;
           break;
@@ -113,11 +119,19 @@ class _ConfirmRideDetailsBottomSheetState
           });
         },
         child: Container(
-          color: isSelected ? Colors.grey.shade100 : Colors.white,
+          color: isSelected
+              ? ColorConstants.lyftColor.withOpacity(0.1)
+              : Colors.white,
           width: double.infinity,
           child: Row(
             children: [
-              Image.asset(carImage, height: 70.0, width: 80.0),
+              Container(
+                width: HSpace(0.015),
+                height: VSpace(0.07),
+                color: isSelected ? ColorConstants.lyftColor : Colors.white,
+              ),
+              SizedBox(width: 16.0),
+              Image.asset(carImage, height: VSpace(0.05), width: 80.0),
               SizedBox(width: 16.0),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,7 +143,10 @@ class _ConfirmRideDetailsBottomSheetState
                           fontWeight: (isSelected
                               ? FontWeight.bold
                               : FontWeight.normal))),
-                  Text(widget.routeDetails!.distanceText,
+                  Text(
+                      widget.routeDetails!.distanceText +
+                          ' in ' +
+                          widget.routeDetails!.durationText,
                       style: TextStyle(fontSize: 16.0, color: Colors.grey)),
                 ],
               ),
@@ -150,6 +167,7 @@ class _ConfirmRideDetailsBottomSheetState
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              SizedBox(width: HSpace(0.05))
             ],
           ),
         ),
@@ -157,69 +175,32 @@ class _ConfirmRideDetailsBottomSheetState
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 17.0, horizontal: 16.0),
+      // padding: EdgeInsets.symmetric(horizontal: HSpace(0.00)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Center(
+              child: Container(
+                  margin: EdgeInsets.only(top: VSpace(0.005)),
+                  width: 100.0,
+                  height: 4.0,
+                  color: Colors.grey.shade700)),
           ...[CAR_TYPE_ANY, CAR_TYPE_MINIVAN, CAR_TYPE_MINIBUS]
               .map((e) => _getCarTypeWidget(e)),
-
-          // Cash + Is Student
-          SizedBox(height: 10),
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(SafeLocalizations.of(context)!
-                      .bottom_sheet_confirm_ride_details_cash),
-                  SizedBox(width: 16.0),
-                  Icon(FontAwesomeIcons.moneyBill,
-                      size: 18.0, color: Colors.black54),
-                ],
-              ),
-              Expanded(child: Container()),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(SafeLocalizations.of(context)!
-                      .bottom_sheet_confirm_ride_details_is_student),
-                  Checkbox(
-                    checkColor: Colors.white,
-                    fillColor:
-                        MaterialStateProperty.resolveWith(_getCheckboxColor),
-                    value: _isStudent,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        _isStudent = value!;
-
-                        Provider.of<PickUpAndDropOffLocations>(context,
-                                listen: false)
-                            .setIsStudent(_isStudent);
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 10),
-
-          // Request car
           Row(
             children: [
+              SizedBox(width: HSpace(0.05)),
               Expanded(
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 35.0, vertical: 20.0),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 35.0, vertical: VSpace(0.02)),
                     backgroundColor: _selectedCarType == CAR_TYPE_ANY
-                        ? ColorConstants.gucciColor
+                        ? ColorConstants.lyftColor
                         : Colors.grey.shade400,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(35.0),
+                      borderRadius: BorderRadius.circular(15.0),
                     ),
                   ),
                   onPressed: () {
@@ -233,6 +214,7 @@ class _ConfirmRideDetailsBottomSheetState
                       child: Text(
                         SafeLocalizations.of(context)!
                             .bottom_sheet_confirm_ride_details_confirm_request,
+                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 22,
@@ -244,7 +226,10 @@ class _ConfirmRideDetailsBottomSheetState
                   ),
                 ),
               ),
-              SizedBox(width: 32.0),
+              SizedBox(width: 20.0),
+              /*
+
+
               GestureDetector(
                 onTap: () {
                   DateTime now = DateTime.now();
@@ -297,15 +282,20 @@ class _ConfirmRideDetailsBottomSheetState
                       Provider.of<PickUpAndDropOffLocations>(context)
                                   .scheduledDuration !=
                               null
-                          ? Colors.teal.shade700
+                          ? Colors.pinkAccent
                           : Colors.grey.shade500,
-                  child: Icon(Icons.calendar_today_outlined,
+                  child: Icon(Icons.date_range,
                       color: Colors.white, size: 26.0),
                   radius: 25.0,
                 ),
               ),
+
+               */
+
+              //       SizedBox(width: HSpace(0.05)),
             ],
           ),
+          SizedBox(height: VSpace(0.01)),
         ],
       ),
     );

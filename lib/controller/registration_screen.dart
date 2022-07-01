@@ -15,6 +15,7 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:path/path.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 class RegistrationScreen extends StatefulWidget {
   static const String idScreen = "register";
@@ -37,6 +38,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   FileImage? _profileImage;
 
   bool _enableRegisterBtn = false;
+
+  final RoundedLoadingButtonController _CustomerLoadingBtnController = RoundedLoadingButtonController();
 
   @override
   void initState() {
@@ -85,37 +88,37 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Color(0xff7f072d),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xffF00699),
-                      Color(0xffBF1A2F),
-                    ]),
-                borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(50.0),
-                    bottomRight: Radius.circular(50.0)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 5,
-                    blurRadius: 7,
-                    offset: Offset(0, 6), // changes position of shadow
-                  ),
-                ],
-              ),
-              width: double.infinity,
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    SizedBox(height: 80.0),
-                    Center(
+            Form(
+              key: _formKey,
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.35,
+                width: MediaQuery.of(context).size.width * 0.5,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xfff6f6f6),
+                        Color(0xffababab),
+                      ]),
+                  borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(100.0),
+                      bottomRight: Radius.circular(100.0)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 1,
+                      blurRadius: 9,
+                      offset: Offset(1, 7), // changes position of shadow
+                    ),
+                  ],
+                ),
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 130.0),
                       child: GestureDetector(
                         onTap: () async {
                           XFile? pickedXFile = await picker.pickImage(
@@ -140,116 +143,169 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               backgroundImage: (_profileImage != null)
                                   ? _profileImage!
                                   : _defaultProfileImage,
-                              radius: 60.0,
+                              radius: 50.0,
                             ),
                             SizedBox(height: 10.0),
                             Text(
                               SafeLocalizations.of(context)!
                                   .registration_customer_profile_image,
                               style: TextStyle(
-                                  fontSize: 20.0,
-                                  color: Colors.white,
+                                  fontSize: 17.0,
+                                  color: Colors.black,
                                   fontWeight: FontWeight.bold),
-                            )
+                            ),
                           ],
                         ),
                       ),
                     ),
-
-                    // Name
-                    SizedBox(height: 20.0),
-                    Container(
-                      width: double.infinity,
-                      padding:
-                          EdgeInsets.only(top: 10.0, left: 30.0, right: 30.0),
-                      child: TextFormField(
-                        keyboardType: TextInputType.text,
-                        controller: _nameController,
-                        validator: (name) {
-                          return (name!.isEmpty)
-                              ? SafeLocalizations.of(context)!
-                                  .registration_customer_name_empty
-                              : null;
-                        },
-                        decoration: textDecorator(
-                            SafeLocalizations.of(context)!
-                                .registration_customer_name,
-                            SafeLocalizations.of(context)!
-                                .registration_customer_name_hint),
-                      ),
-                    ),
-
-                    // Email
-                    SizedBox(height: 10.0),
-                    Container(
-                      width: double.infinity,
-                      padding:
-                          EdgeInsets.only(top: 10.0, left: 30.0, right: 30.0),
-                      child: TextFormField(
-                        keyboardType: TextInputType.emailAddress,
-                        controller: _emailController,
-                        validator: (String? email) {
-                          return (email!.isNotEmpty && !isValidEmail(email))
-                              ? SafeLocalizations.of(context)!
-                                  .registration_customer_email_empty
-                              : null;
-                        },
-                        decoration: textDecorator(
-                            SafeLocalizations.of(context)!
-                                .registration_customer_email,
-                            SafeLocalizations.of(context)!
-                                .registration_customer_email_hint),
-                      ),
-                    ),
-
-                    SizedBox(height: 50.0),
-                  ],
-                ),
               ),
             ),
+            Container(
+              width: double.infinity,
+                child: Container(
+                  margin:  EdgeInsets.all(20.0),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xfff6f6f6),
+                          Color(0xffababab),
+                        ]),
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(25.0),
+                        topRight: Radius.circular(25.0),
+                        bottomLeft: Radius.circular(25.0),
+                        bottomRight: Radius.circular(25.0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.3),
+                        spreadRadius: 1,
+                        blurRadius: 9,
+                        offset: Offset(1, 7), // changes position of shadow
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      // Name
+                      Container(
+                        width: double.infinity,
+                        padding:
+                            EdgeInsets.only(top: 20.0, left: 30.0, right: 30.0),
+                        child: TextFormField(
+                          style: TextStyle(color: Colors.black),
+                          keyboardType: TextInputType.text,
+                          controller: _nameController,
+                          validator: (name) {
+                            return (name!.isEmpty)
+                                ? SafeLocalizations.of(context)!
+                                    .registration_customer_name_empty
+                                : null;
+                          },
+                          decoration: InputDecoration(
+                          suffixIcon:  Icon (
+                            Icons.perm_identity_rounded,
+                            color: Colors.black,
+                          ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Colors.blueGrey, width: 2.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Colors.black, width: 2.0),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 10.0),
+                              labelText: SafeLocalizations.of(context)!
+                                  .registration_customer_name,
+                              labelStyle: TextStyle(color: Colors.black),
+                              hintText:
+                              SafeLocalizations.of(context)!
+                                  .registration_customer_name_hint
+                              ,
+                              hintStyle: TextStyle(color: Colors.grey),
+                              fillColor: Colors.white
 
+                          ),
+                        ),
+                      ),
+
+                      // Email
+                      SizedBox(height: 10.0),
+                      Container(
+                        width: double.infinity,
+                        padding:
+                            EdgeInsets.only(top: 10.0, left: 30.0, right: 30.0, bottom: 20.0),
+
+                        child: TextFormField(
+                          keyboardType: TextInputType.emailAddress,
+                          controller: _emailController,
+                          validator: (String? email) {
+                            return (email!.isNotEmpty && !isValidEmail(email))
+                                ? SafeLocalizations.of(context)!
+                                    .registration_customer_email_empty
+                                : null;
+                          },
+                          decoration: InputDecoration(
+                              suffixIcon:  Icon (
+                                Icons.email_outlined,
+                                color: Colors.black,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Colors.blueGrey, width: 2.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                    color: Colors.black, width: 2.0),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 10.0, horizontal: 10.0),
+                              labelText: SafeLocalizations.of(context)!
+                                  .registration_customer_email,
+                              labelStyle: TextStyle(color: Colors.black),
+                              hintText:
+                              SafeLocalizations.of(context)!
+                                  .registration_customer_email_hint
+                              ,
+                              hintStyle: TextStyle(color: Colors.grey),
+                              fillColor: Colors.white
+                          ),
+                        ),
+                      ),
+
+                    ],
+                  ),
+                ),
+              ),
             // Done Button
             SizedBox(height: 10.0),
             Container(
-              decoration: BoxDecoration(
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.5),
-                    spreadRadius: 0.5,
-                    blurRadius: 9,
-                    offset: Offset(3, 1),
-                  ),
-                ],
-              ),
               width: MediaQuery.of(context).size.width * 0.5,
-              child: ElevatedButton(
-                  onPressed: () {
-                    if (_enableRegisterBtn) {
-                      registerNewUser(context);
-                    } else if (_profileImage == null || _profileFile == null) {
-                      displayToastMessage(
-                          SafeLocalizations.of(context)!
-                              .registration_customer_profile_image_needed,
-                          context);
-                    }
-                  },
-                  style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all(
-                          _enableRegisterBtn
-                              ? Color(0xffE63830)
-                              : Colors.grey.shade700),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.0),
-                      ))),
-                  child: Text(
-                    SafeLocalizations.of(context)!
-                        .registration_register_customer,
-                    style: TextStyle(
-                        color: Color(0xfffefefe),
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'Open Sans'),
-                  )),
+              child: IgnorePointer(
+                ignoring: !_enableRegisterBtn,
+                child: RoundedLoadingButton(
+                    child: Text (
+                      SafeLocalizations.of(context)!
+                          .registration_register_customer,
+                      style: TextStyle(color: Colors.white)),
+                    controller: _CustomerLoadingBtnController,
+                    onPressed: () {
+                      if (_enableRegisterBtn) {
+                        registerNewUser(context);
+                      } else if (_profileImage == null || _profileFile == null) {
+                        displayToastMessage(
+                            SafeLocalizations.of(context)!
+                                .registration_customer_profile_image_needed,
+                            context);
+                      }
+                    },
+                  color: _enableRegisterBtn? Color(0xff000202)
+                      : Colors.grey.shade700,
+                ),
+              ),
             ),
           ],
         ),

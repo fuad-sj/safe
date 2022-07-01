@@ -10,6 +10,9 @@ class FIRESTORE_PATHS {
   static final SUB_COL_DRIVERS_RIDE_HISTORY = 'driver_ride_history';
 
   static final COL_RIDES = 'rides';
+
+  static final COL_CONFIG = 'config';
+  static final DOC_CONFIG = 'CONFIGURATION';
 }
 
 class FCM_MESSAGING_TOPICS {

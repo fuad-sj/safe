@@ -249,71 +249,92 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
     implements BottomSheetWidgetBuilder {
   @override
   Widget buildContent(BuildContext context) {
+
+    double HSpace(double ratio) {
+      return ratio * MediaQuery.of(context).size.width;
+    }
+
+    double VSpace(double ratio) {
+      return ratio * MediaQuery.of(context).size.height;
+    }
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 18.0),
+      padding: EdgeInsets.symmetric(horizontal: HSpace(0.04)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //  mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          SizedBox(height: 6.0),
-          //
+          Center(
+              child: Container(
+                  margin: EdgeInsets.only(top: VSpace(0.005)),
+                  width: 30.0,
+                  height: 2.0,
+                  color: Colors.grey.shade700)
+          ),
+
+          SizedBox(height: VSpace(0.034)),
           Text(
               SafeLocalizations.of(context)!
-                  .bottom_sheet_select_drop_off_select_dropoff,
+                  .bottom_sheet_destination_picker_destination_location,
               style: TextStyle(
-                fontSize: 18.0,
+                fontSize: 22.0,
                 fontWeight: FontWeight.bold,
               )),
+          SizedBox(height: VSpace(0.02)),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              widget.onBackSelected();
+            },
 
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                widget.destinationAddress?.placeName ?? '',
-                overflow: TextOverflow.ellipsis,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(5.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.shade400,
+                    blurRadius: 1.0,
+                    spreadRadius: 0.5,
+                    offset: Offset(0.1, 0.7),
+                  ),
+                ],
               ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
-                  backgroundColor: Colors.grey.shade200,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15.0),
+
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(height: VSpace(0.05), width: HSpace(0.03)),
+                  Icon(Icons.search,
+                      color: ColorConstants.lyftColor),
+                  SizedBox(width: HSpace(0.05)),
+                  Expanded(
+                    child: Text(
+                      widget.destinationAddress?.placeName ?? '',
+                      overflow: TextOverflow.fade,
+                    ),
                   ),
-                ),
-                onPressed: () {
-                  widget.onBackSelected();
-                },
-                child: Text(
-                  SafeLocalizations.of(context)!
-                      .bottom_sheet_select_drop_off_change,
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'Open Sans',
-                  ),
-                ),
-              )
-            ],
+                ],
+              ),
+            ),
           ),
+
+          SizedBox(height: VSpace(0.02)),
 
           TextButton(
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 45.0, vertical: 20.0),
               backgroundColor: widget.destinationAddress != null
-                  ? ColorConstants.gucciColor
+                  ? ColorConstants.lyftColor
                   : Colors.grey.shade700,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(35.0),
+                borderRadius: BorderRadius.circular(15.0),
               ),
             ),
             onPressed: () {
               if (widget.destinationAddress == null) {
                 return;
               }
-
               Provider.of<PickUpAndDropOffLocations>(context, listen: false)
                   .updateDropOffLocationAddress(widget.destinationAddress!);
               widget.onActionCallback();
@@ -323,7 +344,7 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
               child: Center(
                 child: Text(
                   SafeLocalizations.of(context)!
-                      .bottom_sheet_select_drop_off_select_pickup,
+                      .bottom_sheet_select_drop_off_select_confirm,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,

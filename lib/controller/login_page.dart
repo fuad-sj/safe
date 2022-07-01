@@ -11,6 +11,8 @@ import 'package:package_info/package_info.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:safe/language_selector_dialog.dart';
 import 'package:safe/utils/pref_util.dart';
+import 'package:country_code_picker/country_code_picker.dart';
+import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 class LoginPage extends StatefulWidget {
   static const String idScreen = 'LoginPage';
@@ -25,7 +27,11 @@ class _LoginPageState extends State<LoginPage> {
   late String _verificationId;
 
   bool _loginBtnActive = false;
+  final RoundedLoadingButtonController _loginBtnController =
+  RoundedLoadingButtonController();
 
+
+  String _countryCode = '+251'; //start off with Ethiopia
   TextEditingController _phoneController = TextEditingController();
 
   String? _appVersionNumber;
@@ -43,11 +49,23 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
 
-    _phoneController.text = '+251'; // start off with ethiopian phone number
+    // _phoneController.text = '+251'; // start off with ethiopian phone number
 
     _phoneController.addListener(() {
       String phone = _phoneController.text;
 
+      if (_countryCode == "+251") {
+        // if the phone number is ethiopian, only allow valid phone numbers
+        if (!phone.startsWith('9')) {
+          _setPhoneControllerText('');
+        } else if (phone.length > 9) {
+          _setPhoneControllerText(phone.substring(0, 9));
+        }
+        _loginBtnActive = _phoneController.text.length == 9;
+      } else {
+        _loginBtnActive = true;
+      }
+      /*
       // reset to +251 if non ethiopian phone is used
       if (!phone.startsWith('+251')) {
         _setPhoneControllerText('+251');
@@ -58,169 +76,153 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       _loginBtnActive = _phoneController.text.length == 13;
+
+     */
       setState(() {});
     });
 
     PackageInfo.fromPlatform().then((PackageInfo packageInfo) {
       String version = packageInfo.version;
-      String buildNumber = packageInfo.buildNumber;
 
-      _appVersionNumber = '${version}_$buildNumber';
+      _appVersionNumber = '${version}';
       setState(() {});
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!PrefUtil.isUserLanguageLocaleSet() && !_languageDialogShown) {
-      _languageDialogShown = true;
-      /**
-       * !!! VERY IMPORTANT !!!
-       * can't directly call [showDialog], schedule it for next cycle
-       * checkout details: https://stackoverflow.com/a/52062540
-       */
-      Future.delayed(
-        Duration.zero,
-        () async {
-          await showDialog(
-            context: context,
-            builder: (_) => LanguageSelectorDialog(),
-          );
-
-          setState(() {});
-        },
-      );
-    }
-
     return Scaffold(
-      body: Column(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xffF00699),
-                    Color(0xffBF1A2F),
-                  ]),
-              borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(50.0),
-                  bottomRight: Radius.circular(50.0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 5,
-                  blurRadius: 7,
-                  offset: Offset(0, 6), // changes position of shadow
-                ),
-              ],
-            ),
-            height: MediaQuery.of(context).size.height * 0.5,
-            width: MediaQuery.of(context).size.width,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Image(
-                  image: AssetImage('images/logo.png'),
-                  //  height: MediaQuery.of(context).size.height * 0.30,
-                  width: 150.0,
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 20.0),
-                  child: Row(
-                    children: [
-                      Container(),
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        padding:
-                            EdgeInsets.only(top: 10.0, left: 30.0, right: 30.0),
-                        child: TextField(
-                          keyboardType: TextInputType.phone,
-                          controller: _phoneController,
-                          decoration: InputDecoration(
-                              border: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.white, width: 2.0),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 10.0),
-                              labelText: SafeLocalizations.of(context)!
-                                  .login_phone_number,
-                              labelStyle: TextStyle(color: Colors.white),
-                              hintText: '+251912345678',
-                              hintStyle: TextStyle(color: Colors.grey),
-                              fillColor: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            height: MediaQuery.of(context).size.height * 0.5,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 0.5,
-                          blurRadius: 9,
-                          offset: Offset(3, 1), // changes position of shadow
-                        ),
-                      ],
+        backgroundColor: Color(0xff7f072d),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                height: MediaQuery.of(context).size.height * 0.4,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Image(
+                      image: AssetImage('images/logo.png'),
+                      height: MediaQuery.of(context).size.height * 0.20,
+                      width: 120.0,
                     ),
-                    width: MediaQuery.of(context).size.width * 0.5,
-                    child: ElevatedButton(
-                        onPressed: () {
-                          if (_loginBtnActive) {
-                            verifyPhone(context);
-                          }
-                        },
-                        style: ButtonStyle(
-                            backgroundColor: MaterialStateProperty.all(
-                                _loginBtnActive
-                                    ? Colors.orange.shade800
-                                    : Colors.grey.shade700),
-                            shape: MaterialStateProperty.all<
-                                RoundedRectangleBorder>(RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(15.0),
-                            ))),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20.0),
+                      child: Row(
+                        children: [
+                          CountryCodePicker(
+                              onChanged: (newCode) {
+                                _countryCode = newCode.dialCode ?? '+251';
+                              },
+                              initialSelection: 'ET',
+                              favorite: ['+251', 'ET'],
+                              showFlagDialog: true,
+                              enabled: true,
+                              textStyle: TextStyle(color: Colors.white),
+                              padding: EdgeInsets.all(15.0)),
+                          Expanded(
+                            child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.only(top: 5.0, right: 30.0),
+                              child: TextField(
+                                style: TextStyle(color: Colors.white),
+                                keyboardType: TextInputType.phone,
+                                controller: _phoneController,
+                                decoration: InputDecoration(
+                                    suffixIcon: Icon(
+                                      Icons.phone_android,
+                                      color: Colors.white,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                          color: Colors.blueGrey, width: 2.0),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderSide: const BorderSide(
+                                          color: Colors.white, width: 2.0),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        vertical: 10.0, horizontal: 10.0),
+                                    labelText: SafeLocalizations.of(context)!
+                                        .login_phone_number,
+                                    labelStyle: TextStyle(color: Colors.white),
+                                    hintText: '912345678',
+                                    hintStyle: TextStyle(color: Colors.grey),
+                                    fillColor: Colors.white
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xffffffff),
+                          Color(0xffb1aeaf),
+                        ]),
+                    borderRadius:
+                        BorderRadius.only(topLeft: Radius.circular(150.0)),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.blueGrey.shade50.withOpacity(0.8),
+                          spreadRadius: 7,
+                          blurRadius: 6,
+                          offset: Offset(0, 7))
+                    ]),
+                height: MediaQuery.of(context).size.height * 0.6,
+                width: MediaQuery.of(context).size.width,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 30.0),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.5,
+                        child: IgnorePointer (
+                          ignoring: !_loginBtnActive,
+                          child: RoundedLoadingButton (
+                              child: Text('Verify Your Phone',
+                                  style: TextStyle(color: Colors.white)),
+                              controller: _loginBtnController,
+                              onPressed: () {
+                                if (_loginBtnActive) {
+                                  verifyPhone(context);
+                                }
+                              },
+                              color: _loginBtnActive
+                                  ? Color(0xff077f59)
+                                  : Colors.grey.shade700
+                          ),
+                        )
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 50.0),
+                      child: Container(
                         child: Text(
-                          SafeLocalizations.of(context)!.login_log_in,
-                          style: TextStyle(
-                              color: Color(0xfffefefe),
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Open Sans'),
-                        )),
-                  ),
+                            SafeLocalizations.of(context)!.login_powered_by +
+                                (_appVersionNumber != null
+                                    ? ' $_appVersionNumber'
+                                    : ''),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Open Sans')),
+                      ),
+                    ),
+                  ],
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 50.0),
-                  child: Container(
-                    child: Text(
-                        SafeLocalizations.of(context)!.login_powered_by +
-                            (_appVersionNumber != null
-                                ? ' $_appVersionNumber'
-                                : ''),
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Open Sans')),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 
   Future<void> verifyPhone(BuildContext context) async {
@@ -258,15 +260,8 @@ class _LoginPageState extends State<LoginPage> {
       }
     };
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => CustomProgressDialog(
-          message: SafeLocalizations.of(context)!.login_logging_in),
-    );
-
     await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: _phoneController.text,
+        phoneNumber: _countryCode + _phoneController.text,
         verificationCompleted: verificationCompleted,
         verificationFailed: (FirebaseAuthException e) {
           // pop off the progress dialog and show a toast message instead

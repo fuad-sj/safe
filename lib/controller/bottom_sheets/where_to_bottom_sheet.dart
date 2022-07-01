@@ -60,6 +60,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
       return ratio * MediaQuery.of(context).size.height;
     }
 
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.04)),
       child: Column(
@@ -86,7 +87,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               )),
 
           SizedBox(height: VSpace(0.015)),
-
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {

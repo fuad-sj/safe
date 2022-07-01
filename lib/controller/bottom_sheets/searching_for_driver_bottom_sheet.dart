@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class SearchingForDriverBottomSheet extends BaseBottomSheet {
   static const String KEY = 'SearchingForDriverBottomSheet';
@@ -43,6 +44,14 @@ class _SearchingForDriverBottomSheetState
     implements BottomSheetWidgetBuilder {
   @override
   Widget buildContent(BuildContext context) {
+    double HSpace(double ratio) {
+      return ratio * MediaQuery.of(context).size.width;
+    }
+
+    double VSpace(double ratio) {
+      return ratio * MediaQuery.of(context).size.height;
+    }
+
     return Padding(
       padding: const EdgeInsets.all(30.0),
       child: Column(
@@ -62,17 +71,18 @@ class _SearchingForDriverBottomSheetState
               widget.onActionCallback();
             },
             child: Container(
-              height: 60.0,
-              width: 60.0,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(26.0),
-                border: Border.all(width: 2.0, color: Colors.grey.shade300),
-              ),
-              child: Icon(Icons.close, size: 26.0),
+              child: SpinKitFadingCircle(itemBuilder: (_, int index) {
+                return DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: index.isEven ? Color.fromARGB(255, 190, 19, 147) : Color.fromARGB(255, 207, 17, 10),
+                  ),
+                );
+              }),
             ),
           ),
+
           SizedBox(height: 10.0),
+
           Container(
             width: double.infinity,
             child: Text(

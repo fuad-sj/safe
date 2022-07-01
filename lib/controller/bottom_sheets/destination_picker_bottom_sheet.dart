@@ -18,11 +18,10 @@ import 'package:safe/utils/pref_util.dart';
 class DestinationPickerBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DestinationPickerBottomSheet';
 
-  static const double HEIGHT_DESTINATION_SELECTOR_PERCENT = 1.0;
-  static const double TOP_CORNER_BORDER_RADIUS = 0.1;
+  static const double HEIGHT_DESTINATION_SELECTOR_PERCENT = 0.88;
+  static const double TOP_CORNER_BORDER_RADIUS = 15.0;
 
   VoidCallback onSelectPinCalled;
-  VoidCallback onDismissDialog;
 
   DestinationPickerBottomSheet({
     Key? key,
@@ -30,7 +29,6 @@ class DestinationPickerBottomSheet extends BaseBottomSheet {
     required bool showBottomSheet,
     required VoidCallback callback,
     required this.onSelectPinCalled,
-    required this.onDismissDialog,
   }) : super(
           tickerProvider: tickerProvider,
           showBottomSheet: showBottomSheet,
@@ -49,6 +47,17 @@ class DestinationPickerBottomSheet extends BaseBottomSheet {
   @override
   double topCornerRadius(BuildContext context) {
     return TOP_CORNER_BORDER_RADIUS;
+  }
+
+  @override
+  bool overRideNaturalHeight(BuildContext context) {
+    // we want this bottom sheet to fill the screen
+    return true;
+  }
+
+  @override
+  bool shouldAdjustHeight(BuildContext context) {
+    return true;
   }
 
   @override
@@ -86,14 +95,6 @@ class _DestinationPickerBottomSheetState
 
   @override
   Widget buildContent(BuildContext context) {
-    double HSpace(double ratio) {
-      return ratio * MediaQuery.of(context).size.width;
-    }
-
-    double VSpace(double ratio) {
-      return ratio * MediaQuery.of(context).size.height;
-    }
-
     String placeAddress = Provider.of<PickUpAndDropOffLocations>(context)
             .pickUpLocation
             ?.placeName ??
@@ -107,72 +108,59 @@ class _DestinationPickerBottomSheetState
         children: [
           // Pickup and DropOff container(top section)
           // Pickup Location
-          SizedBox(height: VSpace(0.06)),
-
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(width: HSpace(0.06)),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () {
-                  widget.onDismissDialog();
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Icon(Icons.close, size: 20.0),
-                ),
-              ),
-              SizedBox(width: HSpace(0.04)),
-              Text(
-                SafeLocalizations.of(context)!
-                    .bottom_sheet_destination_picker_trip,
-                style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-
-          SizedBox(height: VSpace(0.02)),
-
+          SizedBox(height: 10.0),
           Container(
-            margin: EdgeInsets.symmetric(horizontal: HSpace(0.038)),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(10.0),
-                  topRight: Radius.circular(10.0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.shade400,
-                  blurRadius: 1.0,
-                  spreadRadius: 0.5,
-                  offset: Offset(0.1, 0.7),
-                ),
-              ],
-            ),
+            child: Text('Your safe journey',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20.0)),
+          ),
+          SizedBox(height: 20.0),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 25.0),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(width: HSpace(0.04), height: VSpace(0.048)),
-                Image.asset('images/dot_red.png', height: 16.0, width: 16.0),
-                SizedBox(width: HSpace(0.04)),
-                IgnorePointer(
-                  ignoring: true,
-                  child: TextField(
-                    controller: _pickupTextController,
-                    decoration: InputDecoration(
-                      hintText: SafeLocalizations.of(context)!
-                          .bottom_sheet_destination_picker_pickup_location,
-                      fillColor: Colors.grey.shade100,
-                      filled: true,
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding:
-                          EdgeInsets.only(left: 11.0, top: 8.0, bottom: 8.0),
+                Image.asset('images/dot_blue.png', height: 16.0, width: 16.0),
+                SizedBox(width: 18.0),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(3.0),
+                      child: IgnorePointer(
+                        ignoring: true,
+                        child: TextFormField(
+                          controller: _pickupTextController,
+                          decoration: InputDecoration(
+                            hintText: SafeLocalizations.of(context)!
+                                .bottom_sheet_destination_picker_pickup_location,
+                            fillColor: Color.fromARGB(255, 195, 80, 152)
+                                .withOpacity(0.3),
+                            filled: true,
+                            border: InputBorder.none,
+                            isDense: true,
+                            suffixIcon: Icon(
+                              Icons.menu,
+                              color: Colors.black,
+                            ),
+                            contentPadding: EdgeInsets.only(
+                                left: 11.0, top: 15.0, bottom: 8.0),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: const BorderSide(
+                                  color: Colors.white, width: 0.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: const BorderSide(
+                                  color: Colors.black, width: 2.0),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -180,107 +168,147 @@ class _DestinationPickerBottomSheetState
             ),
           ),
 
+          // Dropoff Location
           Container(
-            margin: EdgeInsets.symmetric(horizontal: HSpace(0.038)),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(10.0),
-                  bottomRight: Radius.circular(10.0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.shade400,
-                  blurRadius: 1.0,
-                  spreadRadius: 0.5,
-                  offset: Offset(0.1, 0.7),
-                ),
+            child: Row(
+              children: [
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: 32.0),
+                    child: Image.asset('images/separator.png', height: 10.0)),
+                Expanded(child: Container())
               ],
             ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 25.0),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(width: HSpace(0.04), height: VSpace(0.048)),
-                Image.asset('images/dot_blue.png', height: 16.0, width: 16.0),
-                SizedBox(width: HSpace(0.04)),
-                TextField(
-                  controller: _dropOffTextController,
-                  onChanged: (newVal) {
-                    _searchPlace = newVal.trim();
-                    _autoCompleteTimer?.cancel();
-                    if (_searchPlace.isEmpty) {
-                      _placePredictionList = null;
-                      setState(() {});
-                      return;
-                    }
+                Image.asset('images/dot_red.png', height: 16.0, width: 16.0),
+                SizedBox(width: 18.0),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15.0),
+                    ),
+                    child: Padding(
+                      padding: EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: _dropOffTextController,
+                        autofocus: true,
+                        onChanged: (newVal) {
+                          _searchPlace = newVal.trim();
+                          _autoCompleteTimer?.cancel();
+                          if (_searchPlace.isEmpty) {
+                            _placePredictionList = null;
+                            setState(() {});
+                            return;
+                          }
 
-                    _autoCompleteTimer = new Timer(
-                      Duration(milliseconds: 400),
-                      () async {
-                        try {
-                          _placePredictionList =
-                              await GoogleApiUtils.autoCompletePlaceName(
-                                  _searchPlace, _sessionId);
-                        } catch (err) {
-                          _placePredictionList = null;
-                        }
-                        setState(() {});
-                      },
-                    );
-                  },
-                  decoration: InputDecoration(
-                    hintText: SafeLocalizations.of(context)!
-                        .bottom_sheet_destination_picker_destination_location,
-                    fillColor: Colors.grey.shade100,
-                    filled: true,
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding:
-                        EdgeInsets.only(left: 11.0, top: 8.0, bottom: 8.0),
+                          _autoCompleteTimer = new Timer(
+                            Duration(milliseconds: 400),
+                            () async {
+                              try {
+                                _placePredictionList =
+                                    await GoogleApiUtils.autoCompletePlaceName(
+                                        _searchPlace, _sessionId);
+                              } catch (err) {
+                                _placePredictionList = null;
+                              }
+                              setState(() {});
+                            },
+                          );
+                        },
+                        decoration: InputDecoration(
+                          hintText: SafeLocalizations.of(context)!
+                              .bottom_sheet_select_drop_off_select_dropoff,
+                          fillColor: Colors.white,
+                          filled: true,
+                          border: InputBorder.none,
+                          isDense: true,
+                          suffixIcon: Icon(
+                            Icons.menu,
+                            color: Colors.black,
+                          ),
+                          contentPadding: EdgeInsets.only(
+                              left: 11.0, top: 15.0, bottom: 8.0),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                                color: Colors.white, width: 0.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: const BorderSide(
+                                color: ColorConstants.lyftColor, width: 2.0),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+          SizedBox(height: 20.0),
 
-          SizedBox(height: VSpace(0.02)),
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 25.0),
+            height: 1.0,
+              color: ColorConstants.lyftColor
+          ),
 
           if (_placePredictionList != null) ...[
-            greyVerticalDivider(0.5),
+            //     greyVerticalDivider(0.5),
           ],
 
           // Pin your location on the map
-          if ((_placePredictionList?.length ?? 0) == 0) ...[
-            lightGreyVerticalDivider(2),
+          if (_placePredictionList == null ||
+              _placePredictionList?.length == 0) ...[
+            //  lightGreyVerticalDivider(6),
             GestureDetector(
               onTap: () {
                 widget.onSelectPinCalled();
               },
               behavior: HitTestBehavior.opaque,
-              child: Row(
-                children: [
-                  SizedBox(width: HSpace(0.078), height: VSpace(0.048)),
-                  Icon(Icons.location_on,
-                      color: ColorConstants.lyftColor, size: 20.0),
-                  SizedBox(width: HSpace(0.04)),
-                  Text(
-                    SafeLocalizations.of(context)!
-                        .bottom_sheet_destination_picker_pin_your_location,
-                    style: TextStyle(
-                      fontSize: 16.0,
-                      color: Colors.grey.shade800,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 25.0, vertical: 24.0),
+                child: Row(
+                  children: [
+                    Container(
+                      height: 40.0,
+                      width: 40.0,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(40.0),
+                        color:
+                            Color.fromARGB(255, 195, 80, 152).withOpacity(0.2),
+                      ),
+                      padding: EdgeInsets.all(10.0),
+                      child:
+                          Image.asset('images/pin_location.png', height: 30.0),
                     ),
-                  ),
-                ],
+                    SizedBox(width: 18.0),
+                    Text(
+                      SafeLocalizations.of(context)!
+                          .bottom_sheet_destination_picker_pin_your_location,
+                      style: TextStyle(
+                        fontSize: 16.0,
+                        color: Color.fromARGB(255, 195, 80, 152),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-            lightGreyVerticalDivider(2),
+            //   lightGreyVerticalDivider(6),
           ],
 
-          if ((_placePredictionList?.length ?? 0) != 0) ...[
-            // Search Results
-            ListView.builder(
+          // Search Results
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 25.0),
+            child: ListView.separated(
               shrinkWrap: true,
               physics: ClampingScrollPhysics(),
+              separatorBuilder: (_, __) => darkGreyVerticalDivider(0.0),
               itemCount: _placePredictionList?.length ?? 0,
               itemBuilder: (_, index) {
                 return _SearchedPlaceTile(
@@ -290,7 +318,6 @@ class _DestinationPickerBottomSheetState
                         builder: (_) => CustomProgressDialog(
                             message: SafeLocalizations.of(context)!
                                 .bottom_sheet_destination_picker_progress_dialog_waiting));
-
                     try {
                       Address address =
                           await GoogleApiUtils.getPlaceAddressDetails(
@@ -313,8 +340,8 @@ class _DestinationPickerBottomSheetState
                   place: _placePredictionList![index],
                 );
               },
-            )
-          ],
+            ),
+          ),
         ],
       ),
     );
@@ -337,22 +364,13 @@ class _SearchedPlaceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double HSpace(double ratio) {
-      return ratio * MediaQuery.of(context).size.width;
-    }
-
-    double VSpace(double ratio) {
-      return ratio * MediaQuery.of(context).size.height;
-    }
-
     return GestureDetector(
       onTap: () => clickCallback(place),
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
-          SizedBox(width: HSpace(0.078), height: VSpace(0.048)),
-          Icon(Icons.location_on_sharp, color: ColorConstants.lyftColor),
-          SizedBox(width: HSpace(0.04)),
+          Icon(Icons.add_location),
+          SizedBox(width: 16.0),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,14 +380,14 @@ class _SearchedPlaceTile extends StatelessWidget {
                   place.main_name,
                   // prevent overflow
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 16.0, color: Colors.grey.shade900),
+                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
                 ),
                 SizedBox(height: 2.0),
                 Text(
                   place.detailed_name,
                   // prevent overflow
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 12.0, color: Colors.grey.shade500),
+                  style: TextStyle(fontSize: 14.0, color: Colors.grey.shade300),
                 ),
                 SizedBox(height: 8.0),
               ],

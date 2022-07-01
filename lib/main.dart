@@ -18,6 +18,7 @@ void main() async {
   await PrefUtil.getInstance(); // load SharedPreferences
 
   String previousLocale = PrefUtil.getUserLanguageLocale();
+
   runApp(MainApp(defaultLocale: previousLocale));
 }
 

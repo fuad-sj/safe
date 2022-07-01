@@ -53,9 +53,12 @@ import 'package:vector_math/vector_math.dart' as vectors;
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:safe/models/sys_config.dart';
 
 class MainScreenCustomer extends StatefulWidget {
   static const String idScreen = "mainScreenRider";
+
+
 
   @override
   _MainScreenCustomerState createState() => _MainScreenCustomerState();
@@ -63,7 +66,7 @@ class MainScreenCustomer extends StatefulWidget {
 
 class _MainScreenCustomerState extends State<MainScreenCustomer>
     with TickerProviderStateMixin {
-  static const double DRIVER_RADIUS_KILOMETERS = 10.0;
+  static const double DEFAULT_SEARCH_RADIUS = 3.0;
 
   static const CameraPosition ADDIS_ABABA_CENTER_LOCATION = CameraPosition(
       target: LatLng(9.00464643580664, 38.767820855962), zoom: 12.0);
@@ -129,12 +132,15 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   Customer? _currentCustomer;
 
+  String? customerName;
+
   DocumentReference<Map<String, dynamic>>? _rideRequestRef;
 
   RideRequest? _currentRideRequest;
 
   StreamSubscription<dynamic>? _geofireLocationStream;
 
+  SysConfig? _sysConfig;
   Driver? _selectedDriver;
   DriverLocation? _selectedDriverCurrentLocation;
   StreamSubscription<dynamic>? _selectedDriverLocationStream;
@@ -200,11 +206,23 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   Future<void> _updateConnectionStatus(ConnectivityResult result) async {
     setState(() {
-      _isInternetWorking = result != ConnectivityResult.none;
+      _isInternetWorking =
+          result != ConnectivityResult.none && _sysConfig != null;
     });
   }
 
   Future<void> initConnectivity() async {
+    _sysConfig = SysConfig.fromSnapshot(
+      await FirebaseFirestore.instance
+          .collection(FIRESTORE_PATHS.COL_CONFIG)
+          .doc(FIRESTORE_PATHS.DOC_CONFIG)
+          .get(),
+    );
+
+    if (!_sysConfig!.documentExists()) {
+      _sysConfig = null;
+    }
+
     late ConnectivityResult result;
     try {
       result = await _connectivity.checkConnectivity();
@@ -483,22 +501,17 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           Icons.history,
           SafeLocalizations.of(context)!.nav_option_my_trips,
           MenuOption.MENU_OPTION_MY_TRIPS,
-          Colors.orange.shade600),
+          Colors.black),
       _MenuListItem(
-          Icons.attach_money,
+          Icons.account_balance_wallet_rounded,
           SafeLocalizations.of(context)!.nav_option_payment,
           MenuOption.MENU_OPTION_PAYMENT,
-          Colors.teal.shade600),
-      _MenuListItem(
-          Icons.settings,
-          SafeLocalizations.of(context)!.nav_option_settings,
-          MenuOption.MENU_OPTION_SETTINGS,
-          Colors.blue.shade600),
+          Colors.black),
       _MenuListItem(
           Icons.language,
           SafeLocalizations.of(context)!.nav_option_languages,
           MenuOption.MENU_OPTION_LANGUAGES,
-          Colors.grey.shade600),
+          Colors.black),
     ];
 
     List<_MenuListItem> secondaryNavOptions = [
@@ -506,104 +519,104 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           Icons.phone,
           SafeLocalizations.of(context)!.nav_option_contact_us,
           MenuOption.MENU_OPTION_CONTACT_US,
-          Colors.blueGrey.shade600),
+          Colors.black),
       _MenuListItem(
           Icons.help,
           SafeLocalizations.of(context)!.nav_option_emergency,
           MenuOption.MENU_OPTION_EMERGENCY,
-          Colors.red.shade600),
+          Colors.black),
       _MenuListItem(
           Icons.logout,
           SafeLocalizations.of(context)!.nav_option_sign_out,
           MenuOption.MENU_OPTION_SIGNOUT,
-          Colors.grey.shade600),
+          Colors.black),
     ];
 
+
     return Container(
+      color: Colors.white,
       width: drawerWidth,
       child: Drawer(
         child: ListView(
           children: [
             // Profile header
             Container(
-              height: profileHeight,
+              color: Colors.white,
+              padding: EdgeInsets.only(
+                  top: 40.0, left: 10.0, right: 10.0, bottom: 20.0),
               child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.only(
-                    bottomRight: Radius.circular(22.0),
-                  ),
-                  gradient: LinearGradient(
-                    colors: [Colors.white, Colors.grey.shade300],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    Container(
-                      padding: EdgeInsets.only(left: horizontalPadding),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _getCustomerPhone(context),
-                            style: TextStyle(
-                                fontSize: 18.0,
-                                color: Colors.grey.shade900,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: "Brand-Bold"),
-                          ),
-                          SizedBox(height: 6.0),
-                          GestureDetector(
-                            onTap: () async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) =>
-                                        CustomerProfileScreen()),
-                              );
-
-                              _currentCustomer = Customer.fromSnapshot(
-                                await FirebaseFirestore.instance
-                                    .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
-                                    .doc(_getCustomerID)
-                                    .get(),
-                              );
-
-                              if (!_currentCustomer!.documentExists()) {
-                                _currentCustomer = null;
-                              }
-
-                              loadNetworkProfileImage();
-                            },
-                            child: Text(
-                                SafeLocalizations.of(context)!
-                                    .nav_header_edit_profile,
-                                style: TextStyle(color: Colors.blue.shade500)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(child: Container()),
                     CircleAvatar(
                       backgroundColor: Colors.transparent,
                       backgroundImage: _networkProfileLoaded
                           ? _networkProfileImage
                           : _defaultProfileImage,
-                      radius: 30.0,
+                      radius: 20.0,
                     ),
-                    SizedBox(width: 16.0),
+                    SizedBox(width: 20.0),
+                    Column(
+                      children: [
+                        Container(
+                          child: Text(
+                            (_currentCustomer?.user_name != null ? '${_currentCustomer?.user_name!}' : 'User Name'),
+                            style: TextStyle(
+                                fontSize: 18.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: "Brand-Bold"),
+                          ),
+                        ),
+                        Container(
+                          child: Text(
+                            _getCustomerPhone(context),
+                            style: TextStyle(
+                                fontSize: 10.0,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: "Brand-Bold"),
+                          ),
+                        ),
+                      ],
+                    ),
+                    Spacer(),
+                    Container(
+                      padding: EdgeInsets.only(right: 10.0),
+                      child: GestureDetector(
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => CustomerProfileScreen()),
+                          );
+                          _currentCustomer = Customer.fromSnapshot(
+                            await FirebaseFirestore.instance
+                                .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+                                .doc(_getCustomerID)
+                                .get(),
+                          );
+
+                          if (!_currentCustomer!.documentExists()) {
+                            _currentCustomer = null;
+                          }
+
+                          loadNetworkProfileImage();
+                        },
+                        child: Container(
+                          child: Icon(Icons.edit,
+                              color: Colors.black),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
 
-            SizedBox(height: 12.0),
-
+            greyVerticalDivider(1.0),
+            //profile head end.
             ...primaryNavOptions.map(
               (item) => _getNavigationItemWidget(
                 context,
@@ -615,7 +628,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               ),
             ),
 
-            greyVerticalDivider(0.5),
 
             ...secondaryNavOptions.map(
               (item) => _getNavigationItemWidget(
@@ -784,10 +796,12 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               _UIState = UI_STATE_SELECT_PIN_SELECTED;
               setState(() {});
             },
+            /*
             onDismissDialog: () {
               cancelCurrentRideRequest();
               resetTripDetails();
             },
+             */
             callback: () async {
               await getRouteDetails(context);
               _UIState = UI_STATE_DROPOFF_SET;
@@ -959,8 +973,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         bool hasTripStarted = rideStatus == RideRequest.STATUS_TRIP_STARTED;
 
         if (rideStatus == RideRequest.STATUS_TRIP_COMPLETED) {
-          // note: trip summary will be shown next build cycle
-          // prevent summary dialog being shown multiple times
           if (_UIState != UI_STATE_NOTICE_DIALOG_SHOWN) {
             _UIState = UI_STATE_TRIP_COMPLETED;
           }
@@ -1240,7 +1252,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     _pickupToDropOffRouteDetail =
         await GoogleApiUtils.getRouteDetailsFromStartToDestination(
-            pickUpLoc, dropOffLoc);
+            pickUpLoc, dropOffLoc, _sysConfig);
 
     Navigator.pop(context);
 
@@ -1323,8 +1335,12 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     _isNearbyDriverLoadingComplete = false;
 
-    _geofireLocationStream = Geofire.queryAtLocation(_currentPosition!.latitude,
-            _currentPosition!.longitude, DRIVER_RADIUS_KILOMETERS)
+    _geofireLocationStream = Geofire.queryAtLocation(
+            _currentPosition!.latitude,
+            _currentPosition!.longitude,
+            _sysConfig == null
+                ? DEFAULT_SEARCH_RADIUS
+                : _sysConfig!.search_radius!)
         ?.listen(
       (map) async {
         if (map == null || _ignoreGeofireUpdates) {
@@ -1381,6 +1397,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void updateAvailableDriversOnMap() {
+    /*
+  //Todo update with with 10 cars only
+
     _mapMarkers = _nearbyDriverLocations.values
         .map((driver) => Marker(
               markerId: MarkerId('driver${driver.driverID}'),
@@ -1389,6 +1408,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               rotation: driver.orientation ?? 0,
             ))
         .toSet();
+
+     */
   }
 
   void setDriverLocationAndBearing(DriverLocation driverLoc) {

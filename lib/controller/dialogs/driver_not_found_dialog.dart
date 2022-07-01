@@ -25,7 +25,7 @@ class _DriverNotFoundDialogState extends State<DriverNotFoundDialog> {
         children: [
           // Dialog Header
           Container(
-            color: Colors.redAccent,
+            color: Colors.pinkAccent,
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
@@ -62,7 +62,7 @@ class _DriverNotFoundDialogState extends State<DriverNotFoundDialog> {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                        primary: Colors.deepOrangeAccent),
+                        primary: Colors.black),
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       width: double.infinity,
