@@ -6,55 +6,50 @@ part of 'driver.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Driver _$DriverFromJson(Map<String, dynamic> json) {
-  return Driver()
-    ..phone_number = json['phone_number'] as String?
-    ..user_name = json['user_name'] as String?
-    ..email = json['email'] as String?
-    ..date_created = FirebaseDocument.DateTimeFromJson(json['date_created'])
-    ..date_last_login =
-        FirebaseDocument.DateTimeFromJson(json['date_last_login'])
-    ..is_active = json['is_active'] as bool? ?? true
-    ..is_logged_in = json['is_logged_in'] as bool? ?? false
-    ..device_registration_tokens =
-        (json['device_registration_tokens'] as List<dynamic>?)
-            ?.map((e) => e as String)
-            .toList()
-    ..link_img_profile = json['link_img_profile'] as String?
-    ..car_type = json['car_type'] as int?
-    ..profile_status = json['profile_status'] as int?
-    ..car_color = json['car_color'] as String?
-    ..car_number = json['car_number'] as String?
-    ..car_model = json['car_model'] as String?
-    ..driver_rating = (json['driver_rating'] as num?)?.toDouble()
-    ..num_rating = json['num_rating'] as int?
-    ..link_img_common_profile = json['link_img_common_profile'] as String?
-    ..img_status_common_profile = json['img_status_common_profile'] as int?
-    ..link_img_common_libre = json['link_img_common_libre'] as String?
-    ..img_status_common_libre = json['img_status_common_libre'] as int?
-    ..link_img_common_driving_license =
-        json['link_img_common_driving_license'] as String?
-    ..img_status_common_driving_license =
-        json['img_status_common_driving_license'] as int?
-    ..link_img_common_insurance = json['link_img_common_insurance'] as String?
-    ..img_status_common_insurance = json['img_status_common_insurance'] as int?
-    ..is_representative = json['is_representative'] as bool?
-    ..link_img_common_representative =
-        json['link_img_common_representative'] as String?
-    ..img_status_common_representative =
-        json['img_status_common_representative'] as int?
-    ..link_img_code_3_tin_number = json['link_img_code_3_tin_number'] as String?
-    ..img_status_code_3_tin_number =
-        json['img_status_code_3_tin_number'] as int?
-    ..link_img_code_3_business_license =
-        json['link_img_code_3_business_license'] as String?
-    ..img_status_code_3_business_license =
-        json['img_status_code_3_business_license'] as int?
-    ..link_img_code_1_mahiber_wul =
-        json['link_img_code_1_mahiber_wul'] as String?
-    ..img_status_code_1_mahiber_wul =
-        json['img_status_code_1_mahiber_wul'] as int?;
-}
+Driver _$DriverFromJson(Map<String, dynamic> json) => Driver()
+  ..phone_number = json['phone_number'] as String?
+  ..user_name = json['user_name'] as String?
+  ..email = json['email'] as String?
+  ..date_created = FirebaseDocument.DateTimeFromJson(json['date_created'])
+  ..date_last_login = FirebaseDocument.DateTimeFromJson(json['date_last_login'])
+  ..is_active = json['is_active'] as bool? ?? true
+  ..is_logged_in = json['is_logged_in'] as bool? ?? false
+  ..device_registration_tokens =
+      (json['device_registration_tokens'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList()
+  ..link_img_profile = json['link_img_profile'] as String?
+  ..car_type = json['car_type'] as int?
+  ..profile_status = json['profile_status'] as int?
+  ..car_color = json['car_color'] as String?
+  ..car_number = json['car_number'] as String?
+  ..car_model = json['car_model'] as String?
+  ..driver_rating = (json['driver_rating'] as num?)?.toDouble()
+  ..num_rating = json['num_rating'] as int?
+  ..link_img_common_profile = json['link_img_common_profile'] as String?
+  ..img_status_common_profile = json['img_status_common_profile'] as int?
+  ..link_img_common_libre = json['link_img_common_libre'] as String?
+  ..img_status_common_libre = json['img_status_common_libre'] as int?
+  ..link_img_common_driving_license =
+      json['link_img_common_driving_license'] as String?
+  ..img_status_common_driving_license =
+      json['img_status_common_driving_license'] as int?
+  ..link_img_common_insurance = json['link_img_common_insurance'] as String?
+  ..img_status_common_insurance = json['img_status_common_insurance'] as int?
+  ..is_representative = json['is_representative'] as bool?
+  ..link_img_common_representative =
+      json['link_img_common_representative'] as String?
+  ..img_status_common_representative =
+      json['img_status_common_representative'] as int?
+  ..link_img_code_3_tin_number = json['link_img_code_3_tin_number'] as String?
+  ..img_status_code_3_tin_number = json['img_status_code_3_tin_number'] as int?
+  ..link_img_code_3_business_license =
+      json['link_img_code_3_business_license'] as String?
+  ..img_status_code_3_business_license =
+      json['img_status_code_3_business_license'] as int?
+  ..link_img_code_1_mahiber_wul = json['link_img_code_1_mahiber_wul'] as String?
+  ..img_status_code_1_mahiber_wul =
+      json['img_status_code_1_mahiber_wul'] as int?;
 
 Map<String, dynamic> _$DriverToJson(Driver instance) => <String, dynamic>{
       'phone_number': instance.phone_number,
