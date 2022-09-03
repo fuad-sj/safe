@@ -86,7 +86,7 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
         children: [
           // Dialog Header
           Container(
-            color: Colors.black,
+            color: ColorConstants.lyftColor,
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
@@ -128,13 +128,10 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
           // Dismiss Btn
           Container(
             padding: EdgeInsets.symmetric(horizontal: HORIZONTAL_PADDING),
-            child: TextButton(
+            child: ElevatedButton(
               style: TextButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 35.0, vertical: 20.0),
-                backgroundColor: ColorConstants.gucciColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(35.0),
-                ),
+                padding: EdgeInsets.symmetric(vertical: 20.0),
+                backgroundColor: Colors.blueAccent,
               ),
               onPressed: () {
                 dismissCurrentDialog(context);

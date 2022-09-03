@@ -917,9 +917,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             showBottomSheet: _UIState == UI_STATE_DRIVER_CONFIRMED,
             pickedDriver: _selectedDriver,
             rideRequest: _currentRideRequest,
-            actionCallback: () {
-              // TODO: nothing to do here, just sitting and waiting
-            },
+            actionCallback: () async {
+              await showDialog(
+                context: context,
+                builder: (_) =>
+                    RideCancellationDialog(rideRequest: _currentRideRequest!),
+              );
+              },
           ),
 
           //

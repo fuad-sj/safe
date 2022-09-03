@@ -9,7 +9,7 @@ import 'package:safe/utils/phone_call.dart';
 class DriverToPickupBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DriverToPickupBottomSheet';
 
-  static const double HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT = 0.12;
+  static const double HEIGHT_DRIVER_ON_WAY_TO_PICKUP_PERCENT = 0.18;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   RideRequest? rideRequest;
@@ -95,6 +95,19 @@ class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
       padding: const EdgeInsets.symmetric(vertical: 17.0, horizontal: 16.0),
       child: Column(
         children: [
+          GestureDetector(
+            onTap: () {
+              widget.onActionCallback();
+              print('this is clicked ');
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(1.0),
+              child: Icon(
+                Icons.cancel_outlined,
+                color: Colors.red,
+              ),
+            ),
+          ),
           Row(
             children: [
               CircleAvatar(
