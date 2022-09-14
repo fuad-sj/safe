@@ -36,7 +36,6 @@ dependencies:
   json_annotation: ^4.0.0
   shared_preferences: ^2.0.12
   synchronized: ^3.0.0
-  image_picker: ^0.8.4+9
   firebase_remote_config: ^2.0.0
   flutter_local_notifications: ^9.3.3
   future_progress_dialog: ^0.2.0
@@ -52,6 +51,8 @@ dependencies:
   firebase: ^9.0.3
   country_code_picker: ^2.0.2
   flutter_spinkit: ^5.1.0
+  image_picker: ^0.8.5+3
+  uuid: ^3.0.6
 
 dev_dependencies:
   flutter_test:

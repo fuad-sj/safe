@@ -119,6 +119,12 @@ class _SelectDropOffPinBottomSheetState
     super.dispose();
   }
 
+  void delayedSetState() {
+    Future.delayed(Duration.zero, () async {
+      setState(() {});
+    },);
+  }
+
   @override
   Widget buildContent(BuildContext context) {
     const double TOP_MAP_PADDING = 40;
@@ -148,12 +154,12 @@ class _SelectDropOffPinBottomSheetState
           onMapCreated: (GoogleMapController controller) async {
             _mapController = controller;
             controller.setMapStyle(GoogleMapStyle.mapStyles);
-            setState(() {});
+            delayedSetState();
           },
           onCameraMoveStarted: () {
             _locationGeocodeTimer?.cancel();
             _destinationAddress = null;
-            setState(() {});
+            delayedSetState();
           },
           onCameraMove: (CameraPosition newPosition) async {
             _locationGeocodeTimer?.cancel();
@@ -169,7 +175,7 @@ class _SelectDropOffPinBottomSheetState
                 } catch (err) {
                   _destinationAddress = null;
                 }
-                setState(() {});
+                delayedSetState();
               },
             );
           },
@@ -249,7 +255,6 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
     implements BottomSheetWidgetBuilder {
   @override
   Widget buildContent(BuildContext context) {
-
     double HSpace(double ratio) {
       return ratio * MediaQuery.of(context).size.width;
     }
@@ -262,16 +267,14 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.04)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-      //  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        //  mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Center(
               child: Container(
                   margin: EdgeInsets.only(top: VSpace(0.005)),
                   width: 30.0,
                   height: 2.0,
-                  color: Colors.grey.shade700)
-          ),
-
+                  color: Colors.grey.shade700)),
           SizedBox(height: VSpace(0.034)),
           Text(
               SafeLocalizations.of(context)!
@@ -286,7 +289,6 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
             onTap: () {
               widget.onBackSelected();
             },
-
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
@@ -300,13 +302,11 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
                   ),
                 ],
               ),
-
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(height: VSpace(0.05), width: HSpace(0.03)),
-                  Icon(Icons.search,
-                      color: ColorConstants.lyftColor),
+                  Icon(Icons.search, color: ColorConstants.lyftColor),
                   SizedBox(width: HSpace(0.05)),
                   Expanded(
                     child: Text(
@@ -318,9 +318,7 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
               ),
             ),
           ),
-
           SizedBox(height: VSpace(0.02)),
-
           TextButton(
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 45.0, vertical: 20.0),

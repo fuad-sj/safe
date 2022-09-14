@@ -58,8 +58,6 @@ import 'package:safe/models/sys_config.dart';
 class MainScreenCustomer extends StatefulWidget {
   static const String idScreen = "mainScreenRider";
 
-
-
   @override
   _MainScreenCustomerState createState() => _MainScreenCustomerState();
 }
@@ -532,7 +530,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           Colors.black),
     ];
 
-
     return Container(
       color: Colors.white,
       width: drawerWidth,
@@ -561,7 +558,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                       children: [
                         Container(
                           child: Text(
-                            (_currentCustomer?.user_name != null ? '${_currentCustomer?.user_name!}' : 'User Name'),
+                            (_currentCustomer?.user_name != null
+                                ? '${_currentCustomer?.user_name!}'
+                                : 'User Name'),
                             style: TextStyle(
                                 fontSize: 18.0,
                                 color: Colors.black,
@@ -605,8 +604,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                           loadNetworkProfileImage();
                         },
                         child: Container(
-                          child: Icon(Icons.edit,
-                              color: Colors.black),
+                          child: Icon(Icons.edit, color: Colors.black),
                         ),
                       ),
                     ),
@@ -627,7 +625,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 navOptionSelected,
               ),
             ),
-
 
             ...secondaryNavOptions.map(
               (item) => _getNavigationItemWidget(
@@ -1190,7 +1187,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
                 .isStudent ??
             false;
-
     Map<String, dynamic> rideFields = new Map();
 
     rideFields[RideRequest.FIELD_RIDE_STATUS] = RideRequest.STATUS_PLACED;
@@ -1202,6 +1198,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         await FirebaseMessaging.instance.getToken();
     rideFields[RideRequest.FIELD_CUSTOMER_EMAIL] =
         _currentCustomer!.email ?? '';
+    // for developer accounts, create a developer test order
+    if (_currentCustomer!.has_dev_access ?? false) {
+      rideFields[RideRequest.FIELD_IS_DEV_TEST_ORDER] = true;
+    }
     rideFields[RideRequest.FIELD_PICKUP_LOCATION] =
         FirebaseDocument.LatLngToJson(pickUpAddress.location);
     rideFields[RideRequest.FIELD_PICKUP_ADDRESS_NAME] = pickUpAddress.placeName;
@@ -1401,9 +1401,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void updateAvailableDriversOnMap() {
-    /*
-  //Todo update with with 10 cars only
-
     _mapMarkers = _nearbyDriverLocations.values
         .map((driver) => Marker(
               markerId: MarkerId('driver${driver.driverID}'),
@@ -1412,8 +1409,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               rotation: driver.orientation ?? 0,
             ))
         .toSet();
-
-     */
   }
 
   void setDriverLocationAndBearing(DriverLocation driverLoc) {

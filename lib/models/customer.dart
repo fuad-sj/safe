@@ -14,6 +14,8 @@ class Customer extends FirebaseDocument {
   static const FIELD_USER_NAME = 'user_name';
   static const FIELD_EMAIL = 'email';
 
+  static const FIELD_HAS_DEV_ACCESS = 'has_dev_access';
+
   static const FIELD_DATE_CREATED = 'date_created';
   static const FIELD_DATE_LAST_LOGIN = 'date_last_login';
 
@@ -30,6 +32,8 @@ class Customer extends FirebaseDocument {
   String? phone_number;
   String? user_name;
   String? email;
+
+  bool? has_dev_access;
 
   @JsonKey(
       fromJson: FirebaseDocument.DateTimeFromJson,

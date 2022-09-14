@@ -10,6 +10,7 @@ Driver _$DriverFromJson(Map<String, dynamic> json) => Driver()
   ..phone_number = json['phone_number'] as String?
   ..user_name = json['user_name'] as String?
   ..email = json['email'] as String?
+  ..has_dev_access = json['has_dev_access'] as bool?
   ..date_created = FirebaseDocument.DateTimeFromJson(json['date_created'])
   ..date_last_login = FirebaseDocument.DateTimeFromJson(json['date_last_login'])
   ..is_active = json['is_active'] as bool? ?? true
@@ -55,6 +56,7 @@ Map<String, dynamic> _$DriverToJson(Driver instance) => <String, dynamic>{
       'phone_number': instance.phone_number,
       'user_name': instance.user_name,
       'email': instance.email,
+      'has_dev_access': instance.has_dev_access,
       'date_created': FirebaseDocument.DateTimeToJson(instance.date_created),
       'date_last_login':
           FirebaseDocument.DateTimeToJson(instance.date_last_login),

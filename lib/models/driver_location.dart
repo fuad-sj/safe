@@ -33,13 +33,11 @@ class DriverLocation {
     double lat = coords[0];
     double lng = coords[1];
 
-    int c_type = status[_KEY_CAR_TYPE];
-
     return DriverLocation(
       driverID: driverID,
       latitude: lat,
       longitude: lng,
-      car_type: c_type,
+      car_type: status[_KEY_CAR_TYPE] ?? null,
     );
   }
 }
