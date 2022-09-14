@@ -16,6 +16,7 @@ class RideRequest extends FirebaseDocument {
   static const FIELD_RIDE_STATUS = 'ride_status';
 
   static const FIELD_IS_DEV_TEST_ORDER = 'is_dev_test_order';
+  static const FIELD_IS_AVAILABLE_ACTIVE_ORDER = 'is_available_active_order';
 
   static const FIELD_CANCEL_SOURCE = 'cancel_source';
   static const FIELD_CANCEL_SOURCE_TRIGGER_SOURCE_ID =
@@ -126,6 +127,7 @@ class RideRequest extends FirebaseDocument {
   late int ride_status;
 
   bool? is_dev_test_order;
+  bool? is_available_active_order;
 
   int? cancel_source;
   String? cancel_source_trigger_source_id;

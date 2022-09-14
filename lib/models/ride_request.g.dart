@@ -10,6 +10,7 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) => RideRequest()
   ..client_triggered_event = json['client_triggered_event'] as bool?
   ..ride_status = json['ride_status'] as int
   ..is_dev_test_order = json['is_dev_test_order'] as bool?
+  ..is_available_active_order = json['is_available_active_order'] as bool?
   ..cancel_source = json['cancel_source'] as int?
   ..cancel_source_trigger_source_id =
       json['cancel_source_trigger_source_id'] as String?
@@ -73,6 +74,7 @@ Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
       'client_triggered_event': instance.client_triggered_event,
       'ride_status': instance.ride_status,
       'is_dev_test_order': instance.is_dev_test_order,
+      'is_available_active_order': instance.is_available_active_order,
       'cancel_source': instance.cancel_source,
       'cancel_source_trigger_source_id':
           instance.cancel_source_trigger_source_id,

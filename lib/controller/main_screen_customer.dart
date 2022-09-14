@@ -1202,6 +1202,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     if (_currentCustomer!.has_dev_access ?? false) {
       rideFields[RideRequest.FIELD_IS_DEV_TEST_ORDER] = true;
     }
+    if (_currentCustomer!.is_available_active ?? false) {
+      rideFields[RideRequest.FIELD_IS_AVAILABLE_ACTIVE_ORDER] = true;
+    }
+
     rideFields[RideRequest.FIELD_PICKUP_LOCATION] =
         FirebaseDocument.LatLngToJson(pickUpAddress.location);
     rideFields[RideRequest.FIELD_PICKUP_ADDRESS_NAME] = pickUpAddress.placeName;

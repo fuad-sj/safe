@@ -34,6 +34,7 @@ class Customer extends FirebaseDocument {
   String? email;
 
   bool? has_dev_access;
+  bool? is_available_active;
 
   @JsonKey(
       fromJson: FirebaseDocument.DateTimeFromJson,
