@@ -28,8 +28,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _loginBtnActive = false;
   final RoundedLoadingButtonController _loginBtnController =
-  RoundedLoadingButtonController();
-
+      RoundedLoadingButtonController();
 
   String _countryCode = '+251'; //start off with Ethiopia
   TextEditingController _phoneController = TextEditingController();
@@ -148,8 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                                     labelStyle: TextStyle(color: Colors.white),
                                     hintText: '912345678',
                                     hintStyle: TextStyle(color: Colors.grey),
-                                    fillColor: Colors.white
-                                ),
+                                    fillColor: Colors.white),
                               ),
                             ),
                           )
@@ -185,24 +183,22 @@ class _LoginPageState extends State<LoginPage> {
                     Padding(
                       padding: const EdgeInsets.only(top: 30.0),
                       child: Container(
-                        width: MediaQuery.of(context).size.width * 0.5,
-                        child: IgnorePointer (
-                          ignoring: !_loginBtnActive,
-                          child: RoundedLoadingButton (
-                              child: Text('Verify Your Phone',
-                                  style: TextStyle(color: Colors.white)),
-                              controller: _loginBtnController,
-                              onPressed: () {
-                                if (_loginBtnActive) {
-                                  verifyPhone(context);
-                                }
-                              },
-                              color: _loginBtnActive
-                                  ? Color(0xff077f59)
-                                  : Colors.grey.shade700
-                          ),
-                        )
-                      ),
+                          width: MediaQuery.of(context).size.width * 0.5,
+                          child: IgnorePointer(
+                            ignoring: !_loginBtnActive,
+                            child: RoundedLoadingButton(
+                                child: Text('Verify Your Phone',
+                                    style: TextStyle(color: Colors.white)),
+                                controller: _loginBtnController,
+                                onPressed: () {
+                                  if (_loginBtnActive) {
+                                    verifyPhone(context);
+                                  }
+                                },
+                                color: _loginBtnActive
+                                    ? Color(0xff077f59)
+                                    : Colors.grey.shade700),
+                          )),
                     ),
                     Padding(
                       padding: const EdgeInsets.only(bottom: 50.0),

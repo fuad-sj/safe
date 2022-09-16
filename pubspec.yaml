@@ -78,6 +78,7 @@ flutter:
     - images/pin_location.png
     - images/separator.png
     - images/logo.png
+    - images/wait.png
     - images/car_side.png
     - images/yellow_car.png
     - images/minibus.png

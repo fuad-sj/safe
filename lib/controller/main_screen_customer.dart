@@ -9,6 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:safe/controller/bottom_sheets/driver_picked_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/driver_to_pickup_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/searching_for_driver_bottom_sheet.dart';
@@ -54,6 +55,7 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:safe/models/sys_config.dart';
+import 'package:safe/utils/phone_call.dart';
 
 class MainScreenCustomer extends StatefulWidget {
   static const String idScreen = "mainScreenRider";
@@ -92,6 +94,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   bool _ignoreGeofireUpdates = false;
 
   int _UIState = UI_STATE_NOTHING_STARTED;
+
 
   HashMap<String, DriverLocation> _nearbyDriverLocations =
       HashMap<String, DriverLocation>();
@@ -154,6 +157,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _currentRideRequest!.ride_status == RideRequest.STATUS_TRIP_STARTED);
 
   bool _isInternetWorking = false;
+
+  bool get _isCustomerAvailable {
+    if (_currentCustomer!.is_available_active == null) {
+      return _currentCustomer!.is_available_active == null;
+    }
+    return false;
+  }
 
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
@@ -714,105 +724,176 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
+    double side_padding = screenWidth * 0.02; // 2% of screen width
 
+    final RoundedLoadingButtonController _referalController =
+        RoundedLoadingButtonController();
+
+    void _referalBtn() async {
+      Timer(Duration(seconds: 3), () {
+        _referalController.success();
+      });
+    }
+
+    bool _referalBtnActive = false;
     return Scaffold(
       key: _scaffoldKey,
       drawer: _getDrawerLayout(context),
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          GoogleMap(
-            padding: EdgeInsets.only(
-              top: TOP_MAP_PADDING,
-              bottom: _UIState == UI_STATE_SELECT_PIN_SELECTED
-                  ? 0
-                  : _mapBottomPadding,
-            ),
-            polylines: _mapPolyLines,
-            mapType: MapType.normal,
-            myLocationButtonEnabled: _UIState != UI_STATE_SELECT_PIN_SELECTED,
-            initialCameraPosition: ADDIS_ABABA_CENTER_LOCATION,
-            myLocationEnabled: true,
-            zoomGesturesEnabled: true,
-            zoomControlsEnabled: _UIState != UI_STATE_SELECT_PIN_SELECTED,
-            markers: _mapMarkers,
-            onMapCreated: (GoogleMapController controller) async {
-              _mapController = controller;
-              controller.setMapStyle(GoogleMapStyle.mapStyles);
+          if (!_isCustomerAvailable) ...[
+            GoogleMap(
+              padding: EdgeInsets.only(
+                top: TOP_MAP_PADDING,
+                bottom: _UIState == UI_STATE_SELECT_PIN_SELECTED
+                    ? 0
+                    : _mapBottomPadding,
+              ),
+              polylines: _mapPolyLines,
+              mapType: MapType.normal,
+              myLocationButtonEnabled: _UIState != UI_STATE_SELECT_PIN_SELECTED,
+              initialCameraPosition: ADDIS_ABABA_CENTER_LOCATION,
+              myLocationEnabled: true,
+              zoomGesturesEnabled: true,
+              zoomControlsEnabled: _UIState != UI_STATE_SELECT_PIN_SELECTED,
+              markers: _mapMarkers,
+              onMapCreated: (GoogleMapController controller) async {
+                _mapController = controller;
+                controller.setMapStyle(GoogleMapStyle.mapStyles);
 
-              setState(() {
-                // once location is acquired, add a bottom padding to the map
-                setBottomMapPadding(
-                    screenHeight * WhereToBottomSheet.HEIGHT_WHERE_TO_PERCENT);
-              });
+                setState(() {
+                  // once location is acquired, add a bottom padding to the map
+                  setBottomMapPadding(screenHeight *
+                      WhereToBottomSheet.HEIGHT_WHERE_TO_PERCENT);
+                });
 
-              bool locationAcquired = await zoomCameraToCurrentPosition();
+                bool locationAcquired = await zoomCameraToCurrentPosition();
 
-              // start listening to nearby drivers once location is acquired
-              if (locationAcquired) {
-                await attachGeoFireListener();
-              }
-            },
-          ),
+                // start listening to nearby drivers once location is acquired
+                if (locationAcquired) {
+                  await attachGeoFireListener();
+                }
+              },
+            )
+          ],
+          if (_isCustomerAvailable) ...[
+            Positioned(
+                top: screenHeight * 0.13,
+                left: side_padding,
+                right: side_padding,
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 40.0),
+                  child: Container(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          SafeLocalizations.of(context)!
+                              .not_activated_customer_header,
+                          style: TextStyle(
+                              fontSize: 24.0,
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 20.0),
+                        Image(image: AssetImage('images/wait.png')),
+                        SizedBox(height: 10.0),
+                        TextField(
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(),
+                            hintText: 'please use your referral code',
+                          ),
+                        ),
+                        SizedBox(height: 10.0),
+                        IgnorePointer( 
+                          ignoring: !_referalBtnActive, 
+                          child:  RoundedLoadingButton(
+                            controller: _referalController,
+                            onPressed: _referalBtn,
+                            child: Text(
+                              'Verify referall code',
+                              style: TextStyle(color: Colors.white),
+                            )),
+                        ),
+                          
+                          TextButton(onPressed: () async {
+                            PhoneCaller.callPhone('0912645911');
+                            try {
 
-          // Hamburger + Cancel Ride
-          if (_isHamburgerVisible &&
-              _UIState != UI_STATE_SELECT_PIN_SELECTED) ...[
-            _getHamburgerBtnWidget(),
+                            } catch (err) {}
+                          },
+                          child:Text ( 'Or please call to 0912645911 to activate',
+                                        style: TextStyle(
+                                            fontSize: 20.0, color: Colors.grey.shade500)
+                            ) )
+                      ],
+                    ),
+                  ),
+                )),
           ],
 
-          //
-          WhereToBottomSheet(
-            tickerProvider: this,
-            showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
-            enableButtonSelection: _isInternetWorking,
-            customerName: _currentCustomer?.user_name,
-            actionCallback: () {
-              _UIState = UI_STATE_WHERE_TO_SELECTED;
+          // Hamburger + Cancel Ride
+          if (!_isCustomerAvailable) ...[
+            if (_isHamburgerVisible &&
+                _UIState != UI_STATE_SELECT_PIN_SELECTED) ...[
+              _getHamburgerBtnWidget(),
+            ],
 
-              setBottomMapPadding(screenHeight *
-                  DestinationPickerBottomSheet
-                      .HEIGHT_DESTINATION_SELECTOR_PERCENT);
+            //
+            WhereToBottomSheet(
+              tickerProvider: this,
+              showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
+              enableButtonSelection: _isInternetWorking,
+              customerName: _currentCustomer?.user_name,
+              actionCallback: () {
+                _UIState = UI_STATE_WHERE_TO_SELECTED;
 
-              _isHamburgerDrawerMode = false;
+                setBottomMapPadding(screenHeight *
+                    DestinationPickerBottomSheet
+                        .HEIGHT_DESTINATION_SELECTOR_PERCENT);
 
-              setState(() {});
-            },
-            onDisabledCallback: () {
-              displayToastMessage(
-                  SafeLocalizations.of(context)!.generic_message_no_internet,
-                  context);
-            },
-          ),
+                _isHamburgerDrawerMode = false;
 
-          //
-          DestinationPickerBottomSheet(
-            tickerProvider: this,
-            showBottomSheet: _UIState == UI_STATE_WHERE_TO_SELECTED,
-            onSelectPinCalled: () {
-              _UIState = UI_STATE_SELECT_PIN_SELECTED;
-              setState(() {});
-            },
-            /*
+                setState(() {});
+              },
+              onDisabledCallback: () {
+                displayToastMessage(
+                    SafeLocalizations.of(context)!.generic_message_no_internet,
+                    context);
+              },
+            ),
+
+            //
+            DestinationPickerBottomSheet(
+              tickerProvider: this,
+              showBottomSheet: _UIState == UI_STATE_WHERE_TO_SELECTED,
+              onSelectPinCalled: () {
+                _UIState = UI_STATE_SELECT_PIN_SELECTED;
+                setState(() {});
+              },
+              /*
             onDismissDialog: () {
               cancelCurrentRideRequest();
               resetTripDetails();
             },
              */
-            callback: () async {
-              await getRouteDetails(context);
-              _UIState = UI_STATE_DROPOFF_SET;
+              callback: () async {
+                await getRouteDetails(context);
+                _UIState = UI_STATE_DROPOFF_SET;
 
-              _isHamburgerDrawerMode = false;
-              setBottomMapPadding(screenHeight *
-                  ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS_PERCENT);
+                _isHamburgerDrawerMode = false;
+                setBottomMapPadding(screenHeight *
+                    ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS_PERCENT);
 
-              // stop showing nearby drivers
-              ignoreGeoFireUpdates();
+                // stop showing nearby drivers
+                ignoreGeoFireUpdates();
 
-              setState(() {});
-            },
-          ),
+                setState(() {});
+              },
+            ),
+          ],
 
           if (_UIState == UI_STATE_SELECT_PIN_SELECTED &&
               _CURRENT_PIN_ICON != null &&
@@ -920,7 +1001,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 builder: (_) =>
                     RideCancellationDialog(rideRequest: _currentRideRequest!),
               );
-              },
+            },
           ),
 
           //

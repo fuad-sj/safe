@@ -104,5 +104,7 @@
 
   "dialog_driver_not_found_title": "Driver Not Found",
   "dialog_driver_not_found_body": "We were currently unable to find a driver within your vicinity, please try again after a little while.",
-  "dialog_driver_not_found_dismiss": "Dismiss"
+  "dialog_driver_not_found_dismiss": "Dismiss",
+  "not_activated_customer_header": "Welcome To safe transport ",
+  "not_activated_customer_body": "use Your friends Referral Code to sign in please "
 }
