@@ -95,7 +95,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   int _UIState = UI_STATE_NOTHING_STARTED;
 
-
   HashMap<String, DriverLocation> _nearbyDriverLocations =
       HashMap<String, DriverLocation>();
 
@@ -159,10 +158,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   bool _isInternetWorking = false;
 
   bool get _isCustomerAvailable {
-    if (_currentCustomer!.is_available_active == null) {
-      return _currentCustomer!.is_available_active == null;
-    }
-    return false;
+    return _currentCustomer?.is_available_active ?? false;
   }
 
   final Connectivity _connectivity = Connectivity();
@@ -807,27 +803,26 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                           ),
                         ),
                         SizedBox(height: 10.0),
-                        IgnorePointer( 
-                          ignoring: !_referalBtnActive, 
-                          child:  RoundedLoadingButton(
-                            controller: _referalController,
-                            onPressed: _referalBtn,
-                            child: Text(
-                              'Verify referall code',
-                              style: TextStyle(color: Colors.white),
-                            )),
+                        IgnorePointer(
+                          ignoring: !_referalBtnActive,
+                          child: RoundedLoadingButton(
+                              controller: _referalController,
+                              onPressed: _referalBtn,
+                              child: Text(
+                                'Verify referall code',
+                                style: TextStyle(color: Colors.white),
+                              )),
                         ),
-                          
-                          TextButton(onPressed: () async {
-                            PhoneCaller.callPhone('0912645911');
-                            try {
-
-                            } catch (err) {}
-                          },
-                          child:Text ( 'Or please call to 0912645911 to activate',
-                                        style: TextStyle(
-                                            fontSize: 20.0, color: Colors.grey.shade500)
-                            ) )
+                        TextButton(
+                            onPressed: () async {
+                              PhoneCaller.callPhone('0912645911');
+                              try {} catch (err) {}
+                            },
+                            child: Text(
+                                'Or please call to 0912645911 to activate',
+                                style: TextStyle(
+                                    fontSize: 20.0,
+                                    color: Colors.grey.shade500)))
                       ],
                     ),
                   ),

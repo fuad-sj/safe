@@ -60,9 +60,6 @@ class _ConfirmRideDetailsBottomSheetState
   @override
   void initState() {
     super.initState();
-
-    Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-        .setIsStudent(false); // initially set it to false
   }
 
   @override
