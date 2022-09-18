@@ -349,7 +349,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         customerFields[Customer.FIELD_EMAIL] = _emailController.text.trim();
         customerFields[Customer.FIELD_PHONE_NUMBER] = firebaseUser.phoneNumber!;
         customerFields[Customer.FIELD_LINK_IMG_PROFILE] = profileURL;
-        customerFields[Customer.FIELD_IS_ACTIVE] = true;
+        customerFields[Customer.FIELD_IS_ACTIVE] = false;
         customerFields[Customer.FIELD_IS_LOGGED_IN] = true;
         customerFields[Customer.FIELD_DATE_CREATED] =
             FieldValue.serverTimestamp();
