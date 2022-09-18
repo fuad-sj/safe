@@ -157,8 +157,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   bool _isInternetWorking = false;
 
-  bool get _isCustomerAvailable {
-    return _currentCustomer?.is_available_active ?? false;
+  bool get _isCustomerActive {
+    return _currentCustomer?.is_active ?? false;
   }
 
   final Connectivity _connectivity = Connectivity();
@@ -738,7 +738,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
-          if (!_isCustomerAvailable) ...[
+          if (_isCustomerActive) ...[
             GoogleMap(
               padding: EdgeInsets.only(
                 top: TOP_MAP_PADDING,
@@ -773,7 +773,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               },
             )
           ],
-          if (_isCustomerAvailable) ...[
+          if (!_isCustomerActive) ...[
+            // The Referral Code UI
             Positioned(
                 top: screenHeight * 0.13,
                 left: side_padding,
@@ -830,7 +831,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           ],
 
           // Hamburger + Cancel Ride
-          if (!_isCustomerAvailable) ...[
+          if (_isCustomerActive) ...[
             if (_isHamburgerVisible &&
                 _UIState != UI_STATE_SELECT_PIN_SELECTED) ...[
               _getHamburgerBtnWidget(),
