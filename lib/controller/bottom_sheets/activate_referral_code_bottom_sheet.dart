@@ -72,14 +72,14 @@ class _ActivateReferralCodeBottomSheetState
       return ratio * MediaQuery.of(context).size.height;
     }
 
-    int ref_state = -1;
+    int _refState = -1;
 
-    if (_referralCode.length < 8) {
-      ref_state = 0;
+    if (_referralCode.length < 10) {
+      _refState = 0;
     } else if (Customer.isReferralCodeValid(_referralCode)) {
-      ref_state = 1;
+      _refState = 1;
     } else {
-      ref_state = 2;
+      _refState = 2;
     }
 
     return Container(
@@ -98,13 +98,13 @@ class _ActivateReferralCodeBottomSheetState
 
           //
           OTPTextField(
-            length: 8,
+            length: 10,
             width: MediaQuery.of(context).size.width,
             textFieldAlignment: MainAxisAlignment.spaceAround,
-            fieldWidth: 40,
+            fieldWidth: 25,
             fieldStyle: FieldStyle.underline,
-            outlineBorderRadius: 10,
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            outlineBorderRadius: 8,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             keyboardType: TextInputType.text,
             onChanged: (val) {
               setState(() {
@@ -126,9 +126,9 @@ class _ActivateReferralCodeBottomSheetState
               'VERIFY',
               style: TextStyle(color: Colors.white),
             ),
-            color: ref_state == 0
+            color: _refState == 0
                 ? Colors.blue.shade800
-                : (ref_state == 1
+                : (_refState == 1
                     ? Colors.green.shade800
                     : Colors.red.shade800),
           ),

@@ -84,28 +84,116 @@ class Customer extends FirebaseDocument {
 
   Map<String, dynamic> toJson() => _$CustomerToJson(this);
 
-  static String _generateParityBit(String ref_code) {
-    String ALPHABETS = 'ABCDEFGHJKMNPQRTUVWXY346789';
+  static int _getPrimeForIndex(int index) {
+    if (index == 0) {
+      return 1;
+    }
+    var primes = [
+      101,
+      103,
+      107,
+      751,
+      137,
+      787,
+      797,
+      809,
+      877,
+      881,
+      883,
+      157,
+      163,
+      167,
+      173,
+      179,
+      181,
+      191,
+      193,
+      197,
+      199,
+      211,
+      223,
+      227,
+      229,
+      233,
+      239,
+      241
+    ];
+    return primes[index % primes.length];
+  }
 
-    if (ref_code.length != 7) {
+  static String _generateParityBit(String refCode) {
+    if (refCode.length != 7) {
       return "-1";
     }
 
-    int running_total = 0;
-    for (int i = 0; i < ref_code.length; i++) {
-      int digit = ALPHABETS.indexOf(ref_code[i]);
+    String ALPHABETS = 'ABCDEFGHJKMNPQRTUVWXY346789';
 
-      running_total += digit * (pow(i + 10, 10) as int);
+    String _computeParity(
+        String code, bool isLeftToRight, var primeMultipliers) {
+      int total = 0;
+      for (int i = 0; i < code.length; i++) {
+        int digitIndex = isLeftToRight ? i : (code.length - (i + 1));
+        int digit = _getPrimeForIndex(
+            (ALPHABETS.indexOf(code[digitIndex]) + 1) *
+                _getPrimeForIndex(pow(5 * (i + 1), 3) as int));
+
+        total += (digit * primeMultipliers[i]) % (9007 + i) as int;
+      }
+
+      return ALPHABETS[total % 23];
     }
 
-    return ALPHABETS[running_total % ALPHABETS.length];
+    var LEFT_2_RIGHT_PRIMES_1 = const [
+      10039,
+      10103,
+      10151,
+      10177,
+      10259,
+      10273,
+      10337
+    ];
+    var LEFT_2_RIGHT_PRIMES_2 = const [
+      90059,
+      90067,
+      90071,
+      90073,
+      90089,
+      90107,
+      90121,
+      90127,
+      90149
+    ];
+    var RIGHT_2_LEFT_PRIMES = const [
+      74521,
+      74527,
+      74531,
+      74551,
+      74561,
+      74567,
+      74573,
+      74587
+    ];
+
+    String rightParity1 = _computeParity(refCode, true, LEFT_2_RIGHT_PRIMES_1);
+    String leftParity1 =
+        _computeParity(refCode + rightParity1, false, RIGHT_2_LEFT_PRIMES);
+    String rightParity2 = _computeParity(
+        leftParity1 + refCode + rightParity1, true, LEFT_2_RIGHT_PRIMES_2);
+
+    return rightParity1 + leftParity1 + rightParity2;
   }
 
-  static bool isReferralCodeValid(String referral_code) {
-    if (referral_code.length != 8)
-      return false;
-    referral_code = referral_code.toUpperCase();
-    String parity_bit = referral_code[7];
-    return parity_bit == _generateParityBit(referral_code.substring(0, 7));
+  static bool isReferralCodeValid(String refCode) {
+    if (refCode.length != 10) return false;
+    refCode = refCode.toUpperCase();
+
+    String leftParity = refCode[0];
+    String rightParity1 = refCode[8];
+    String rightParity2 = refCode[9];
+
+    String parityBits = _generateParityBit(refCode.substring(1, 8));
+    return leftParity == parityBits[1] &&
+        rightParity1 == parityBits[0] &&
+        rightParity2 == parityBits[2];
   }
 }
