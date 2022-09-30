@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:otp_text_field/otp_field.dart';
-import 'package:otp_text_field/otp_text_field.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
-import 'package:otp_text_field/style.dart';
 import 'package:safe/auth_service.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/main_screen_customer.dart';
+import 'package:safe/controller/otp_text_field/otp_field.dart';
+import 'package:safe/controller/otp_text_field/style.dart';
 import 'package:safe/controller/registration_screen.dart';
 
 class VerifyPhone extends StatefulWidget {

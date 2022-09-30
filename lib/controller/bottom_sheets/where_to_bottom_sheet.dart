@@ -15,6 +15,7 @@ class WhereToBottomSheet extends BaseBottomSheet {
   bool enableButtonSelection;
   VoidCallback onDisabledCallback;
   String? customerName;
+  String? referralCode;
 
   WhereToBottomSheet({
     required TickerProvider tickerProvider,
@@ -23,6 +24,7 @@ class WhereToBottomSheet extends BaseBottomSheet {
     required this.enableButtonSelection,
     required this.onDisabledCallback,
     this.customerName,
+    this.referralCode,
   }) : super(
           tickerProvider: tickerProvider,
           showBottomSheet: showBottomSheet,
@@ -59,7 +61,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
     double VSpace(double ratio) {
       return ratio * MediaQuery.of(context).size.height;
     }
-
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.04)),

@@ -7,6 +7,7 @@ part of 'driver.dart';
 // **************************************************************************
 
 Driver _$DriverFromJson(Map<String, dynamic> json) => Driver()
+  ..client_triggered_event = json['client_triggered_event'] as bool?
   ..phone_number = json['phone_number'] as String?
   ..user_name = json['user_name'] as String?
   ..email = json['email'] as String?
@@ -21,6 +22,8 @@ Driver _$DriverFromJson(Map<String, dynamic> json) => Driver()
           ?.map((e) => e as String)
           .toList()
   ..link_img_profile = json['link_img_profile'] as String?
+  ..referral_activation_complete = json['referral_activation_complete'] as bool?
+  ..referral_code = json['referral_code'] as String?
   ..car_type = json['car_type'] as int?
   ..profile_status = json['profile_status'] as int?
   ..car_color = json['car_color'] as String?
@@ -54,6 +57,7 @@ Driver _$DriverFromJson(Map<String, dynamic> json) => Driver()
       json['img_status_code_1_mahiber_wul'] as int?;
 
 Map<String, dynamic> _$DriverToJson(Driver instance) => <String, dynamic>{
+      'client_triggered_event': instance.client_triggered_event,
       'phone_number': instance.phone_number,
       'user_name': instance.user_name,
       'email': instance.email,
@@ -66,6 +70,8 @@ Map<String, dynamic> _$DriverToJson(Driver instance) => <String, dynamic>{
       'is_logged_in': instance.is_logged_in,
       'device_registration_tokens': instance.device_registration_tokens,
       'link_img_profile': instance.link_img_profile,
+      'referral_activation_complete': instance.referral_activation_complete,
+      'referral_code': instance.referral_code,
       'car_type': instance.car_type,
       'profile_status': instance.profile_status,
       'car_color': instance.car_color,

@@ -7,6 +7,7 @@ part of 'customer.dart';
 // **************************************************************************
 
 Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
+  ..client_triggered_event = json['client_triggered_event'] as bool?
   ..phone_number = json['phone_number'] as String?
   ..user_name = json['user_name'] as String?
   ..email = json['email'] as String?
@@ -20,9 +21,12 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
       (json['device_registration_tokens'] as List<dynamic>?)
           ?.map((e) => e as String)
           .toList()
-  ..link_img_profile = json['link_img_profile'] as String?;
+  ..link_img_profile = json['link_img_profile'] as String?
+  ..referral_activation_complete = json['referral_activation_complete'] as bool?
+  ..referral_code = json['referral_code'] as String?;
 
 Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
+      'client_triggered_event': instance.client_triggered_event,
       'phone_number': instance.phone_number,
       'user_name': instance.user_name,
       'email': instance.email,
@@ -35,4 +39,6 @@ Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'is_logged_in': instance.is_logged_in,
       'device_registration_tokens': instance.device_registration_tokens,
       'link_img_profile': instance.link_img_profile,
+      'referral_activation_complete': instance.referral_activation_complete,
+      'referral_code': instance.referral_code,
     };

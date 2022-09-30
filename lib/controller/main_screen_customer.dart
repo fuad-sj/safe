@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:safe/controller/bottom_sheets/activate_referral_code_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/driver_picked_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/driver_to_pickup_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/searching_for_driver_bottom_sheet.dart';
@@ -159,6 +160,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   bool get _isCustomerActive {
     return _currentCustomer?.is_active ?? false;
+  }
+
+  bool get _isReferralActivationComplete {
+    return _currentCustomer?.referral_activation_complete ?? false;
   }
 
   final Connectivity _connectivity = Connectivity();
@@ -733,12 +738,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     bool _referalBtnActive = false;
     return Scaffold(
-      key: _scaffoldKey,
-      drawer: _getDrawerLayout(context),
-      resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          if (_isCustomerActive) ...[
+        key: _scaffoldKey,
+        drawer: _getDrawerLayout(context),
+        resizeToAvoidBottomInset: false,
+        body: Stack(
+          children: [
             GoogleMap(
               padding: EdgeInsets.only(
                 top: TOP_MAP_PADDING,
@@ -766,257 +770,281 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
                 bool locationAcquired = await zoomCameraToCurrentPosition();
 
+                _ignoreGeofireUpdates = !_isReferralActivationComplete;
+
                 // start listening to nearby drivers once location is acquired
                 if (locationAcquired) {
                   await attachGeoFireListener();
                 }
               },
-            )
-          ],
-          if (!_isCustomerActive) ...[
-            // The Referral Code UI
-            Positioned(
-                top: screenHeight * 0.13,
-                left: side_padding,
-                right: side_padding,
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 40.0),
-                  child: Container(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          SafeLocalizations.of(context)!
-                              .not_activated_customer_header,
-                          style: TextStyle(
-                              fontSize: 24.0,
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold),
-                        ),
-                        SizedBox(height: 20.0),
-                        Image(image: AssetImage('images/wait.png')),
-                        SizedBox(height: 10.0),
-                        TextField(
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: 'please use your referral code',
-                          ),
-                        ),
-                        SizedBox(height: 10.0),
-                        IgnorePointer(
-                          ignoring: !_referalBtnActive,
-                          child: RoundedLoadingButton(
-                              controller: _referalController,
-                              onPressed: _referalBtn,
-                              child: Text(
-                                'Verify referall code',
-                                style: TextStyle(color: Colors.white),
-                              )),
-                        ),
-                        TextButton(
-                            onPressed: () async {
-                              PhoneCaller.callPhone('0912645911');
-                              try {} catch (err) {}
-                            },
-                            child: Text(
-                                'Or please call to 0912645911 to activate',
-                                style: TextStyle(
-                                    fontSize: 20.0,
-                                    color: Colors.grey.shade500)))
-                      ],
-                    ),
-                  ),
-                )),
-          ],
+            ),
 
-          // Hamburger + Cancel Ride
-          if (_isCustomerActive) ...[
+            // Hamburger + Cancel Ride
             if (_isHamburgerVisible &&
                 _UIState != UI_STATE_SELECT_PIN_SELECTED) ...[
               _getHamburgerBtnWidget(),
             ],
 
-            //
-            WhereToBottomSheet(
-              tickerProvider: this,
-              showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
-              enableButtonSelection: _isInternetWorking,
-              customerName: _currentCustomer?.user_name,
-              actionCallback: () {
-                _UIState = UI_STATE_WHERE_TO_SELECTED;
+            if (_isReferralActivationComplete) ...[
+              //
+              WhereToBottomSheet(
+                tickerProvider: this,
+                showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
+                enableButtonSelection: _isInternetWorking,
+                customerName: _currentCustomer?.user_name,
+                actionCallback: () {
+                  _UIState = UI_STATE_WHERE_TO_SELECTED;
 
-                setBottomMapPadding(screenHeight *
-                    DestinationPickerBottomSheet
-                        .HEIGHT_DESTINATION_SELECTOR_PERCENT);
+                  setBottomMapPadding(screenHeight *
+                      DestinationPickerBottomSheet
+                          .HEIGHT_DESTINATION_SELECTOR_PERCENT);
 
-                _isHamburgerDrawerMode = false;
+                  _isHamburgerDrawerMode = false;
 
-                setState(() {});
-              },
-              onDisabledCallback: () {
-                displayToastMessage(
-                    SafeLocalizations.of(context)!.generic_message_no_internet,
-                    context);
-              },
-            ),
+                  setState(() {});
+                },
+                onDisabledCallback: () {
+                  displayToastMessage(
+                      SafeLocalizations.of(context)!
+                          .generic_message_no_internet,
+                      context);
+                },
+              ),
 
-            //
-            DestinationPickerBottomSheet(
-              tickerProvider: this,
-              showBottomSheet: _UIState == UI_STATE_WHERE_TO_SELECTED,
-              onSelectPinCalled: () {
-                _UIState = UI_STATE_SELECT_PIN_SELECTED;
-                setState(() {});
-              },
-              /*
+              //
+              DestinationPickerBottomSheet(
+                tickerProvider: this,
+                showBottomSheet: _UIState == UI_STATE_WHERE_TO_SELECTED,
+                onSelectPinCalled: () {
+                  _UIState = UI_STATE_SELECT_PIN_SELECTED;
+                  setState(() {});
+                },
+                /*
             onDismissDialog: () {
               cancelCurrentRideRequest();
               resetTripDetails();
             },
              */
-              callback: () async {
-                await getRouteDetails(context);
-                _UIState = UI_STATE_DROPOFF_SET;
+                callback: () async {
+                  await getRouteDetails(context);
+                  _UIState = UI_STATE_DROPOFF_SET;
 
-                _isHamburgerDrawerMode = false;
-                setBottomMapPadding(screenHeight *
-                    ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS_PERCENT);
+                  _isHamburgerDrawerMode = false;
+                  setBottomMapPadding(screenHeight *
+                      ConfirmRideDetailsBottomSheet
+                          .HEIGHT_RIDE_DETAILS_PERCENT);
 
-                // stop showing nearby drivers
-                ignoreGeoFireUpdates();
+                  // stop showing nearby drivers
+                  ignoreGeoFireUpdates();
 
-                setState(() {});
-              },
-            ),
+                  setState(() {});
+                },
+              ),
+
+              if (_UIState == UI_STATE_SELECT_PIN_SELECTED &&
+                  _CURRENT_PIN_ICON != null &&
+                  _currentPosition != null) ...[
+                SelectDropOffPinBottomSheet(
+                  tickerProvider: this,
+                  showBottomSheet: _UIState == UI_STATE_SELECT_PIN_SELECTED,
+                  CURRENT_PIN_ICON: _CURRENT_PIN_ICON!,
+                  currentPosition: _currentPosition!,
+                  onBackSelected: () {
+                    _UIState = UI_STATE_WHERE_TO_SELECTED;
+                    setState(() {});
+                  },
+                  callback: () async {
+                    await getRouteDetails(context);
+                    _UIState = UI_STATE_DROPOFF_SET;
+
+                    _isHamburgerDrawerMode = false;
+                    setBottomMapPadding(screenHeight *
+                        ConfirmRideDetailsBottomSheet
+                            .HEIGHT_RIDE_DETAILS_PERCENT);
+
+                    // stop showing nearby drivers
+                    ignoreGeoFireUpdates();
+
+                    setState(() {});
+                  },
+                ),
+              ],
+
+              //
+              ConfirmRideDetailsBottomSheet(
+                tickerProvider: this,
+                showBottomSheet: _UIState == UI_STATE_DROPOFF_SET,
+                routeDetails: _pickupToDropOffRouteDetail,
+                actionCallback: () async {
+                  if (!_isInternetWorking) {
+                    displayToastMessage(
+                        SafeLocalizations.of(context)!
+                            .generic_message_no_internet,
+                        context);
+                  } else {
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => CustomProgressDialog(
+                          message: SafeLocalizations.of(context)!
+                              .main_screen_creating_order_progress),
+                    );
+
+                    _UIState = await createNewRideRequest();
+
+                    Navigator.pop(context);
+
+                    // Will update UI when either driver is assigned OR trip is cancelled
+                    await listenToRideStatusUpdates();
+
+                    setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
+                        ? 0
+                        : (screenHeight *
+                            SearchingForDriverBottomSheet
+                                .HEIGHT_SEARCHING_FOR_DRIVER_PERCENT));
+
+                    _isHamburgerDrawerMode = true;
+                  }
+
+                  setState(() {});
+                },
+              ),
+
+              //
+              SearchingForDriverBottomSheet(
+                tickerProvider: this,
+                showBottomSheet: _UIState == UI_STATE_SEARCHING_FOR_DRIVER,
+                actionCallback: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (_) => RideCancellationDialog(
+                        rideRequest: _currentRideRequest!),
+                  );
+                },
+              ),
+
+              // Tentatively Picked Driver
+              DriverPickedBottomSheet(
+                tickerProvider: this,
+                showBottomSheet: _UIState == UI_STATE_DRIVER_PICKED,
+                pickedDriver: _selectedDriver,
+                actionCallback: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (_) => RideCancellationDialog(
+                        rideRequest: _currentRideRequest!),
+                  );
+                },
+              ),
+
+              //
+              DriverToPickupBottomSheet(
+                tickerProvider: this,
+                showBottomSheet: _UIState == UI_STATE_DRIVER_CONFIRMED,
+                pickedDriver: _selectedDriver,
+                rideRequest: _currentRideRequest,
+                actionCallback: () async {
+                  await showDialog(
+                    context: context,
+                    builder: (_) => RideCancellationDialog(
+                        rideRequest: _currentRideRequest!),
+                  );
+                },
+              ),
+
+              //
+              TripDetailsBottomSheet(
+                tickerProvider: this,
+                showBottomSheet: _UIState == UI_STATE_TRIP_STARTED,
+                pickedDriver: _selectedDriver,
+                rideRequest: _currentRideRequest,
+                currentPosition: _currentPosition,
+                tripStartedLocation: _tripStartedLocation,
+                tripCounterTimer: _tripCounterTimer,
+                tripStartTimestamp: _tripStartTimestamp,
+                actionCallback: () {
+                  // TODO: nothing to do here, just sitting and waiting
+                },
+              ),
+            ],
+            if (!_isReferralActivationComplete) ...[
+              // The Referral Code UI
+              ActivateReferralCodeBottomSheet(
+                tickerProvider: this,
+                showBottomSheet: true,
+                actionCallback: () {
+                  /*
+                  _UIState = UI_STATE_WHERE_TO_SELECTED;
+
+                  setBottomMapPadding(screenHeight *
+                      DestinationPickerBottomSheet
+                          .HEIGHT_DESTINATION_SELECTOR_PERCENT);
+
+                  _isHamburgerDrawerMode = false;
+
+                  setState(() {});
+                  */
+                },
+              )
+              /*
+              Positioned(
+                  top: screenHeight * 0.13,
+                  left: side_padding,
+                  right: side_padding,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 40.0),
+                    child: Container(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            SafeLocalizations.of(context)!
+                                .not_activated_customer_header,
+                            style: TextStyle(
+                                fontSize: 24.0,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          SizedBox(height: 20.0),
+                          Image(image: AssetImage('images/wait.png')),
+                          SizedBox(height: 10.0),
+                          TextField(
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(),
+                              hintText: 'please use your referral code',
+                            ),
+                          ),
+                          SizedBox(height: 10.0),
+                          IgnorePointer(
+                            ignoring: !_referalBtnActive,
+                            child: RoundedLoadingButton(
+                                controller: _referalController,
+                                onPressed: _referalBtn,
+                                child: Text(
+                                  'Verify referall code',
+                                  style: TextStyle(color: Colors.white),
+                                )),
+                          ),
+                          TextButton(
+                              onPressed: () async {
+                                PhoneCaller.callPhone('0912645911');
+                                try {} catch (err) {}
+                              },
+                              child: Text(
+                                  'Or please call to 0912645911 to activate',
+                                  style: TextStyle(
+                                      fontSize: 20.0,
+                                      color: Colors.grey.shade500)))
+                        ],
+                      ),
+                    ),
+                  )),
+
+               */
+            ],
           ],
-
-          if (_UIState == UI_STATE_SELECT_PIN_SELECTED &&
-              _CURRENT_PIN_ICON != null &&
-              _currentPosition != null) ...[
-            SelectDropOffPinBottomSheet(
-              tickerProvider: this,
-              showBottomSheet: _UIState == UI_STATE_SELECT_PIN_SELECTED,
-              CURRENT_PIN_ICON: _CURRENT_PIN_ICON!,
-              currentPosition: _currentPosition!,
-              onBackSelected: () {
-                _UIState = UI_STATE_WHERE_TO_SELECTED;
-                setState(() {});
-              },
-              callback: () async {
-                await getRouteDetails(context);
-                _UIState = UI_STATE_DROPOFF_SET;
-
-                _isHamburgerDrawerMode = false;
-                setBottomMapPadding(screenHeight *
-                    ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS_PERCENT);
-
-                // stop showing nearby drivers
-                ignoreGeoFireUpdates();
-
-                setState(() {});
-              },
-            ),
-          ],
-
-          //
-          ConfirmRideDetailsBottomSheet(
-            tickerProvider: this,
-            showBottomSheet: _UIState == UI_STATE_DROPOFF_SET,
-            routeDetails: _pickupToDropOffRouteDetail,
-            actionCallback: () async {
-              if (!_isInternetWorking) {
-                displayToastMessage(
-                    SafeLocalizations.of(context)!.generic_message_no_internet,
-                    context);
-              } else {
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) => CustomProgressDialog(
-                      message: SafeLocalizations.of(context)!
-                          .main_screen_creating_order_progress),
-                );
-
-                _UIState = await createNewRideRequest();
-
-                Navigator.pop(context);
-
-                // Will update UI when either driver is assigned OR trip is cancelled
-                await listenToRideStatusUpdates();
-
-                setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
-                    ? 0
-                    : (screenHeight *
-                        SearchingForDriverBottomSheet
-                            .HEIGHT_SEARCHING_FOR_DRIVER_PERCENT));
-
-                _isHamburgerDrawerMode = true;
-              }
-
-              setState(() {});
-            },
-          ),
-
-          //
-          SearchingForDriverBottomSheet(
-            tickerProvider: this,
-            showBottomSheet: _UIState == UI_STATE_SEARCHING_FOR_DRIVER,
-            actionCallback: () async {
-              await showDialog(
-                context: context,
-                builder: (_) =>
-                    RideCancellationDialog(rideRequest: _currentRideRequest!),
-              );
-            },
-          ),
-
-          // Tentatively Picked Driver
-          DriverPickedBottomSheet(
-            tickerProvider: this,
-            showBottomSheet: _UIState == UI_STATE_DRIVER_PICKED,
-            pickedDriver: _selectedDriver,
-            actionCallback: () async {
-              await showDialog(
-                context: context,
-                builder: (_) =>
-                    RideCancellationDialog(rideRequest: _currentRideRequest!),
-              );
-            },
-          ),
-
-          //
-          DriverToPickupBottomSheet(
-            tickerProvider: this,
-            showBottomSheet: _UIState == UI_STATE_DRIVER_CONFIRMED,
-            pickedDriver: _selectedDriver,
-            rideRequest: _currentRideRequest,
-            actionCallback: () async {
-              await showDialog(
-                context: context,
-                builder: (_) =>
-                    RideCancellationDialog(rideRequest: _currentRideRequest!),
-              );
-            },
-          ),
-
-          //
-          TripDetailsBottomSheet(
-            tickerProvider: this,
-            showBottomSheet: _UIState == UI_STATE_TRIP_STARTED,
-            pickedDriver: _selectedDriver,
-            rideRequest: _currentRideRequest,
-            currentPosition: _currentPosition,
-            tripStartedLocation: _tripStartedLocation,
-            tripCounterTimer: _tripCounterTimer,
-            tripStartTimestamp: _tripStartTimestamp,
-            actionCallback: () {
-              // TODO: nothing to do here, just sitting and waiting
-            },
-          ),
-        ],
-      ),
-    );
+        ));
   }
 
   Future<void> listenToRideStatusUpdates() async {

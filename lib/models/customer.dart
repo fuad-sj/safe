@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:safe/models/firebase_document.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -29,12 +31,14 @@ class Customer extends FirebaseDocument {
 
   // END field name declarations
 
+  bool? client_triggered_event;
+
   String? phone_number;
   String? user_name;
   String? email;
 
   bool? has_dev_access;
-  bool? is_available_active;
+  bool? is_available_active; // for FTA purposes
 
   @JsonKey(
       fromJson: FirebaseDocument.DateTimeFromJson,
@@ -54,6 +58,9 @@ class Customer extends FirebaseDocument {
   List<String>? device_registration_tokens;
 
   String? link_img_profile;
+
+  bool? referral_activation_complete;
+  String? referral_code;
 
   Customer();
 
@@ -76,4 +83,29 @@ class Customer extends FirebaseDocument {
   }
 
   Map<String, dynamic> toJson() => _$CustomerToJson(this);
+
+  static String _generateParityBit(String ref_code) {
+    String ALPHABETS = 'ABCDEFGHJKMNPQRTUVWXY346789';
+
+    if (ref_code.length != 7) {
+      return "-1";
+    }
+
+    int running_total = 0;
+    for (int i = 0; i < ref_code.length; i++) {
+      int digit = ALPHABETS.indexOf(ref_code[i]);
+
+      running_total += digit * (pow(i + 10, 10) as int);
+    }
+
+    return ALPHABETS[running_total % ALPHABETS.length];
+  }
+
+  static bool isReferralCodeValid(String referral_code) {
+    if (referral_code.length != 8)
+      return false;
+    referral_code = referral_code.toUpperCase();
+    String parity_bit = referral_code[7];
+    return parity_bit == _generateParityBit(referral_code.substring(0, 7));
+  }
 }

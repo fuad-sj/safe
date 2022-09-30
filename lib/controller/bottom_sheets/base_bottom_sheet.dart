@@ -24,6 +24,14 @@ abstract class BaseBottomSheet extends StatefulWidget {
 
   double topCornerRadius(BuildContext context);
 
+  double bottomOffset(BuildContext context) {
+    return 0;
+  }
+
+  bool showBoxShadow(BuildContext context) {
+    return true;
+  }
+
   State<StatefulWidget> buildState();
 
   @override
@@ -37,6 +45,7 @@ abstract class BaseBottomSheet extends StatefulWidget {
 
   Widget wrapContent(BuildContext context, WidgetBuilder builder) {
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     double padding = screenWidth * 0.02; // 2% of screen width
     double offset = fixedToBottom || (showBottomSheet == false) ? 0 : padding;
@@ -51,9 +60,8 @@ abstract class BaseBottomSheet extends StatefulWidget {
       radius = BorderRadius.all(Radius.circular(topCornerRadius(context)));
     }
 
-
     return Positioned(
-      bottom: offset * 1.5,
+      bottom: offset * 1.5 + bottomOffset(context) * screenHeight,
       left: offset,
       right: offset,
       child: AnimatedSize(
@@ -61,33 +69,35 @@ abstract class BaseBottomSheet extends StatefulWidget {
         curve: Curves.bounceIn,
         duration: Duration(milliseconds: animationDuration()),
         child: Container(
-          height: showBottomSheet ? bottomSheetHeight(context) : 0,
+          //height: showBottomSheet ? bottomSheetHeight(context) : 0,
           decoration: (showBottomSheet == false)
               ? null
               : BoxDecoration(
                   color: Colors.white,
                   borderRadius: radius,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade500,
-                      blurRadius: 16.0,
-                      //blurRadius: 8.0,
-                      spreadRadius: 0.5,
-                      //offset: Offset(0.7, 0.7),
-                    ),
-                    BoxShadow(
-                        color: Colors.grey.shade200,
-                        blurRadius: 8.0,
-                        offset: Offset(-1, 10)),
-                    BoxShadow(
-                        color: Colors.grey.shade200,
-                        blurRadius: 8.0,
-                        offset: Offset(1, 10)),
-                    BoxShadow(
-                        color: Colors.white,
-                        blurRadius: 24.0,
-                        offset: Offset(0, 10)),
-                  ],
+                  boxShadow: showBoxShadow(context)
+                      ? [
+                          BoxShadow(
+                            color: Colors.grey.shade500,
+                            blurRadius: 16.0,
+                            //blurRadius: 8.0,
+                            spreadRadius: 0.5,
+                            //offset: Offset(0.7, 0.7),
+                          ),
+                          BoxShadow(
+                              color: Colors.grey.shade200,
+                              blurRadius: 8.0,
+                              offset: Offset(-1, 10)),
+                          BoxShadow(
+                              color: Colors.grey.shade200,
+                              blurRadius: 8.0,
+                              offset: Offset(1, 10)),
+                          BoxShadow(
+                              color: Colors.white,
+                              blurRadius: 24.0,
+                              offset: Offset(0, 10)),
+                        ]
+                      : [],
                 ),
           child: (showBottomSheet == false) ? Container() : builder(context),
         ),
