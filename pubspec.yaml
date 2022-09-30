@@ -52,6 +52,7 @@ dependencies:
   flutter_spinkit: ^5.1.0
   image_picker: ^0.8.5+3
   uuid: ^3.0.6
+  widget_mask: ^1.0.0+0
 
 dev_dependencies:
   flutter_test:
@@ -86,11 +87,23 @@ flutter:
     - images/economy.png
     - images/minivan_safe.png
     - images/minbus_safe.png
+    - images/white_logo.png
+    - images/logoBack.png
+    - images/safeLogo.png
+    - images/mask1.png
+    - images/input.png
+    - images/whiteSafeLogo.png
+    - images/referal.png
+
 
   fonts:
     - family: Signatra
       fonts:
         - asset: fonts/Signatra.ttf
+
+    - family: Lato
+      fonts:
+        - asset: fonts/Lato-Bold.ttf
 
     - family: Brand-Regular
       fonts:

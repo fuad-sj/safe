@@ -61,7 +61,7 @@ abstract class BaseBottomSheet extends StatefulWidget {
     }
 
     return Positioned(
-      bottom: offset * 1.5 + bottomOffset(context) * screenHeight,
+      bottom: offset * 0.2 + bottomOffset(context) * screenHeight,
       left: offset,
       right: offset,
       child: AnimatedSize(

@@ -16,6 +16,7 @@ import 'package:path/path.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:widget_mask/widget_mask.dart';
 
 class RegistrationScreen extends StatefulWidget {
   static const String idScreen = "register";
@@ -24,28 +25,31 @@ class RegistrationScreen extends StatefulWidget {
   _RegistrationScreenState createState() => _RegistrationScreenState();
 }
 
+enum Gender { female, male }
+
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   final picker = ImagePicker();
-
   TextEditingController _nameController = TextEditingController();
+  TextEditingController _lastNameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
 
   late ImageProvider _defaultProfileImage;
 
+  Gender _character = Gender.female;
   File? _profileFile;
   FileImage? _profileImage;
 
   bool _enableRegisterBtn = false;
 
-  final RoundedLoadingButtonController _CustomerLoadingBtnController = RoundedLoadingButtonController();
+  final RoundedLoadingButtonController _CustomerLoadingBtnController =
+      RoundedLoadingButtonController();
 
   @override
   void initState() {
     super.initState();
 
-    _defaultProfileImage = AssetImage('images/user_icon.png');
+    _defaultProfileImage = AssetImage('images/mask1.png');
 
     var callback = () {
       final FormState form = _formKey.currentState!;
@@ -57,6 +61,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     };
 
     _nameController.addListener(callback);
+    _lastNameController.addListener(callback);
     _emailController.addListener(callback);
   }
 
@@ -66,251 +71,311 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   void updateEnableBtnState() {
     _enableRegisterBtn = _nameController.text.isNotEmpty &&
+        _lastNameController.text.isNotEmpty &&
         isValidEmail(_emailController.text.trim()) &&
         (_profileFile != null && _profileImage != null);
   }
 
+  final Shader linearGradient = LinearGradient(
+    colors: <Color>[Color(0xffDE0000), Color(0xff990000)],
+  ).createShader(Rect.fromLTWH(0.0, 0.0, 200.0, 70.0));
+
   @override
   Widget build(BuildContext context) {
-    InputDecoration textDecorator(String label, String hint) {
-      return InputDecoration(
-          border: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.white, width: 2.0),
-          ),
-          errorStyle: TextStyle(color: Colors.white),
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.white),
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey),
-          fillColor: Colors.white);
-    }
-
     return Scaffold(
-      backgroundColor: Color(0xff7f072d),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Form(
-              key: _formKey,
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.35,
-                width: MediaQuery.of(context).size.width * 0.5,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xfff6f6f6),
-                        Color(0xffababab),
-                      ]),
-                  borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(100.0),
-                      bottomRight: Radius.circular(100.0)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 1,
-                      blurRadius: 9,
-                      offset: Offset(1, 7), // changes position of shadow
-                    ),
-                  ],
-                ),
-                    child: Container(
-                      margin: const EdgeInsets.only(top: 130.0),
-                      child: GestureDetector(
-                        onTap: () async {
-                          XFile? pickedXFile = await picker.pickImage(
-                              source: ImageSource.gallery);
-
-                          if (pickedXFile != null) {
-                            _profileFile = File(pickedXFile.path);
-                            _profileImage = FileImage(_profileFile!);
-                          } else {
-                            _profileFile = null;
-                            _profileImage = null;
-                          }
-
-                          setState(() {
-                            updateEnableBtnState();
-                          });
-                        },
-                        child: Column(
-                          children: [
-                            CircleAvatar(
-                              backgroundColor: Colors.transparent,
-                              backgroundImage: (_profileImage != null)
-                                  ? _profileImage!
-                                  : _defaultProfileImage,
-                              radius: 50.0,
-                            ),
-                            SizedBox(height: 10.0),
-                            Text(
-                              SafeLocalizations.of(context)!
-                                  .registration_customer_profile_image,
-                              style: TextStyle(
-                                  fontSize: 17.0,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-              ),
-            ),
-            Container(
-              width: double.infinity,
-                child: Container(
-                  margin:  EdgeInsets.all(20.0),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xfff6f6f6),
-                          Color(0xffababab),
-                        ]),
-                    borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(25.0),
-                        topRight: Radius.circular(25.0),
-                        bottomLeft: Radius.circular(25.0),
-                        bottomRight: Radius.circular(25.0)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 1,
-                        blurRadius: 9,
-                        offset: Offset(1, 7), // changes position of shadow
-                      ),
-                    ],
+        body: SingleChildScrollView(
+      child: new Stack(
+        children: <Widget>[
+          Form(
+            key: _formKey,
+            child: Container(
+              height: MediaQuery.of(context).size.height,
+              width: MediaQuery.of(context).size.width,
+              decoration: new BoxDecoration(
+                  image: new DecorationImage(
+                      image: AssetImage('images/safeLogo.png'),
+                      fit: BoxFit.cover)),
+              child: Stack(
+                children: <Widget>[
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.127,
+                    left: MediaQuery.of(context).size.width * 0.1,
+                    child: Text('Welcome to Safe',
+                        style: TextStyle(
+                            fontFamily: 'Lato',
+                            fontSize: 30.0,
+                            fontWeight: FontWeight.bold,
+                            foreground: Paint()..shader = linearGradient)),
                   ),
-                  child: Column(
-                    children: [
-                      // Name
-                      Container(
-                        width: double.infinity,
-                        padding:
-                            EdgeInsets.only(top: 20.0, left: 30.0, right: 30.0),
-                        child: TextFormField(
-                          style: TextStyle(color: Colors.black),
-                          keyboardType: TextInputType.text,
-                          controller: _nameController,
-                          validator: (name) {
-                            return (name!.isEmpty)
-                                ? SafeLocalizations.of(context)!
-                                    .registration_customer_name_empty
-                                : null;
-                          },
-                          decoration: InputDecoration(
-                          suffixIcon:  Icon (
-                            Icons.perm_identity_rounded,
-                            color: Colors.black,
-                          ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.blueGrey, width: 2.0),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.black, width: 2.0),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 10.0),
-                              labelText: SafeLocalizations.of(context)!
-                                  .registration_customer_name,
-                              labelStyle: TextStyle(color: Colors.black),
-                              hintText:
-                              SafeLocalizations.of(context)!
-                                  .registration_customer_name_hint
-                              ,
-                              hintStyle: TextStyle(color: Colors.grey),
-                              fillColor: Colors.white
+                  GestureDetector(
+                    onTap: () async {
+                      XFile? pickedXFile =
+                          await picker.pickImage(source: ImageSource.gallery);
 
-                          ),
-                        ),
-                      ),
-
-                      // Email
-                      SizedBox(height: 10.0),
-                      Container(
-                        width: double.infinity,
-                        padding:
-                            EdgeInsets.only(top: 10.0, left: 30.0, right: 30.0, bottom: 20.0),
-
-                        child: TextFormField(
-                          keyboardType: TextInputType.emailAddress,
-                          controller: _emailController,
-                          validator: (String? email) {
-                            return (email!.isNotEmpty && !isValidEmail(email))
-                                ? SafeLocalizations.of(context)!
-                                    .registration_customer_email_empty
-                                : null;
-                          },
-                          decoration: InputDecoration(
-                              suffixIcon:  Icon (
-                                Icons.email_outlined,
-                                color: Colors.black,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.blueGrey, width: 2.0),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: const BorderSide(
-                                    color: Colors.black, width: 2.0),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 10.0, horizontal: 10.0),
-                              labelText: SafeLocalizations.of(context)!
-                                  .registration_customer_email,
-                              labelStyle: TextStyle(color: Colors.black),
-                              hintText:
-                              SafeLocalizations.of(context)!
-                                  .registration_customer_email_hint
-                              ,
-                              hintStyle: TextStyle(color: Colors.grey),
-                              fillColor: Colors.white
-                          ),
-                        ),
-                      ),
-
-                    ],
-                  ),
-                ),
-              ),
-            // Done Button
-            SizedBox(height: 10.0),
-            Container(
-              width: MediaQuery.of(context).size.width * 0.5,
-              child: IgnorePointer(
-                ignoring: !_enableRegisterBtn,
-                child: RoundedLoadingButton(
-                    child: Text (
-                      SafeLocalizations.of(context)!
-                          .registration_register_customer,
-                      style: TextStyle(color: Colors.white)),
-                    controller: _CustomerLoadingBtnController,
-                    onPressed: () {
-                      if (_enableRegisterBtn) {
-                        registerNewUser(context);
-                      } else if (_profileImage == null || _profileFile == null) {
-                        displayToastMessage(
-                            SafeLocalizations.of(context)!
-                                .registration_customer_profile_image_needed,
-                            context);
+                      if (pickedXFile != null) {
+                        _profileFile = File(pickedXFile.path);
+                        _profileImage = FileImage(_profileFile!);
+                      } else {
+                        _profileFile = null;
+                        _profileImage = null;
                       }
+                      setState(() {
+                        updateEnableBtnState();
+                      });
                     },
-                  color: _enableRegisterBtn? Color(0xff000202)
-                      : Colors.grey.shade700,
-                ),
+                    child: Stack(
+                      children: <Widget>[
+                        Positioned(
+                          top: MediaQuery.of(context).size.height * 0.223,
+                          left: MediaQuery.of(context).size.width * 0.1,
+                          child: Container(
+                            //     width: MediaQuery.of(context).size.width,
+                            // height: MediaQuery.of(context).size.height * 0.15,
+                            child: WidgetMask(
+                              blendMode: BlendMode.srcATop,
+                              childSaveLayer: true,
+                              mask: Image(
+                                  image: (_profileImage != null)
+                                      ? _profileImage!
+                                      : _defaultProfileImage,
+                                  fit: BoxFit.fill),
+                              child: Image.asset(
+                                'images/mask1.png',
+                                width: MediaQuery.of(context).size.width * 0.20,
+                                height:
+                                    MediaQuery.of(context).size.height * 0.10,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: MediaQuery.of(context).size.height * 0.29,
+                          left: MediaQuery.of(context).size.width * 0.21,
+                          child: Image.asset(
+                            'images/input.png',
+                            height: MediaQuery.of(context).size.height * 0.03,
+                            width: MediaQuery.of(context).size.width * 0.064,
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.383,
+                    left: MediaQuery.of(context).size.width * 0.11,
+                    child: Container(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(15.0),
+                                color: Color(0xffE1E0DF)),
+                            child: TextFormField(
+                              style: TextStyle(color: Colors.black),
+                              // keyboardType: TextInputType.text,
+                              controller: _nameController,
+                              validator: (name) {
+                                return (name!.isEmpty)
+                                    ? SafeLocalizations.of(context)!
+                                        .registration_customer_name_empty
+                                    : null;
+                              },
+                              decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 13.0, horizontal: 20.7),
+                                  hintText: SafeLocalizations.of(context)!
+                                      .registration_customer_name_hint,
+                                  hintStyle: TextStyle(color: Colors.black),
+                                  fillColor: Colors.white),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.02),
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                  color: Color(0xffE1E0DF)),
+                              child: TextFormField(
+                                style: TextStyle(color: Colors.black),
+                                // keyboardType: TextInputType.text,
+                                controller: _lastNameController,
+                                decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        vertical: 13.0, horizontal: 20.7),
+                                    hintText: 'Last Name',
+                                    hintStyle: TextStyle(color: Colors.black),
+                                    fillColor: Colors.white),
+                              ),
+                            ),
+                          ),
+                          Padding(
+                              padding: EdgeInsets.only(
+                                  top:
+                                      MediaQuery.of(context).size.height * 0.03,
+                                  bottom: MediaQuery.of(context).size.height *
+                                      0.01),
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.8,
+                                child: Text('Gender',
+                                    style: TextStyle(
+                                        color: Colors.black,
+                                        fontFamily: 'Lato',
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.w800)),
+                              )),
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                Expanded(
+                                  child: RadioListTile<Gender>(
+                                    title: const Text('Female',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w400,
+                                        )),
+                                    value: Gender.female,
+                                    activeColor: Color(0xffDE0000),
+                                    groupValue: _character,
+                                    onChanged: (Gender? value) {
+                                      setState(() {
+                                        _character = value!;
+                                      });
+                                    },
+                                  ),
+                                ),
+                                Expanded(
+                                    child: RadioListTile<Gender>(
+                                  title: const Text('Male',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w400)),
+                                  value: Gender.male,
+                                  activeColor: Color(0xffDE0000),
+                                  groupValue: _character,
+                                  onChanged: (Gender? value) {
+                                    setState(() {
+                                      _character = value!;
+                                    });
+                                  },
+                                )),
+                              ],
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.02,
+                                bottom:
+                                    MediaQuery.of(context).size.height * 0.02),
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                  color: Color(0xffE1E0DF)),
+                              child: TextFormField(
+                                style: TextStyle(color: Colors.black),
+                                // keyboardType: TextInputType.text,
+                                controller: _emailController,
+                                decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        vertical: 13.0, horizontal: 20.7),
+                                    hintText: 'Email',
+                                    hintStyle: TextStyle(color: Colors.black),
+                                    fillColor: Colors.white),
+                              ),
+                            ),
+                          ),
+                          Container(
+                              width: MediaQuery.of(context).size.width * 0.8,
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                      child: Container(
+                                          width: MediaQuery.of(context)
+                                                  .size
+                                                  .width *
+                                              0.35,
+                                          height: MediaQuery.of(context)
+                                                  .size
+                                                  .height *
+                                              0.042,
+                                          child: IgnorePointer(
+                                            ignoring: !_enableRegisterBtn,
+                                            child: RoundedLoadingButton(
+                                              child: Text('Sign Up',
+                                                  style: TextStyle(
+                                                      color: Colors.white)),
+                                              controller:
+                                                  _CustomerLoadingBtnController,
+                                              onPressed: () {
+                                                if (_enableRegisterBtn) {
+                                                  registerNewUser(context);
+                                                } else if (_profileImage ==
+                                                        null ||
+                                                    _profileFile == null) {
+                                                  displayToastMessage(
+                                                      SafeLocalizations.of(
+                                                              context)!
+                                                          .registration_customer_profile_image_needed,
+                                                      context);
+                                                }
+                                              },
+                                              color: _enableRegisterBtn
+                                                  ? Color(0xffDD0000)
+                                                  : Color(0xff990000),
+                                            ),
+                                          ))),
+                                  Expanded(
+                                      child: Container(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.45,
+                                  )),
+                                ],
+                              ))
+                        ],
+                      ),
+                    ),
+                  )
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          Positioned(
+              top: MediaQuery.of(context).size.height * 0.88,
+              left: MediaQuery.of(context).size.width * 0.1,
+              child: Image.asset(
+                ('images/whiteSafeLogo.png'),
+                height: MediaQuery.of(context).size.height * 0.09,
+              )),
+          Positioned(
+              top: MediaQuery.of(context).size.height * 0.92,
+              right: MediaQuery.of(context).size.width * 0.1,
+              child: GestureDetector(
+                onTap: () async {
+                        MaterialPageRoute(
+                          builder: (context) => MainScreenCustomer() );
+                  },
+                child: Text(
+                  'Skip',
+                  style: TextStyle(
+                    fontFamily: 'Lato',
+                    fontSize: 20.0,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+              ))
+        ],
       ),
-    );
+    ));
   }
 
   void registerNewUser(BuildContext context) async {
@@ -346,6 +411,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         Map<String, dynamic> customerFields = new Map();
 
         customerFields[Customer.FIELD_USER_NAME] = _nameController.text.trim();
+        customerFields[Customer.FIELD_USER_LAST_NAME] =
+            _lastNameController.text.trim();
+        customerFields[Customer.FIELD_GENDER] = _character == Gender.female
+            ? Customer.GENDER_FEMALE
+            : Customer.GENDER_MALE;
         customerFields[Customer.FIELD_EMAIL] = _emailController.text.trim();
         customerFields[Customer.FIELD_PHONE_NUMBER] = firebaseUser.phoneNumber!;
         customerFields[Customer.FIELD_LINK_IMG_PROFILE] = profileURL;

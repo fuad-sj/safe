@@ -19,6 +19,7 @@ import 'package:safe/controller/bottom_sheets/destination_picker_bottom_sheet.da
 import 'package:safe/controller/bottom_sheets/select_dropoff_pin.dart';
 import 'package:safe/controller/bottom_sheets/trip_details_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/where_to_bottom_sheet.dart';
+import 'package:safe/controller/bottom_sheets/where_to_bottom_sheet_with_recommendation.dart';
 import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/customer_order_history.dart';
 import 'package:safe/controller/customer_profile_screen.dart';
@@ -83,6 +84,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   static const int UI_STATE_TRIP_COMPLETED = 9;
   static const int UI_STATE_DRIVER_NOT_FOUND = 10;
   static const int UI_STATE_NOTICE_DIALOG_SHOWN = 20;
+  static const int UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED = 30;
 
   final PolylinePoints _POLYLINE_POINTS_DECODER = PolylinePoints();
   final Random _RANDOM_GENERATOR = new Random();
@@ -131,9 +133,12 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   bool _isNearbyDriverLoadingComplete = false;
 
+  bool _isBottomToggleOn = true;
+
   Customer? _currentCustomer;
 
   String? customerName;
+  String? referralCode;
 
   DocumentReference<Map<String, dynamic>>? _rideRequestRef;
 
@@ -682,9 +687,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           ),
           child: CircleAvatar(
             backgroundColor: Colors.white,
-            child: Icon(_isHamburgerDrawerMode ? Icons.menu : Icons.close,
-                color: Colors.grey.shade800),
-            radius: 24.0,
+            child: Icon(
+                _isHamburgerDrawerMode ? Icons.menu_outlined : Icons.close,
+                color: Color(0xffdd0000)),
+            radius: MediaQuery.of(context).size.height * 0.025,
           ),
         ),
       ),
@@ -778,7 +784,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 }
               },
             ),
-
             // Hamburger + Cancel Ride
             if (_isHamburgerVisible &&
                 _UIState != UI_STATE_SELECT_PIN_SELECTED) ...[
@@ -792,9 +797,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
                 enableButtonSelection: _isInternetWorking,
                 customerName: _currentCustomer?.user_name,
+                referralCode: _currentCustomer?.referral_code,
+                enabledBottomToggle: _isBottomToggleOn,
                 actionCallback: () {
                   _UIState = UI_STATE_WHERE_TO_SELECTED;
-
                   setBottomMapPadding(screenHeight *
                       DestinationPickerBottomSheet
                           .HEIGHT_DESTINATION_SELECTOR_PERCENT);
@@ -808,6 +814,22 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                       SafeLocalizations.of(context)!
                           .generic_message_no_internet,
                       context);
+                },
+
+                callBackDestination: () {
+                  _UIState = UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED;
+                  _isBottomToggleOn = true;
+                  setState(() {});
+                },
+              ),
+
+              WhereToBottomSheetWithRecommendation(
+                tickerProvider: this,
+                actionCallback: () {},
+                showBottomSheet:
+                    _UIState == UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED,
+                onWhereRecommendationToSelected: () {
+                  _UIState = UI_STATE_WHERE_TO_SELECTED;
                 },
               ),
 
@@ -967,8 +989,15 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 },
               ),
             ],
+
             if (!_isReferralActivationComplete) ...[
               // The Referral Code UI
+              Container(
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width,
+                color: Colors.black.withOpacity(0.83),
+              ),
+
               ActivateReferralCodeBottomSheet(
                 tickerProvider: this,
                 showBottomSheet: true,

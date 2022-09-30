@@ -5,34 +5,28 @@ import 'package:safe/models/color_constants.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
-class WhereToBottomSheet extends BaseBottomSheet {
+class WhereToBottomSheetWithRecommendation extends BaseBottomSheet {
   static const String KEY = 'WhereToBottomSheet';
 
   static const double HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT = 180;
   static const double HEIGHT_WHERE_TO_PERCENT = 0.35;
   static const double TOP_CORNER_BORDER_RADIUS = 25.0;
 
-  bool enableButtonSelection;
-  bool enabledBottomToggle;
-  VoidCallback onDisabledCallback;
   String? referralCode;
   String? customerName;
+  VoidCallback onWhereRecommendationToSelected;
 
-  WhereToBottomSheet({
+  WhereToBottomSheetWithRecommendation({
     required TickerProvider tickerProvider,
     required bool showBottomSheet,
     required VoidCallback actionCallback,
-    required  callBackDestination,
-    required this.enableButtonSelection,
-    required this.onDisabledCallback,
-    required this.enabledBottomToggle,
+    required this.onWhereRecommendationToSelected,
     this.referralCode,
     this.customerName,
   }) : super(
           tickerProvider: tickerProvider,
           showBottomSheet: showBottomSheet,
           onActionCallback: actionCallback,
-
         );
 
   @override
@@ -49,11 +43,11 @@ class WhereToBottomSheet extends BaseBottomSheet {
 
   @override
   State<StatefulWidget> buildState() {
-    return new _WhereToBottomSheetState();
+    return new _WhereToBottomSheetWithRecommendationState();
   }
 }
 
-class _WhereToBottomSheetState extends State<WhereToBottomSheet>
+class _WhereToBottomSheetWithRecommendationState extends State<WhereToBottomSheetWithRecommendation>
     implements BottomSheetWidgetBuilder {
   @override
   Widget buildContent(BuildContext context) {
@@ -67,7 +61,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.07)),
-      height: VSpace(0.36) ,
+      height: VSpace(0.65),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -76,17 +70,12 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                if(widget.enabledBottomToggle){
-                  widget.onActionCallback();
-                }
-                else {
-                  widget.onDisabledCallback();
-                }
+
               },
               child: Container(
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
-                    color: Color(0xffDD0000)),
+                    color:Color(0xffDD0000)),
                 margin: EdgeInsets.only(
                   top: VSpace(0.005),
                 ),
@@ -113,13 +102,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
 
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () {
-              if (widget.enableButtonSelection) {
-                widget.onActionCallback();
-              } else {
-                widget.onDisabledCallback();
-              }
-            },
+            onTap: () {},
             child: Container(
               height: MediaQuery.of(context).size.height * 0.044,
               decoration: BoxDecoration(
@@ -130,10 +113,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(height: VSpace(0.05), width: HSpace(0.03)),
-                  Icon(Icons.search_sharp,
-                      color: widget.enableButtonSelection
-                          ? Color(0xffDD0000)
-                          : Colors.grey.shade700),
+                  Icon(Icons.search_sharp, color : Color(0xffDD0000)),
                   SizedBox(width: HSpace(0.05)),
                   Text(
                       SafeLocalizations.of(context)!

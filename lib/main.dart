@@ -12,6 +12,8 @@ import 'package:safe/utils/pref_util.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
+import 'controller/verification_page.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
