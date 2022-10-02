@@ -62,6 +62,23 @@ class _ActivateReferralCodeBottomSheetState
     implements BottomSheetWidgetBuilder {
   String _referralCode = "";
 
+  static const REFERRAL_STATE_NOT_ENOUGH_LENGTH = 0;
+  static const REFERRAL_STATE_VALID_REFERRAL = 1;
+  static const REFERRAL_STATE_INVALID_REFERRAL = 2;
+
+  RoundedLoadingButtonController _roundBtnController =
+      RoundedLoadingButtonController();
+
+  int _getReferralState() {
+    if (_referralCode.length < 10) {
+      return REFERRAL_STATE_NOT_ENOUGH_LENGTH;
+    } else if (Customer.isReferralCodeValid(_referralCode)) {
+      return REFERRAL_STATE_VALID_REFERRAL;
+    } else {
+      return REFERRAL_STATE_INVALID_REFERRAL;
+    }
+  }
+
   @override
   Widget buildContent(BuildContext context) {
     double HSpace(double ratio) {
@@ -72,15 +89,7 @@ class _ActivateReferralCodeBottomSheetState
       return ratio * MediaQuery.of(context).size.height;
     }
 
-    int _refState = -1;
-
-    if (_referralCode.length < 10) {
-      _refState = 0;
-    } else if (Customer.isReferralCodeValid(_referralCode)) {
-      _refState = 1;
-    } else {
-      _refState = 2;
-    }
+    int _refState = _getReferralState();
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.04)),
@@ -119,18 +128,39 @@ class _ActivateReferralCodeBottomSheetState
           ),
 
           SizedBox(height: VSpace(0.015)),
-          RoundedLoadingButton(
-            controller: RoundedLoadingButtonController(),
-            onPressed: () async {},
-            child: Text(
-              'VERIFY',
-              style: TextStyle(color: Colors.white),
+
+          IgnorePointer(
+            ignoring: _refState != REFERRAL_STATE_VALID_REFERRAL,
+            child: RoundedLoadingButton(
+              controller: _roundBtnController,
+              onPressed: () async {
+                int _refState = _getReferralState();
+
+                switch (_refState) {
+                  case REFERRAL_STATE_VALID_REFERRAL:
+                    _roundBtnController.success();
+                    break;
+                  case REFERRAL_STATE_INVALID_REFERRAL:
+                    _roundBtnController.error();
+                    return;
+                  case REFERRAL_STATE_NOT_ENOUGH_LENGTH:
+                  default:
+                    _roundBtnController.reset();
+                    return;
+                }
+              },
+              child: Text(
+                'VERIFY',
+                style: TextStyle(color: Colors.white),
+              ),
+              errorColor: Colors.red.shade800,
+              successColor: Colors.green.shade800,
+              color: (_refState == REFERRAL_STATE_VALID_REFERRAL
+                  ? Colors.green.shade800
+                  : (_refState == REFERRAL_STATE_INVALID_REFERRAL
+                      ? Colors.red.shade800
+                      : Colors.blue.shade800)),
             ),
-            color: _refState == 0
-                ? Colors.blue.shade800
-                : (_refState == 1
-                    ? Colors.green.shade800
-                    : Colors.red.shade800),
           ),
 
           SizedBox(height: VSpace(0.02)),
