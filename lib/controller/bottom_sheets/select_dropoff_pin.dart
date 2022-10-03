@@ -55,6 +55,11 @@ class SelectDropOffPinBottomSheet extends BaseBottomSheet {
   }
 
   @override
+  bool haveWrappedHeight(BuildContext context) {
+    return false;
+  }
+
+  @override
   State<StatefulWidget> buildState() {
     return new _SelectDropOffPinBottomSheetState();
   }

@@ -50,14 +50,8 @@ class DestinationPickerBottomSheet extends BaseBottomSheet {
   }
 
   @override
-  bool overRideNaturalHeight(BuildContext context) {
-    // we want this bottom sheet to fill the screen
-    return true;
-  }
-
-  @override
-  bool shouldAdjustHeight(BuildContext context) {
-    return true;
+  bool haveWrappedHeight(BuildContext context) {
+    return false;
   }
 
   @override
@@ -252,10 +246,9 @@ class _DestinationPickerBottomSheetState
           SizedBox(height: 20.0),
 
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 25.0),
-            height: 1.0,
-              color: ColorConstants.lyftColor
-          ),
+              margin: EdgeInsets.symmetric(horizontal: 25.0),
+              height: 1.0,
+              color: ColorConstants.lyftColor),
 
           if (_placePredictionList != null) ...[
             //     greyVerticalDivider(0.5),
