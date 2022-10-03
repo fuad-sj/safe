@@ -166,6 +166,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     return _currentCustomer?.referral_activation_complete ?? false;
   }
 
+  /// We ONLY want to show the referral dialog IF we know for SURE referral is NOT complete
+  bool get isReferralSurelyIncomplete {
+    return !(_currentCustomer?.referral_activation_complete ?? true);
+  }
+
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription<ConnectivityResult> _connectivitySubscription;
 
@@ -309,7 +314,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         );
   }
 
-  void loadCurrentUserInfo() async {
+  Future<void> loadCurrentUserInfo() async {
     _currentCustomer = Customer.fromSnapshot(
       await FirebaseFirestore.instance
           .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
@@ -319,6 +324,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     if (!_currentCustomer!.documentExists()) {
       _currentCustomer = null;
+      return;
     }
 
     loadNetworkProfileImage();
@@ -967,23 +973,17 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 },
               ),
             ],
-            if (!_isReferralActivationComplete) ...[
+
+            /// Only show referral dialog if referral is NOT complete, for SURE
+            if (isReferralSurelyIncomplete) ...[
               // The Referral Code UI
               ActivateReferralCodeBottomSheet(
-                tickerProvider: this,
-                showBottomSheet: true,
-                actionCallback: () {
-                  /*
-                  _UIState = UI_STATE_WHERE_TO_SELECTED;
-
-                  setBottomMapPadding(screenHeight *
-                      DestinationPickerBottomSheet
-                          .HEIGHT_DESTINATION_SELECTOR_PERCENT);
-
-                  _isHamburgerDrawerMode = false;
-
+                onAlreadyActivatedCallback: () {},
+                onReferralErrorCallback: () {},
+                onInvalidReferralCallback: () {},
+                onSuccessfulReferralCallback: () async {
+                  await loadCurrentUserInfo();
                   setState(() {});
-                  */
                 },
               )
             ],
