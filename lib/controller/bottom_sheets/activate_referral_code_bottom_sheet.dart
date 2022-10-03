@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:safe/controller/otp_text_field/otp_field.dart';
 import 'package:safe/controller/otp_text_field/style.dart';
@@ -47,6 +48,9 @@ class _ActivateReferralCodeBottomSheetState
       _referralSubscription;
 
   int _getReferralState() {
+    // remove any whitespace
+    _referralCode = _referralCode.replaceAll(' ', '');
+
     if (_referralCode.length < 10) {
       return REFERRAL_STATE_NOT_ENOUGH_LENGTH;
     } else if (Customer.isReferralCodeValid(_referralCode)) {
@@ -108,6 +112,17 @@ class _ActivateReferralCodeBottomSheetState
               onCompleted: (val) {
                 setState(() {
                   _referralCode = val;
+                  if (_getReferralState() != REFERRAL_STATE_VALID_REFERRAL) {
+                    Fluttertoast.showToast(
+                      msg: "Invalid Code, Try Again!!!\n\n$_referralCode",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.grey.shade700,
+                      textColor: Colors.white,
+                      fontSize: 18.0,
+                    );
+                  }
                 });
               },
             ),
@@ -161,18 +176,41 @@ class _ActivateReferralCodeBottomSheetState
                         break;
                       case ReferralRequest.REFERRAL_STATUS_ALREADY_ACTIVATED:
                         _roundBtnController.success();
-                        widget.onAlreadyActivatedCallback();
+                        widget.onSuccessfulReferralCallback();
                         break;
                       case ReferralRequest
                           .REFERRAL_STATUS_PARENT_DOES_NOT_EXIST:
                       case ReferralRequest.REFERRAL_STATUS_CHILD_DOES_NOT_EXIST:
                       case ReferralRequest.REFERRAL_STATUS_UNKNOWN_ERROR:
-                        _roundBtnController.error();
-                        Future.delayed(Duration(seconds: 3), () {
-                          _roundBtnController.reset();
-                        });
-                        widget.onReferralErrorCallback();
-                        break;
+                        {
+                          _roundBtnController.error();
+                          Future.delayed(Duration(seconds: 3), () {
+                            _roundBtnController.reset();
+                          });
+
+                          String errMsg;
+
+                          if (request.referral_status_code ==
+                              ReferralRequest
+                                  .REFERRAL_STATUS_PARENT_DOES_NOT_EXIST) {
+                            errMsg = "Invalid Referral, \n$_referralCode";
+                            widget.onInvalidReferralCallback();
+                          } else {
+                            errMsg = "Error, please try again";
+                            widget.onReferralErrorCallback();
+                          }
+
+                          Fluttertoast.showToast(
+                            msg: errMsg,
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor: Colors.grey.shade700,
+                            textColor: Colors.white,
+                            fontSize: 18.0,
+                          );
+                          break;
+                        }
                     }
                     _referralSubscription?.cancel();
                   });
