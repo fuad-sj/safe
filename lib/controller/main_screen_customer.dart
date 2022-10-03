@@ -986,62 +986,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                   */
                 },
               )
-              /*
-              Positioned(
-                  top: screenHeight * 0.13,
-                  left: side_padding,
-                  right: side_padding,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 40.0),
-                    child: Container(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            SafeLocalizations.of(context)!
-                                .not_activated_customer_header,
-                            style: TextStyle(
-                                fontSize: 24.0,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 20.0),
-                          Image(image: AssetImage('images/wait.png')),
-                          SizedBox(height: 10.0),
-                          TextField(
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'please use your referral code',
-                            ),
-                          ),
-                          SizedBox(height: 10.0),
-                          IgnorePointer(
-                            ignoring: !_referalBtnActive,
-                            child: RoundedLoadingButton(
-                                controller: _referalController,
-                                onPressed: _referalBtn,
-                                child: Text(
-                                  'Verify referall code',
-                                  style: TextStyle(color: Colors.white),
-                                )),
-                          ),
-                          TextButton(
-                              onPressed: () async {
-                                PhoneCaller.callPhone('0912645911');
-                                try {} catch (err) {}
-                              },
-                              child: Text(
-                                  'Or please call to 0912645911 to activate',
-                                  style: TextStyle(
-                                      fontSize: 20.0,
-                                      color: Colors.grey.shade500)))
-                        ],
-                      ),
-                    ),
-                  )),
-
-               */
             ],
           ],
         ));
