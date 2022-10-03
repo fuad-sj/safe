@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
+import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/models/color_constants.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
@@ -16,6 +19,7 @@ class WhereToBottomSheet extends BaseBottomSheet {
   VoidCallback onDisabledCallback;
   String? customerName;
   String? referralCode;
+  bool showReferralCode;
 
   WhereToBottomSheet({
     required TickerProvider tickerProvider,
@@ -25,6 +29,7 @@ class WhereToBottomSheet extends BaseBottomSheet {
     required this.onDisabledCallback,
     this.customerName,
     this.referralCode,
+    required this.showReferralCode,
   }) : super(
           tickerProvider: tickerProvider,
           showBottomSheet: showBottomSheet,
@@ -74,7 +79,61 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   height: 2.0,
                   color: Colors.grey.shade700)),
 
-          SizedBox(height: VSpace(0.024)),
+          if (!widget.showReferralCode) ...[
+            SizedBox(height: VSpace(0.024)),
+          ],
+
+          if (widget.showReferralCode) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: Container(), flex: 5),
+                Container(
+                  margin:
+                      EdgeInsets.only(top: VSpace(0.02), bottom: VSpace(0.02)),
+                  child: Text(
+                    widget.referralCode!,
+                    style: TextStyle(
+                      //color: Color(0xff9f1d35),
+                      color: ColorConstants.lyftColor,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 30.0,
+                      letterSpacing: 8.0,
+                    ),
+                  ),
+                ),
+                Expanded(child: Container(), flex: 4),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () async {
+                    await Clipboard.setData(
+                        ClipboardData(text: widget.referralCode!));
+
+                    Fluttertoast.showToast(
+                      msg: "Referral Copied\n${widget.referralCode!}",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      timeInSecForIosWeb: 1,
+                      backgroundColor: Colors.grey.shade700,
+                      textColor: Colors.white,
+                      fontSize: 18.0,
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                        vertical: HSpace(0.015), horizontal: HSpace(0.02)),
+                    child: Icon(Icons.copy, color: Colors.blue),
+                  ),
+                ),
+              ],
+            ),
+            Center(
+                child: Container(
+                    width: double.infinity,
+                    height: 1.0,
+                    color: Colors.grey.shade300)),
+            SizedBox(height: VSpace(0.02)),
+          ],
 
           //
           Text(
@@ -157,6 +216,8 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               Text("Work"),
             ],
           ),
+
+          SizedBox(height: VSpace(0.024)),
 
           // Add home address
           /*

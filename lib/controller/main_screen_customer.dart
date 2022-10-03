@@ -798,6 +798,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
                 enableButtonSelection: _isInternetWorking,
                 customerName: _currentCustomer?.user_name,
+                referralCode: _currentCustomer?.referral_code,
+                showReferralCode: _isReferralActivationComplete &&
+                    (_currentCustomer?.referral_code != null) &&
+                    // for is_available_active customers, disable don't show referral code
+                    ((_currentCustomer?.is_available_active == null
+                            ? false
+                            : _currentCustomer?.is_available_active) ==
+                        false),
                 actionCallback: () {
                   _UIState = UI_STATE_WHERE_TO_SELECTED;
 
