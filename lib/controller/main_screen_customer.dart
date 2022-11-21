@@ -1010,7 +1010,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         key: _scaffoldKey,
         drawer: _getDrawerLayout(context),
         resizeToAvoidBottomInset: false,
-        body: Stack(
+        body:
+        Stack(
           children: [
             GoogleMap(
               padding: EdgeInsets.only(
