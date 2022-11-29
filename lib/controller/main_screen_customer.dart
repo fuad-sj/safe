@@ -58,6 +58,9 @@ import 'dart:math';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:safe/models/sys_config.dart';
 import 'package:safe/utils/phone_call.dart';
+import 'package:widget_mask/widget_mask.dart';
+
+import '../current_locale.dart';
 
 class MainScreenCustomer extends StatefulWidget {
   static const String idScreen = "mainScreenRider";
@@ -183,7 +186,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   void initState() {
     super.initState();
 
-    _defaultProfileImage = AssetImage('images/user_icon.png');
+    _defaultProfileImage = AssetImage('images/mask2.png');
 
     initConnectivity();
 
@@ -460,19 +463,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           MaterialPageRoute(builder: (context) => PaymentScreen()),
         );
         break;
-      case MenuOption.MENU_OPTION_SETTINGS:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => SettingsScreen()),
-        );
-        break;
-
-      case MenuOption.MENU_OPTION_LANGUAGES:
-        showDialog(
-          context: context,
-          builder: (_) => LanguageSelectorDialog(),
-        );
-        break;
 
       case MenuOption.MENU_OPTION_SIGNOUT:
         FirebaseAuth.instance.signOut();
@@ -498,9 +488,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     double DRAWER_WIDTH_PERCENT = 0.76;
     double PROFILE_HEIGHT_PERCENT = 0.14;
 
-    double HORIZONTAL_LEFT_PADDING_PERCENT = 0.1;
+    double HORIZONTAL_LEFT_PADDING_PERCENT = 0.15;
     double VERTICAL_PADDING_PERCENT = 0.018;
-    double HORIZONTAL_BETWEEN_SPACE_PERCENT = 0.08;
+    double HORIZONTAL_BETWEEN_SPACE_PERCENT = 0.09;
 
     double screenWidth = MediaQuery.of(context).size.width;
     double screenHeight = MediaQuery.of(context).size.height;
@@ -512,71 +502,123 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     double verticalPadding = screenHeight * VERTICAL_PADDING_PERCENT;
     double horizontalSpace = drawerWidth * HORIZONTAL_BETWEEN_SPACE_PERCENT;
 
+    TextStyle selectedTextFieldStyle() {
+      return const TextStyle(
+        color: Color(0xffDD0000),
+        fontWeight: FontWeight.bold,
+        fontFamily: 'Lato',
+        decoration: TextDecoration.underline,
+      );
+    }
+
+    TextStyle unSelectedTextFieldStyle() {
+      return const TextStyle(
+          color: Colors.black, fontWeight: FontWeight.bold, fontFamily: 'Lato');
+    }
 
     List<_MenuListItem> primaryNavOptions = [
       _MenuListItem(
-          Icons.history,
-          SafeLocalizations.of(context)!.nav_option_my_trips,
-          MenuOption.MENU_OPTION_MY_TRIPS,
-          Colors.black),
+        Icons.history_rounded,
+        SafeLocalizations.of(context)!.nav_option_my_trips,
+        MenuOption.MENU_OPTION_MY_TRIPS,
+        Color(0xffDD0000),
+      ),
       _MenuListItem(
-          Icons.account_balance_wallet_rounded,
-          SafeLocalizations.of(context)!.nav_option_payment,
-          MenuOption.MENU_OPTION_PAYMENT,
-          Colors.black),
-      _MenuListItem(
-          Icons.language,
-          SafeLocalizations.of(context)!.nav_option_languages,
-          MenuOption.MENU_OPTION_LANGUAGES,
-          Colors.black),
+        Icons.wallet_outlined,
+        SafeLocalizations.of(context)!.nav_option_payment,
+        MenuOption.MENU_OPTION_PAYMENT,
+        Color(0xffDD0000),
+      ),
     ];
 
     List<_MenuListItem> secondaryNavOptions = [
       _MenuListItem(
-          Icons.phone,
-          SafeLocalizations.of(context)!.nav_option_contact_us,
-          MenuOption.MENU_OPTION_CONTACT_US,
-          Colors.black),
+        Icons.phone,
+        SafeLocalizations.of(context)!.nav_option_contact_us,
+        MenuOption.MENU_OPTION_CONTACT_US,
+        Color(0xffDD0000),
+      ),
       _MenuListItem(
-          Icons.help,
-          SafeLocalizations.of(context)!.nav_option_emergency,
-          MenuOption.MENU_OPTION_EMERGENCY,
-          Colors.black),
-      _MenuListItem(
-          Icons.logout,
-          SafeLocalizations.of(context)!.nav_option_sign_out,
-          MenuOption.MENU_OPTION_SIGNOUT,
-          Colors.black),
+        Icons.logout_outlined,
+        SafeLocalizations.of(context)!.nav_option_sign_out,
+        MenuOption.MENU_OPTION_SIGNOUT,
+        Color(0xffDD0000),
+      ),
     ];
 
     return Container(
-      color: Colors.white,
       width: drawerWidth,
       child: Drawer(
-        child: ListView(
-          children: [
-            Container(
-              child: Padding (
-                padding: EdgeInsets.only(),
+        child: Container(
+          color: Colors.white,
+          child: ListView(
+            children: [
+              Container(
+                padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).size.height * 0.031),
+                child: Row(
+                  children: [
+                    Expanded(child: Container()),
+                    Container(
+                      padding: EdgeInsets.only(
+                          right: MediaQuery.of(context).size.width * 0.05),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              await PrefUtil.setUserLanguageLocale('en');
+                              Provider.of<CurrentLocale>(context, listen: false)
+                                  .setLocale('en');
+                              Navigator.pop(context);
+                            },
+                            child: Text('ENG',
+                                style:
+                                    PrefUtil.getUserLanguageLocale() == ('en')
+                                        ? selectedTextFieldStyle()
+                                        : unSelectedTextFieldStyle()),
+                          ),
+                          SizedBox(width: 20.0),
+                          GestureDetector(
+                            onTap: () async {
+                              await PrefUtil.setUserLanguageLocale('am');
+                              Provider.of<CurrentLocale>(context, listen: false)
+                                  .setLocale('am');
+                              Navigator.pop(context);
+                            },
+                            child: Text('አ ማ',
+                                style:
+                                    PrefUtil.getUserLanguageLocale() == ('am')
+                                        ? selectedTextFieldStyle()
+                                        : unSelectedTextFieldStyle()),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-
-            ),
-            // Profile header
-            Container(
-              color: Colors.white,
-              padding: EdgeInsets.only(
-                  top: 40.0, left: 10.0, right: 10.0, bottom: 20.0),
-              child: Container(
+              Container(
+                padding: EdgeInsets.only(
+                  top: MediaQuery.of(context).size.height * 0.012,
+                  left: MediaQuery.of(context).size.width * 0.09,
+                ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    CircleAvatar(
-                      backgroundColor: Colors.transparent,
-                      backgroundImage: _networkProfileLoaded
-                          ? _networkProfileImage
-                          : _defaultProfileImage,
-                      radius: 20.0,
+                    WidgetMask(
+                      blendMode: BlendMode.srcATop,
+                      childSaveLayer: true,
+                      mask: Image(
+                          image: _networkProfileLoaded
+                              ? _networkProfileImage
+                              : _defaultProfileImage,
+                          fit: BoxFit.fill),
+                      child: Image.asset(
+                        'images/mask2.png',
+                        width: MediaQuery.of(context).size.width * 0.15,
+                        height: MediaQuery.of(context).size.height * 0.22,
+                      ),
                     ),
                     SizedBox(width: 20.0),
                     Column(
@@ -587,10 +629,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                                 ? '${_currentCustomer?.user_name!}'
                                 : 'User Name'),
                             style: TextStyle(
-                                fontSize: 18.0,
+                                fontSize: 20.0,
                                 color: Colors.black,
                                 fontWeight: FontWeight.bold,
-                                fontFamily: "Brand-Bold"),
+                                fontFamily: "Lato"),
                           ),
                         ),
                         Container(
@@ -607,7 +649,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                     ),
                     Spacer(),
                     Container(
-                      padding: EdgeInsets.only(right: 10.0),
+                      padding: EdgeInsets.only(right: 20.0),
                       child: GestureDetector(
                         onTap: () async {
                           await Navigator.push(
@@ -621,47 +663,41 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                                 .doc(_getCustomerID)
                                 .get(),
                           );
-
                           if (!_currentCustomer!.documentExists()) {
                             _currentCustomer = null;
                           }
-
                           loadNetworkProfileImage();
                         },
                         child: Container(
-                          child: Icon(Icons.edit, color: Colors.black),
+                          child: Icon(Icons.edit, color: Color(0xffDD0000)),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-
-            greyVerticalDivider(1.0),
-            //profile head end.
-            ...primaryNavOptions.map(
-              (item) => _getNavigationItemWidget(
-                context,
-                item,
-                horizontalPadding,
-                verticalPadding,
-                horizontalSpace,
-                navOptionSelected,
+              ...primaryNavOptions.map(
+                (item) => _getNavigationItemWidget(
+                  context,
+                  item,
+                  horizontalPadding,
+                  verticalPadding,
+                  horizontalSpace,
+                  navOptionSelected,
+                ),
               ),
-            ),
-
-            ...secondaryNavOptions.map(
-              (item) => _getNavigationItemWidget(
-                context,
-                item,
-                horizontalPadding,
-                verticalPadding,
-                horizontalSpace,
-                navOptionSelected,
+              ...secondaryNavOptions.map(
+                (item) => _getNavigationItemWidget(
+                  context,
+                  item,
+                  horizontalPadding,
+                  verticalPadding,
+                  horizontalSpace,
+                  navOptionSelected,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -705,7 +741,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -754,7 +789,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     bool _referalBtnActive = false;
     return Scaffold(
-
         key: _scaffoldKey,
         drawer: _getDrawerLayout(context),
         resizeToAvoidBottomInset: false,
@@ -826,7 +860,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                           .generic_message_no_internet,
                       context);
                 },
-
                 callBackDestination: () {
                   _UIState = UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED;
                   _isBottomToggleOn = true;
@@ -1594,9 +1627,6 @@ enum MenuOption {
   MENU_OPTION_PROFILE,
   MENU_OPTION_MY_TRIPS,
   MENU_OPTION_PAYMENT,
-  MENU_OPTION_SETTINGS,
-  MENU_OPTION_LANGUAGES,
   MENU_OPTION_CONTACT_US,
-  MENU_OPTION_EMERGENCY,
   MENU_OPTION_SIGNOUT,
 }
