@@ -697,6 +697,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     const double TOP_MAP_PADDING = 40;

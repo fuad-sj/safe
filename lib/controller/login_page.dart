@@ -133,15 +133,17 @@ class _LoginPageState extends State<LoginPage> {
               child: Stack(
                 children: <Widget>[
                   Positioned(
-                      top: !_isVerifyTrue ?  0.0 :MediaQuery.of(context).size.height * 0.06  ,
-                      left: !_isVerifyTrue ?  0.0 : 22.0,
+                      top: !_isVerifyTrue
+                          ? 0.0
+                          : MediaQuery.of(context).size.height * 0.06,
+                      left: !_isVerifyTrue ? 0.0 : 22.0,
                       child: IconButton(
-                          icon: Icon(Icons.arrow_back_ios_new_sharp ,
-                          size: !_isVerifyTrue ? 0.0 : 18.0 ),
+                          icon: Icon(Icons.arrow_back_ios_new_sharp,
+                              size: !_isVerifyTrue ? 0.0 : 18.0),
                           color: Colors.white,
                           onPressed: () {
                             FocusScope.of(context).unfocus();
-                          }) ),
+                          })),
                   Center(
                     child: Padding(
                       padding: EdgeInsets.only(
