@@ -418,21 +418,23 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       double verticalPadding,
       double betweenSpace,
       void Function(MenuOption) callback) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () {
-        callback(item.navOption);
-      },
-      child: Container(
-        color: Colors.white,
-        padding: EdgeInsets.only(
-            left: leftPadding, top: verticalPadding, bottom: verticalPadding),
-        child: Row(
-          children: [
-            Icon(item.icon, color: item.iconColor),
-            SizedBox(width: betweenSpace),
-            Text(item.title),
-          ],
+    return Center(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          callback(item.navOption);
+        },
+        child: Container(
+          color: Colors.white,
+          padding: EdgeInsets.only(
+              left: leftPadding, top: verticalPadding, bottom: verticalPadding),
+          child: Row(
+            children: [
+              Icon(item.icon, color: item.iconColor),
+              SizedBox(width: betweenSpace),
+              Text(item.title),
+            ],
+          ),
         ),
       ),
     );
@@ -510,6 +512,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     double verticalPadding = screenHeight * VERTICAL_PADDING_PERCENT;
     double horizontalSpace = drawerWidth * HORIZONTAL_BETWEEN_SPACE_PERCENT;
 
+
     List<_MenuListItem> primaryNavOptions = [
       _MenuListItem(
           Icons.history,
@@ -552,6 +555,12 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       child: Drawer(
         child: ListView(
           children: [
+            Container(
+              child: Padding (
+                padding: EdgeInsets.only(),
+              ),
+
+            ),
             // Profile header
             Container(
               color: Colors.white,
@@ -745,6 +754,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     bool _referalBtnActive = false;
     return Scaffold(
+
         key: _scaffoldKey,
         drawer: _getDrawerLayout(context),
         resizeToAvoidBottomInset: false,

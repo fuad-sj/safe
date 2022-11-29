@@ -67,7 +67,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.07)),
-      height: VSpace(0.36) ,
+      height: VSpace(0.40) ,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
