@@ -9,6 +9,7 @@ import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:widget_mask/widget_mask.dart';
 
 class CustomerOrderHistory extends StatefulWidget {
   const CustomerOrderHistory({Key? key}) : super(key: key);
@@ -22,11 +23,11 @@ class _CustomerOrderHistoryState extends State<CustomerOrderHistory> {
       StreamController<List<RideRequest>>.broadcast();
 
   List<RideRequest> _requests = [];
+  late ImageProvider _defaultDriverProfileImage;
 
   @override
   void initState() {
     super.initState();
-
     _setupRequestStream();
   }
 
@@ -38,6 +39,8 @@ class _CustomerOrderHistoryState extends State<CustomerOrderHistory> {
   }
 
   void _setupRequestStream() async {
+    _defaultDriverProfileImage = AssetImage('images/mask2.png');
+
     FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
         .doc(FirebaseAuth.instance.currentUser!.uid)
@@ -66,18 +69,44 @@ class _CustomerOrderHistoryState extends State<CustomerOrderHistory> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: new AppBar(
-          backgroundColor: Color(0xfe7a110a),
-          elevation: 0.0,
-          leading: new BackButton(color: Colors.black),
-          title: Text(SafeLocalizations.of(context)!.order_history_title),
-          actions: <Widget>[]),
+        toolbarHeight: 50,
+        backgroundColor: Color(0xffffffff),
+        elevation: 0.0,
+        leading: Transform.translate(
+          offset: Offset(10, 1),
+          child: new MaterialButton(
+            elevation: 4.0,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Icon(
+              Icons.arrow_back_ios_new,
+              color: Color(0xffDD0000),
+            ),
+            color: Color(0xffffffff),
+            shape: CircleBorder(),
+          ),
+        ),
+        centerTitle: true,
+        title: Text(
+          SafeLocalizations.of(context)!.order_history_title,
+          style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.w800,
+              fontFamily: 'Lato',
+              fontSize: 21.0),
+        ),
+        actions: <Widget>[],
+      ),
       body: ListView.builder(
         itemCount: _requests.length,
         itemBuilder: (context, index) {
           RideRequest request = _requests[index];
           return _RideRequestListItem(
             request: request,
+            defaultDriverProfileImage: _defaultDriverProfileImage,
             onRequestSelected: (RideRequest request) {
               showDialog(
                   context: context,
@@ -97,16 +126,76 @@ class _StatusTextTheme {
   _StatusTextTheme({required this.colorTxt, required this.txtStatus});
 }
 
-class _RideRequestListItem extends StatelessWidget {
+class _RideRequestListItem extends StatefulWidget {
   final RideRequest request;
   final Function(RideRequest) onRequestSelected;
+  final ImageProvider defaultDriverProfileImage;
 
   const _RideRequestListItem(
-      {required this.request, required this.onRequestSelected});
+      {Key? key,
+      required this.request,
+      required this.onRequestSelected,
+      required this.defaultDriverProfileImage})
+      : super(key: key);
+
+  @override
+  State<_RideRequestListItem> createState() => _RideRequestListItemState();
+}
+
+class _RideRequestListItemState extends State<_RideRequestListItem> {
+  bool _ImgLoadComplete = false;
+  late ImageProvider _networkDriverProfileImage;
+  late String _driverName;
+  late String _carType;
+  late String _actualPrice;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.request.driver_profile_pic != null) {
+      _networkDriverProfileImage =
+          NetworkImage(widget.request.driver_profile_pic!);
+
+      _networkDriverProfileImage
+          .resolve(new ImageConfiguration())
+          .addListener(ImageStreamListener(
+            (_, __) {
+              _ImgLoadComplete = true;
+              setState(() {});
+            },
+            onError: (_, __) {
+              _ImgLoadComplete = false;
+              setState(() {});
+            },
+          ));
+    }
+
+    if (widget.request.actual_trip_fare != null) {
+      _actualPrice = widget.request.actual_trip_fare.toString() + '  ETB';
+    } else {
+      _actualPrice = 'Cancelled Trip';
+    }
+
+    if (widget.request.driver_name != null) {
+      _driverName = widget.request.driver_name!;
+    } else {
+      _driverName = 'Driver Name';
+    }
+
+    if (widget.request.car_model != null) {
+      _carType = widget.request.car_model!;
+    } else {
+      _carType = 'Car Model';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     FontWeight _bold = FontWeight.bold;
+
+    double vHeight = MediaQuery.of(context).size.height;
+    double hWidth = MediaQuery.of(context).size.width;
 
     _StatusTextTheme getStatusTextTheme(int requestStatus) {
       Color txtColor;
@@ -129,66 +218,167 @@ class _RideRequestListItem extends StatelessWidget {
       return _StatusTextTheme(colorTxt: txtColor, txtStatus: status);
     }
 
-    _StatusTextTheme statusTheme = getStatusTextTheme(request.ride_status);
+    TextStyle mainTextFieldStyle() {
+      return const TextStyle(
+        color: Color.fromRGBO(43, 47, 45, 1),
+        fontWeight: FontWeight.w500,
+        fontFamily: 'Lato',
+        fontSize: 14.0,
+      );
+    }
+
+    TextStyle secondTextFieldStyle() {
+      return const TextStyle(
+        color: Color.fromRGBO(144, 145, 144, 1),
+        fontWeight: FontWeight.w300,
+        fontFamily: 'Lato',
+        fontSize: 12.0,
+      );
+    }
+
+    _StatusTextTheme statusTheme =
+        getStatusTextTheme(widget.request.ride_status);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        if (request.ride_status == RideRequest.STATUS_TRIP_COMPLETED) {
-          onRequestSelected(request);
+        if (widget.request.ride_status == RideRequest.STATUS_TRIP_COMPLETED) {
+          widget.onRequestSelected(widget.request);
         }
       },
-      child: Card(
-        elevation: 5,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      child: Padding(
+        padding: EdgeInsets.only(
+            top: 10.0,
+            left: hWidth * 0.076,
+            right: hWidth * 0.076,
+            bottom: vHeight * 0.02),
         child: Container(
-          padding: EdgeInsets.all(10.0),
+          padding: EdgeInsets.only(
+              top: vHeight * 0.021,
+              left: hWidth * 0.080,
+              right: hWidth * 0.050,
+              bottom: vHeight * 0.032),
+          decoration: BoxDecoration(
+              color: Color(0xffF6F6F6),
+              borderRadius: BorderRadius.circular(35),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.grey.withOpacity(0.5),
+                    spreadRadius: 2,
+                    blurRadius: 7,
+                    offset: Offset(3, 9))
+              ]),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Order status
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(statusTheme.txtStatus,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                          fontWeight: _bold,
-                          color: statusTheme.colorTxt,
-                          fontSize: 14.0)),
-                  if (request.ride_status ==
-                      RideRequest.STATUS_TRIP_COMPLETED) ...[
-                    Expanded(child: Container()),
-                    Icon(Icons.double_arrow),
+              Container(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    WidgetMask(
+                      blendMode: BlendMode.srcATop,
+                      childSaveLayer: true,
+                      mask: Image(
+                          image: _ImgLoadComplete
+                              ? _networkDriverProfileImage
+                              : widget.defaultDriverProfileImage,
+                          fit: BoxFit.fill),
+                      child: Image.asset(
+                        'images/mask2.png',
+                        width: hWidth * 0.092,
+                        height: vHeight * 0.055,
+                      ),
+                    ),
+                    SizedBox(width: hWidth * 0.038),
+                    Container(
+                      child: Column(
+                        children: [
+                          Text(
+                            _driverName,
+                            style: mainTextFieldStyle(),
+                          ),
+                          Text(_carType, style: secondTextFieldStyle())
+                        ],
+                      ),
+                    ),
+                    Spacer(),
+                    Container(
+                      padding: EdgeInsets.only(right: hWidth * 0.033),
+                      child: Column(
+                        children: [
+                          Text(
+                            AlphaNumericUtil.formatDate(
+                                widget.request.date_ride_created),
+                            style: mainTextFieldStyle(),
+                          ),
+                          Text(
+                            AlphaNumericUtil.formatTimeVersion(
+                                widget.request.date_ride_created),
+                            style: secondTextFieldStyle(),
+                          )
+                        ],
+                      ),
+                    ),
                   ],
-                ],
+                ),
               ),
-              Text(
-                AlphaNumericUtil.formatDateLongVersion(request.date_ride_created),
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 10.0),
+              SizedBox(height: vHeight * 0.021),
+              Container(
+                height: vHeight * 0.003,
+                width: hWidth * 0.81,
+                color: Color.fromRGBO(81, 81, 81, 0.3),
               ),
-
-              // Pickup
-              SizedBox(height: 25.0),
-              Row(
-                children: [
-                  Image.asset('images/dot_red.png', height: 16.0, width: 16.0),
-                  SizedBox(width: 18.0),
-                  Text(request.pickup_address_name),
-                ],
+              SizedBox(height: vHeight * 0.021),
+              Container(
+                child: Row(
+                  children: [
+                    Image.asset('images/location.png', height: vHeight * 0.09),
+                    SizedBox(width: hWidth * 0.024),
+                    Column(
+                      children: [
+                        Container(
+                          width: hWidth * 0.61,
+                          child: Text(
+                            widget.request.pickup_address_name,
+                            style: mainTextFieldStyle(),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                        SizedBox(height: vHeight * 0.040),
+                        Container(
+                          width: hWidth * 0.61,
+                          child: Text(
+                            widget.request.dropoff_address_name,
+                            style: mainTextFieldStyle(),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.left,
+                          ),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
               ),
-              SizedBox(height: 10.0),
-              greyVerticalDivider(0.3),
-              SizedBox(height: 10.0),
-              Row(
-                children: [
-                  Image.asset('images/dot_blue.png', height: 16.0, width: 16.0),
-                  SizedBox(width: 18.0),
-                  Text(request.dropoff_address_name),
-                ],
+              SizedBox(height: vHeight * 0.021),
+              Container(
+                height: vHeight * 0.003,
+                width: hWidth * 0.81,
+                color: Color.fromRGBO(81, 81, 81, 0.3),
               ),
-              SizedBox(height: 10.0),
+              SizedBox(height: vHeight * 0.021),
+              Container(
+                child: Text(
+                  _actualPrice,
+                  style: TextStyle(
+                      fontFamily: 'Lato',
+                      fontWeight: FontWeight.w700,
+                      fontSize: 20.0,
+                      color: Color.fromRGBO(211, 0, 0, 1)),
+                ),
+              )
             ],
           ),
         ),

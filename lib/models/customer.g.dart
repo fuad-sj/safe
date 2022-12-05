@@ -10,6 +10,9 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
   ..client_triggered_event = json['client_triggered_event'] as bool?
   ..phone_number = json['phone_number'] as String?
   ..user_name = json['user_name'] as String?
+  ..last_user_name = json['last_user_name'] as String?
+  ..referral_code = json['referral_code'] as String?
+  ..gender = json['gender'] as int?
   ..email = json['email'] as String?
   ..has_dev_access = json['has_dev_access'] as bool?
   ..is_available_active = json['is_available_active'] as bool?
@@ -22,13 +25,16 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
           ?.map((e) => e as String)
           .toList()
   ..link_img_profile = json['link_img_profile'] as String?
-  ..referral_activation_complete = json['referral_activation_complete'] as bool?
-  ..referral_code = json['referral_code'] as String?;
+  ..referral_activation_complete =
+      json['referral_activation_complete'] as bool?;
 
 Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'client_triggered_event': instance.client_triggered_event,
       'phone_number': instance.phone_number,
       'user_name': instance.user_name,
+      'last_user_name': instance.last_user_name,
+      'referral_code': instance.referral_code,
+      'gender': instance.gender,
       'email': instance.email,
       'has_dev_access': instance.has_dev_access,
       'is_available_active': instance.is_available_active,
@@ -40,5 +46,4 @@ Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'device_registration_tokens': instance.device_registration_tokens,
       'link_img_profile': instance.link_img_profile,
       'referral_activation_complete': instance.referral_activation_complete,
-      'referral_code': instance.referral_code,
     };

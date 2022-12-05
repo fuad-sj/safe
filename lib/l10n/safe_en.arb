@@ -75,7 +75,7 @@
   "bottom_sheet_where_to_current_location": "Current Location",
   "bottom_sheet_where_to_enter_destination": "Enter Destination",
 
-  "order_history_title": "Order History",
+  "order_history_title": "My Orders",
   "order_history_order_status_placed": "Request Created",
   "order_history_order_status_confirmed": "Driver Confirmed",
   "order_history_order_status_started": "Trip Started",

@@ -193,7 +193,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     updateLoginCredentials();
 
     loadCurrentUserInfo();
-
     setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
 
     _connectivitySubscription =

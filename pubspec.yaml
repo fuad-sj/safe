@@ -53,6 +53,8 @@ dependencies:
   image_picker: ^0.8.5+3
   uuid: ^3.0.6
   widget_mask: ^1.0.0+0
+  bubble_bottom_bar: ^2.0.0
+  syncfusion_flutter_charts: ^20.3.59
 
 dev_dependencies:
   flutter_test:
@@ -95,6 +97,7 @@ flutter:
     - images/input.png
     - images/whiteSafeLogo.png
     - images/referal.png
+    - images/location.png
 
 
   fonts:

@@ -34,6 +34,7 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) => RideRequest()
   ..driver_name = json['driver_name'] as String?
   ..driver_phone = json['driver_phone'] as String?
   ..driver_device_token = json['driver_device_token'] as String?
+  ..driver_profile_pic = json['driver_profile_pic'] as String?
   ..driver_to_pickup_distance_meters =
       FirebaseDocument.DoubleFromJson(json['driver_to_pickup_distance_meters'])
   ..driver_to_pickup_distance_str =
@@ -100,6 +101,7 @@ Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
       'driver_name': instance.driver_name,
       'driver_phone': instance.driver_phone,
       'driver_device_token': instance.driver_device_token,
+      'driver_profile_pic': instance.driver_profile_pic,
       'driver_to_pickup_distance_meters':
           instance.driver_to_pickup_distance_meters,
       'driver_to_pickup_distance_str': instance.driver_to_pickup_distance_str,

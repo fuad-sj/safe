@@ -47,6 +47,7 @@ class RideRequest extends FirebaseDocument {
   static const FIELD_DRIVER_NAME = 'driver_name';
   static const FIELD_DRIVER_PHONE = 'driver_phone';
   static const FIELD_DRIVER_DEVICE_TOKEN = 'driver_device_token';
+  static const FIELD_DRIVER_PROFILE_PIC = 'driver_profile_pic';
 
   static const FIELD_DRIVER_TO_PICKUP_DISTANCE_METERS =
       'driver_to_pickup_distance_meters';
@@ -166,6 +167,7 @@ class RideRequest extends FirebaseDocument {
   String? driver_name;
   String? driver_phone;
   String? driver_device_token;
+  String? driver_profile_pic;
 
   @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? driver_to_pickup_distance_meters;
