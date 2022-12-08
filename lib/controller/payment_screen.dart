@@ -4,7 +4,7 @@ import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:safe/GraphView.dart';
-
+import 'dart:ui' as ui;
 
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({Key? key}) : super(key: key);
@@ -14,18 +14,17 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-
   final Graph graph = Graph();
 
   SugiyamaConfiguration builder = SugiyamaConfiguration()
     ..bendPointShape = CurvedBendPointShape(curveLength: 20);
   late int bottomIndex;
+
   void changeScreenPayment(int? index) {
     setState(() {
       bottomIndex = index!;
     });
   }
-
 
   @override
   void initState() {
@@ -40,58 +39,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final node8 = Node.Id(7);
     final node7 = Node.Id(8);
     final node9 = Node.Id(9);
-    final node10 = Node.Id(10);
-    final node11 = Node.Id(11);
-    final node12 = Node.Id(12);
-    final node13 = Node.Id(13);
-    final node14 = Node.Id(14);
-    final node15 = Node.Id(15);
-    final node16 = Node.Id(16);
-    final node17 = Node.Id(17);
-    final node18 = Node.Id(18);
-    final node19 = Node.Id(19);
-    final node20 = Node.Id(20);
-    final node21 = Node.Id(21);
-    final node22 = Node.Id(22);
-    final node23 = Node.Id(23);
 
-    graph.addEdge(node1, node13, paint: Paint()..color = Colors.red);
-    graph.addEdge(node1, node21);
-    graph.addEdge(node1, node4);
+    graph.addEdge(node1, node2, paint: Paint()..color = Colors.red);
     graph.addEdge(node1, node3);
-    graph.addEdge(node2, node3);
-    graph.addEdge(node2, node20);
-    graph.addEdge(node3, node4);
-    graph.addEdge(node3, node5);
-    graph.addEdge(node3, node23);
-    graph.addEdge(node4, node6);
-    graph.addEdge(node5, node7);
-    graph.addEdge(node6, node8);
-    graph.addEdge(node6, node16);
-    graph.addEdge(node6, node23);
-    graph.addEdge(node7, node9);
-    graph.addEdge(node8, node10);
-    graph.addEdge(node8, node11);
-    graph.addEdge(node9, node12);
-    graph.addEdge(node10, node13);
-    graph.addEdge(node10, node14);
-    graph.addEdge(node10, node15);
-    graph.addEdge(node11, node15);
-    graph.addEdge(node11, node16);
-    graph.addEdge(node12, node20);
-    graph.addEdge(node13, node17);
-    graph.addEdge(node14, node17);
-    graph.addEdge(node14, node18);
-    graph.addEdge(node16, node18);
-    graph.addEdge(node16, node19);
-    graph.addEdge(node16, node20);
-    graph.addEdge(node18, node21);
-    graph.addEdge(node19, node22);
-    graph.addEdge(node21, node23);
-    graph.addEdge(node22, node23);
-    graph.addEdge(node1, node22);
-    graph.addEdge(node7, node8);
-
+    graph.addEdge(node1, node4);
+    graph.addEdge(node2, node5);
+    graph.addEdge(node2, node6);
+    graph.addEdge(node3, node7);
+    graph.addEdge(node3, node8);
+    graph.addEdge(node5, node9);
     builder
       ..nodeSeparation = (15)
       ..levelSeparation = (15)
@@ -99,26 +55,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   List<_SalesData> data = [
-    _SalesData('Mon', 05),
-    _SalesData('Tus', 18),
-    _SalesData('Wen', 24),
+    _SalesData('Sun', 10),
+    _SalesData('Mon', 22),
+    _SalesData('Thu', 43),
+    _SalesData('Wed', 23),
     _SalesData('Thr', 15),
-    _SalesData('Fri', 25),
-    _SalesData('Sat', 25),
-    _SalesData('Sun', 30)
+    _SalesData('Fri', 33),
+    _SalesData('Sat', 98),
+  ];
+
+  List<DateOfEarning> Dates = [
+    DateOfEarning('1 D'),
+    DateOfEarning('1 W'),
+    DateOfEarning('2 W'),
+    DateOfEarning('1 M'),
+    DateOfEarning('2 M'),
+    DateOfEarning('3 M'),
+    DateOfEarning('6 M'),
+    DateOfEarning('1 Y'),
   ];
 
   bool showTree = false;
+  bool textSelected = false;
 
   @override
   Widget build(BuildContext context) {
-
     double vHeight = MediaQuery.of(context).size.height;
     double hWidth = MediaQuery.of(context).size.width;
 
     TextStyle unSelectedTextFieldStyle() {
       return const TextStyle(
-          color: Color.fromRGBO(0, 0, 0, 0.5),
+          color: Color.fromRGBO(255, 255, 255, 1),
           fontWeight: FontWeight.w700,
           fontFamily: 'Lato',
           fontSize: 14.0,
@@ -131,7 +98,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
           fontWeight: FontWeight.w700,
           fontFamily: 'Lato',
           fontSize: 14.0,
-          letterSpacing: 1);
+          letterSpacing: 2);
     }
 
     LinearGradient selectedDateColorGradiant() {
@@ -156,17 +123,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
     }
 
-
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Color(0xff1c1c1e),
       appBar: AppBar(
-        toolbarHeight: 50,
-        backgroundColor: Color(0xffffffff),
+        toolbarHeight: MediaQuery.of(context).size.height * 0.05,
+        backgroundColor: Color(0xff1c1c1e),
         elevation: 0.0,
         leading: Transform.translate(
           offset: Offset(10, 1),
           child: new MaterialButton(
-            elevation: 4.0,
+            elevation: 6.0,
             onPressed: () {
               Navigator.pop(context);
             },
@@ -174,15 +140,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
               Icons.arrow_back_ios_new,
               color: Color(0xffDD0000),
             ),
-            color: Color(0xffffffff),
+            color: Color(0xfff0f0f0),
             shape: CircleBorder(),
           ),
         ),
         centerTitle: true,
         title: Text(
-          'this is the text',
+          'Payments',
           style: TextStyle(
-              color: Colors.black,
+              color: Colors.white,
               fontWeight: FontWeight.w800,
               fontFamily: 'Lato',
               fontSize: 21.0,
@@ -193,274 +159,405 @@ class _PaymentScreenState extends State<PaymentScreen> {
       body: Column(
         mainAxisSize: MainAxisSize.max,
         children: [
-          Wrap(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 10.0),
-                child: Center(
-                  child: Container(
-                    padding: EdgeInsets.only(left: hWidth * 0.04),
-                    width: hWidth * 0.65,
-                    height: vHeight * 0.055,
-                    decoration: BoxDecoration(
-                        color: Color.fromRGBO(234, 234, 234, 1),
-                        borderRadius: BorderRadius.circular(40)),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: () async {
-                            showTree = false;
-                            setState(() {});
-                          },
-                          child: Container(
-                            width: hWidth * 0.25,
-                            height: vHeight * 0.045,
-                            decoration: !showTree
-                                ? BoxDecoration(
-                              color: Color.fromRGBO(255, 255, 255, 1),
-                              borderRadius: BorderRadius.circular(40),
-                            )
-                                : BoxDecoration(),
-                            child: Center(
-                                child: Text(
-                                  'Earning',
-                                  style: !showTree
-                                      ? selectedTextFieldStyle()
-                                      : unSelectedTextFieldStyle(),
-                                )),
-                          ),
-                        ),
-                        SizedBox(width: hWidth * 0.01),
-                        GestureDetector(
-                          onTap: () {
-                            showTree = true;
-                            setState(() {});
-                          },
-                          child: Container(
-                            width: hWidth * 0.30,
-                            height: vHeight * 0.045,
-                            decoration: showTree
-                                ? BoxDecoration(
-                              color: Color.fromRGBO(255, 255, 255, 1),
-                              borderRadius: BorderRadius.circular(40),
-                            )
-                                : BoxDecoration(),
-                            child: Center(
-                                child: Text(
-                                  'Your Network',
-                                  style: showTree
-                                      ? selectedTextFieldStyle()
-                                      : unSelectedTextFieldStyle(),
-                                )),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
           Container(
-            child: !showTree
-                ? Column(
+            height: vHeight * 0.15,
+            child: Wrap(
               children: [
                 Padding(
-                  padding: EdgeInsets.only(top: vHeight * 0.03),
-                  child: Container(
-                    height: vHeight * 0.040,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: [
-                        Padding(
-                          padding: EdgeInsets.only(left: 15, right: 15),
-                          child: Container(
-                            padding:
-                            EdgeInsets.symmetric(horizontal: 20.0),
-                            decoration: BoxDecoration(
-                                gradient: unSelectedDateColorGradiant(),
-                                borderRadius:
-                                BorderRadius.circular(10.0)),
-                            child: Center(
-                              child: Text(
-                                '10 - 11 - 12',
-                              ),
+                  padding: const EdgeInsets.only(top: 10.0, bottom: 8.0),
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.only(left: hWidth * 0.04),
+                      width: hWidth * 0.65,
+                      height: vHeight * 0.065,
+                      decoration: BoxDecoration(
+                          color: Color.fromRGBO(70, 70, 70, 1),
+                          borderRadius: BorderRadius.circular(50)),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              showTree = false;
+                              setState(() {});
+                            },
+                            child: Container(
+                              width: hWidth * 0.25,
+                              height: vHeight * 0.045,
+                              decoration: !showTree
+                                  ? BoxDecoration(
+                                      color: Color.fromRGBO(255, 255, 255, 1),
+                                      borderRadius: BorderRadius.circular(40),
+                                    )
+                                  : BoxDecoration(),
+                              child: Center(
+                                  child: Text(
+                                'Earning',
+                                style: !showTree
+                                    ? selectedTextFieldStyle()
+                                    : unSelectedTextFieldStyle(),
+                              )),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(left: 15, right: 15),
-                          child: Container(
-                            padding:
-                            EdgeInsets.symmetric(horizontal: 20.0),
-                            decoration: BoxDecoration(
-                                gradient: selectedDateColorGradiant(),
-                                borderRadius:
-                                BorderRadius.circular(10.0)),
-                            child: Center(
-                              child: Text(
-                                '10 - 11 - 12',
-                                style: TextStyle(color: Colors.white),
-                              ),
+                          SizedBox(width: hWidth * 0.01),
+                          GestureDetector(
+                            onTap: () {
+                              showTree = true;
+                              setState(() {});
+                            },
+                            child: Container(
+                              width: hWidth * 0.30,
+                              height: vHeight * 0.045,
+                              decoration: showTree
+                                  ? BoxDecoration(
+                                      color: Color.fromRGBO(255, 255, 255, 1),
+                                      borderRadius: BorderRadius.circular(40),
+                                    )
+                                  : BoxDecoration(),
+                              child: Center(
+                                  child: Text(
+                                'Your Network',
+                                style: showTree
+                                    ? selectedTextFieldStyle()
+                                    : unSelectedTextFieldStyle(),
+                              )),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(left: 15, right: 15),
-                          child: Container(
-                            padding:
-                            EdgeInsets.symmetric(horizontal: 20.0),
-                            decoration: BoxDecoration(
-                                gradient: unSelectedDateColorGradiant(),
-                                borderRadius:
-                                BorderRadius.circular(10.0)),
-                            child: Center(
-                              child: Text(
-                                '10 - 11 - 12',
-                              ),
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.only(left: 15, right: 15),
-                          child: Container(
-                            padding:
-                            EdgeInsets.symmetric(horizontal: 20.0),
-                            decoration: BoxDecoration(
-                                gradient: unSelectedDateColorGradiant(),
-                                borderRadius:
-                                BorderRadius.circular(10.0)),
-                            child: Center(
-                              child: Text(
-                                '10 - 11 - 12',
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                SizedBox(height: vHeight * 0.01),
                 Center(
-                  child: Stack(
+                  child: Container(
+                    height: vHeight * 0.0015,
+                    width: hWidth * 0.90,
+                    color: Colors.white60,
+                  ),
+                ),
+                Container(
+                  width: hWidth * 0.75,
+                  padding: EdgeInsets.only(
+                      top: vHeight * 0.004, left: hWidth * 0.05),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ClipPath(
-                        child: Container(
-                          width: hWidth * 0.45,
-                          height: vHeight * 0.09,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20.0),
-                            color: Colors.black12,
-                          ),
-                          padding: EdgeInsets.only(
-                              top: 20, left: 20, right: 10),
-                          child: Row(
-                            children: [
-                              Container(
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      '184',
+                      Container(
+                        child: Column(
+                          children: [
+                            Container(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    child: Text(
+                                      '170.00',
                                       style: TextStyle(
+                                          color: Color(0xffffffff),
+                                          fontFamily: 'Lato',
                                           fontWeight: FontWeight.w700,
-                                          fontFamily: 'Lato',
-                                          fontSize: 16,
-                                          letterSpacing: 2,
-                                          color: Color(0xffdd0000)),
+                                          letterSpacing: 1,
+                                          fontSize: 16),
                                     ),
-                                    SizedBox(height: 5),
-                                    Text(
-                                      'ETB',
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.only(
+                                        left: hWidth * 0.02,
+                                        right: hWidth * 0.02),
+                                    child: Text(
+                                      '+ 23.00',
                                       style: TextStyle(
-                                          fontSize: 12,
+                                          color: Colors.green,
                                           fontFamily: 'Lato',
-                                          letterSpacing: 2,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black),
-                                    )
-                                  ],
-                                ),
-                              ),
-                              Spacer(),
-                              Container(
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      'Your Bonus',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          fontFamily: 'Lato',
-                                          letterSpacing: 2,
-                                          color: Color(0xff909190)),
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: 12),
                                     ),
-                                    SizedBox(height: 5),
-                                    Text(
-                                      '75 ETB',
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          fontFamily: 'Lato',
-                                          letterSpacing: 2,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black),
-                                    )
-                                  ],
-                                ),
+                                  )
+                                ],
                               ),
-                            ],
-                          ),
+                            ),
+                            Container(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '17 new',
+                                      style: TextStyle(
+                                          color: Color(0xff9b9b9b),
+                                          fontFamily: 'Lato',
+                                          fontWeight: FontWeight.w400,
+                                          letterSpacing: 1,
+                                          fontSize: 12),
+                                    ),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.centerLeft,
+                                    padding: EdgeInsets.only(
+                                        left: hWidth * 0.02,
+                                        right: hWidth * 0.02),
+                                    child: Text(
+                                      '+ 2',
+                                      style: TextStyle(
+                                          color: Color(0xff9b9b9b),
+                                          fontFamily: 'Lato',
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: 12),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.only(top: vHeight * 0.004),
+                              child: Text(
+                                'Last Week',
+                                style: TextStyle(
+                                    color: Color(0xff9b9b9b),
+                                    fontFamily: 'Lato',
+                                    fontWeight: FontWeight.w400,
+                                    letterSpacing: 1,
+                                    fontSize: 14),
+                              ),
+                            )
+                          ],
                         ),
-                        clipper: CustomTotalPriceClipPath(),
+                      ),
+                      Container(
+                        width: hWidth * 0.0015,
+                        color: Colors.white60,
+                        height: vHeight * 0.07,
+                      ),
+                      Container(
+                        padding:
+                            EdgeInsets.only(left: hWidth * 0.04, bottom: 10.0),
+                        child: Column(
+                          children: [
+                            Container(
+                              child: Row(
+                                children: [
+                                  Container(
+                                    child: Text(
+                                      '172.00',
+                                      style: TextStyle(
+                                          color: Color(0xffffffff),
+                                          fontFamily: 'Lato',
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 1,
+                                          fontSize: 16),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.only(
+                                        left: hWidth * 0.02,
+                                        right: hWidth * 0.02),
+                                    child: Text(
+                                      '+ 2.00',
+                                      style: TextStyle(
+                                          color: Colors.green,
+                                          fontFamily: 'Lato',
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: 12),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Container(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Container(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '6 new',
+                                      style: TextStyle(
+                                          color: Color(0xff9b9b9b),
+                                          fontFamily: 'Lato',
+                                          fontWeight: FontWeight.w400,
+                                          letterSpacing: 1,
+                                          fontSize: 12),
+                                    ),
+                                  ),
+                                  Container(
+                                    alignment: Alignment.centerLeft,
+                                    padding: EdgeInsets.only(
+                                        left: hWidth * 0.02,
+                                        right: hWidth * 0.02),
+                                    child: Text(
+                                      '+ 1 ',
+                                      style: TextStyle(
+                                          color: Color(0xff9b9b9b),
+                                          fontFamily: 'Lato',
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: 12),
+                                    ),
+                                  )
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.only(top: vHeight * 0.004),
+                              child: Text(
+                                'This Week',
+                                style: TextStyle(
+                                    color: Color(0xff9b9b9b),
+                                    fontFamily: 'Lato',
+                                    fontWeight: FontWeight.w400,
+                                    letterSpacing: 1,
+                                    fontSize: 14),
+                              ),
+                            )
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
-                SizedBox(height: vHeight * 0.04),
-                Align(
-                  alignment: Alignment.topLeft,
+                Center(
                   child: Container(
-                    padding: EdgeInsets.only(
-                        left: hWidth * 0.06, top: vHeight * 0.03),
-                    child: Text(
-                      'Your Daily Earnings',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'Lato',
-                          fontSize: 16,
-                          letterSpacing: 1),
-                    ),
+                    height: vHeight * 0.0015,
+                    width: hWidth * 0.90,
+                    color: Colors.white60,
                   ),
                 ),
-                SizedBox(height: vHeight * 0.04),
-                SfCartesianChart(
-                    primaryXAxis: CategoryAxis(),
-                    legend: Legend(isVisible: false),
-                    palette: const [
-                      Color.fromRGBO(222, 0, 0, 1.0),
-                    ],
-                    tooltipBehavior: TooltipBehavior(enable: true),
-                    series: <ChartSeries<_SalesData, String>>[
-                      LineSeries<_SalesData, String>(
-                          dataSource: data,
-                          xValueMapper: (_SalesData sales, _) =>
-                          sales.year,
-                          yValueMapper: (_SalesData sales, _) =>
-                          sales.sales,
-                          name: ' Earning ',
-                          dataLabelSettings:
-                          const DataLabelSettings(isVisible: true))
-                    ])
               ],
-            )
+            ),
+          ),
+          Container(
+            height: !showTree ? vHeight * 0.72 : vHeight * 0.0,
+            child: !showTree
+                ? SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(top: vHeight * 0.03),
+                          child: Container(
+                            height: vHeight * 0.060,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: Dates.map((dateCount) {
+                                return InkWell(
+                                  onTap: () {
+                                    textSelected = true;
+                                    setState(() {});
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.only(right: 10),
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 10.0),
+                                      decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0)),
+                                      child: Center(
+                                        child: Text(
+                                          dateCount.date,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 21,
+                                            fontFamily: 'Lato',
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: vHeight * 0.01),
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: Container(
+                            padding: EdgeInsets.only(
+                                left: hWidth * 0.06, top: vHeight * 0.02),
+                            child: Text(
+                              'Your Daily Earnings',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'Lato',
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  letterSpacing: 1),
+                            ),
+                          ),
+                        ),
+                        SfCartesianChart(
+                          primaryXAxis: CategoryAxis(
+                            opposedPosition: false
+                          ),
+                          legend: Legend(isVisible: false),
+                          enableAxisAnimation: true,
+                          tooltipBehavior: TooltipBehavior(enable: true),
+                          series: <ChartSeries>[
+                            SplineAreaSeries<_SalesData, String>(
+                                dataSource: data,
+                                splineType: SplineType.cardinal,
+                                cardinalSplineTension: 0.5,
+                                borderColor: Color.fromRGBO(0, 255, 0, 1),
+                                onCreateShader: (ShaderDetails details) {
+                                  return ui.Gradient.linear(
+                                      details.rect.topCenter,
+                                      details.rect.bottomCenter, <Color>[
+                                    Color.fromRGBO(0, 255, 0, 0.7),
+                                    Color.fromRGBO(60, 60, 60, 0.4)
+                                  ], <double>[
+                                    0.1,
+                                    0.9
+                                  ]);
+                                },
+                                xValueMapper: (_SalesData sales, _) =>
+                                    sales.year,
+                                yValueMapper: (_SalesData sales, _) =>
+                                    sales.sales,
+                                name: ' Earning ',
+                                borderWidth: 4,
+                                dataLabelSettings:
+                                    const DataLabelSettings(isVisible: false))
+                          ],
+                        ),
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: Container(
+                            padding: EdgeInsets.only(
+                                left: hWidth * 0.06, top: vHeight * 0.02),
+                            child: Text(
+                              'your Daily new Network',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontFamily: 'Lato',
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  letterSpacing: 1),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: vHeight * 0.08,
+                          child: SfCartesianChart(
+                            series: <ChartSeries>[
+                              HistogramSeries<_SalesData, num>(
+                                  dataSource: data,
+                                  yValueMapper: (_SalesData sales, _) =>
+                                      sales.sales,
+                                  binInterval: 20,
+                                  borderWidth: 1),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  )
                 : Container(),
           ),
-
           Expanded(
             child: InteractiveViewer(
                 constrained: false,
                 boundaryMargin: EdgeInsets.all(100),
-                minScale: 0.0001,
+                minScale: 0.0002,
                 maxScale: 10.6,
                 child: GraphView(
                   graph: graph,
@@ -479,8 +576,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ],
       ),
       bottomNavigationBar: Container(
-        height: MediaQuery.of(context).size.height * 0.055,
+        height: MediaQuery.of(context).size.height * 0.04,
         child: BubbleBottomBar(
+          backgroundColor: Color(0xff1c1c1e),
           opacity: 1.0,
           hasNotch: true,
           fabLocation: BubbleBottomBarFabLocation.end,
@@ -495,11 +593,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
               backgroundColor: Color(0xffDE0000),
               icon: Icon(
                 Icons.monetization_on,
-                color: Colors.black,
+                color: Colors.white,
               ),
               activeIcon: Icon(
                 Icons.monetization_on_outlined,
-                color: Colors.black,
+                color: Colors.white,
               ),
               title: Text(
                 "Cash out",
@@ -510,11 +608,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
               backgroundColor: Color(0xffDE0000),
               icon: Icon(
                 Icons.send_outlined,
-                color: Colors.black,
+                color: Colors.white,
               ),
               activeIcon: Icon(
                 Icons.send_outlined,
-                color: Colors.black,
+                color: Colors.white,
               ),
               title: Text(
                 "Send Money To friend",
@@ -542,7 +640,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
         ),
         child: Text('Node ${a}'));
   }
+}
 
+class DateOfEarning {
+  DateOfEarning(this.date);
+
+  final String date;
 }
 
 class CustomTotalPriceClipPath extends CustomClipper<Path> {
