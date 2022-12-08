@@ -1055,7 +1055,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 onSuccessfulReferralCallback: () async {
                   await loadCurrentUserInfo();
                   setState(() {});
-                },
+                }, actionCallback: () {  },
+                tickerProvider: this,
+                showBottomSheet: true,
               )
             ],
           ],

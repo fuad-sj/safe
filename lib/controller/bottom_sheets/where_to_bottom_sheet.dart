@@ -19,7 +19,6 @@ class WhereToBottomSheet extends BaseBottomSheet {
   bool enabledBottomToggle;
   VoidCallback onDisabledCallback;
   String? referralCode;
-  bool showReferralCode;
   String? customerName;
 
   WhereToBottomSheet({
@@ -32,7 +31,6 @@ class WhereToBottomSheet extends BaseBottomSheet {
     required this.enabledBottomToggle,
     this.referralCode,
     this.customerName,
-    required this.showReferralCode,
   }) : super(
           tickerProvider: tickerProvider,
           showBottomSheet: showBottomSheet,
