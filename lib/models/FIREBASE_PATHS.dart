@@ -15,6 +15,8 @@ class FIRESTORE_PATHS {
 
   static final COL_CONFIG = 'config';
   static final DOC_CONFIG = 'CONFIGURATION';
+
+  static final COL_OTP_REQUESTS = "otp_requests";
 }
 
 class FCM_MESSAGING_TOPICS {

@@ -2,18 +2,21 @@
 import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:safe/auth_service.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/registration_screen.dart';
-import 'package:safe/controller/verification_page.dart';
+import 'package:safe/controller/verify_otp_page.dart';
 import 'package:package_info/package_info.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:safe/language_selector_dialog.dart';
+import 'package:safe/models/FIREBASE_PATHS.dart';
+import 'package:safe/models/safe_otp_request.dart';
+import 'package:safe/utils/http_util.dart';
 import 'package:safe/utils/pref_util.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
@@ -35,15 +38,6 @@ class _LoginPageState extends State<LoginPage> {
   final RoundedLoadingButtonController _loginBtnController =
       RoundedLoadingButtonController();
 
-  void _startVerify() async {
-    Timer(Duration(seconds: 4), () {
-      if (_loginBtnActive) {
-        verifyPhone(context);
-        _loginBtnController.reset();
-      }
-    });
-  }
-
   String _countryCode = '+251'; //start off with Ethiopia
   TextEditingController _phoneController = TextEditingController();
 
@@ -51,6 +45,10 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _languageDialogShown = false;
   bool _isVerifyTrue = false;
+
+  late String _instNo;
+
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _otpSubscription;
 
   void _setPhoneControllerText(String newPhone) {
     _phoneController.value = TextEditingValue(
@@ -63,7 +61,8 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
 
-    // _phoneController.text = '+251'; // start off with ethiopian phone number
+    Random random = new Random();
+    _instNo = '${random.nextInt(10) + 1}';
 
     _phoneController.addListener(() {
       String phone = _phoneController.text;
@@ -79,19 +78,7 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         _loginBtnActive = true;
       }
-      /*
-      // reset to +251 if non ethiopian phone is used
-      if (!phone.startsWith('+251')) {
-        _setPhoneControllerText('+251');
-      } else if (phone.length >= 5 && !phone.startsWith('+2519')) {
-        _setPhoneControllerText('+251');
-      } else if (phone.length > 13) {
-        _setPhoneControllerText(phone.substring(0, 13));
-      }
 
-      _loginBtnActive = _phoneController.text.length == 13;
-
-     */
       setState(() {});
     });
 
@@ -101,6 +88,12 @@ class _LoginPageState extends State<LoginPage> {
       _appVersionNumber = '${version}';
       setState(() {});
     });
+  }
+
+  @override
+  void dispose() {
+    _otpSubscription?.cancel();
+    super.dispose();
   }
 
   @override
@@ -265,9 +258,13 @@ class _LoginPageState extends State<LoginPage> {
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(color: Colors.white)),
                                 controller: _loginBtnController,
-                                onPressed: () {
-                                  _isVerifyClicked = false;
-                                  _startVerify();
+                                onPressed: () async {
+                                  if (_loginBtnActive) {
+                                    sendOTPRequest(context);
+                                    setState(() {
+                                      _isVerifyClicked = true;
+                                    });
+                                  }
                                 },
                                 color: _loginBtnActive
                                     ? Color(0xffDE0000)
@@ -282,55 +279,53 @@ class _LoginPageState extends State<LoginPage> {
     ));
   }
 
-  Future<void> verifyPhone(BuildContext context) async {
-    PhoneVerificationCompleted verificationCompleted =
-        (AuthCredential authCredential) {
-      _isVerifyClicked = false;
-      AuthService.signInWithLoginCredential(
-          context,
-          MainScreenCustomer.idScreen,
-          RegistrationScreen.idScreen,
-          authCredential);
-    };
+  Future<void> sendOTPRequest(BuildContext context) async {
+    try {
+      String phone_no =
+          _countryCode.substring(1) + // get rid off the "+" from start of phone
+              _phoneController.text;
+      Map<String, dynamic> params = {
+        "phone_number": phone_no,
+        "inst_no": _instNo,
+        "is_driver_phone": "false",
+      };
+      var response = await HttpUtil.getHttpsRequest(
+          "us-central1-safetransports-et.cloudfunctions.net",
+          "/OTPEndpoint${_instNo}/api/v1/phone_auth",
+          params);
 
-    PhoneCodeSent smsSent = (verificationID, int? forceResend) {
-      _verificationId = verificationID;
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  VerifyPhone(verificationId: _verificationId)),
-        );
-      }
-    };
+      String OTP_ID = response["otp_id"];
 
-    PhoneCodeAutoRetrievalTimeout autoRetrievalTimeout =
-        (String verificationID) {
-      _verificationId = verificationID;
-      _isVerifyClicked = false;
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => VerifyPhone(verificationId: _verificationId),
-          ),
-        );
-      }
-    };
+      _otpSubscription?.cancel();
+      _otpSubscription = FirebaseFirestore.instance
+          .collection(FIRESTORE_PATHS.COL_OTP_REQUESTS)
+          .doc(OTP_ID)
+          .snapshots()
+          .listen((snapshot) {
+        SafeOTPRequest otpRequest = SafeOTPRequest.fromSnapshot(snapshot);
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-        phoneNumber: _countryCode + _phoneController.text,
-        verificationCompleted: verificationCompleted,
-        verificationFailed: (FirebaseAuthException e) {
-          // pop off the progress dialog and show a toast message instead
-          Navigator.pop(context);
-          displayToastMessage(
-              e.message ??
-                  SafeLocalizations.of(context)!.login_error_logging_in,
-              context);
-        },
-        codeSent: smsSent,
-        codeAutoRetrievalTimeout: autoRetrievalTimeout);
+        switch (otpRequest.otp_status) {
+          case SafeOTPRequest.SAFE_OTP_STATUS_OTP_SENT:
+            _loginBtnController
+                .reset(); // if we pop-back to this page, reset to allow re-submitting
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      VerifyOTP(otpID: OTP_ID, instNo: _instNo)),
+            );
+            break;
+          case SafeOTPRequest.SAFE_OTP_STATUS_OTP_EXPIRED:
+            _loginBtnController
+                .reset(); // if we pop-back to this page, reset to allow re-submitting
+            displayToastMessage('OTP Expired, Please Try Again', context);
+            break;
+        }
+      });
+    } catch (err) {
+      _loginBtnController.reset();
+      displayToastMessage('Error, please try again', context);
+    }
   }
 }

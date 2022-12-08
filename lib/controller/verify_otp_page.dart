@@ -1,8 +1,11 @@
 //import 'dart:html';
 
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
-import 'package:safe/auth_service.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/main_screen_customer.dart';
@@ -10,33 +13,75 @@ import 'package:safe/controller/otp_text_field/otp_field.dart';
 import 'package:safe/controller/otp_text_field/otp_field_style.dart';
 import 'package:safe/controller/otp_text_field/style.dart';
 import 'package:safe/controller/registration_screen.dart';
+import 'package:safe/models/FIREBASE_PATHS.dart';
+import 'package:safe/models/customer.dart';
+import 'package:safe/models/safe_otp_request.dart';
+import 'package:safe/utils/http_util.dart';
+import 'package:safe/utils/pref_util.dart';
 
 import 'login_page.dart';
 
-class VerifyPhone extends StatefulWidget {
-  final String verificationId;
+class VerifyOTP extends StatefulWidget {
+  final String otpID;
+  final String instNo;
 
-  VerifyPhone({required this.verificationId});
+  VerifyOTP({required this.otpID, required this.instNo});
 
   @override
-  _VerifyPhoneState createState() => _VerifyPhoneState();
+  _VerifyOTPState createState() => _VerifyOTPState();
 }
 
-class _VerifyPhoneState extends State<VerifyPhone> {
-  late String _smsCode = "";
-  bool _activationIgnore = false;
+class _VerifyOTPState extends State<VerifyOTP> {
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _otpSubscription;
+
+  static const int OTP_LENGTH = 4;
+
+  String _otpCode = "";
 
   final RoundedLoadingButtonController _verificationBtnController =
       RoundedLoadingButtonController();
 
   @override
-  Widget build(BuildContext context) {
-    if (_smsCode.length == 6) {
-      _activationIgnore = true;
-    } else {
-      _activationIgnore = false;
-    }
+  void initState() {
+    super.initState();
 
+    _subscribeToOTPStateChange();
+  }
+
+  @override
+  void didUpdateWidget(VerifyOTP oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    _subscribeToOTPStateChange();
+  }
+
+  void _subscribeToOTPStateChange() async {
+    _otpSubscription?.cancel();
+    _otpSubscription?.cancel();
+    _otpSubscription = FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_OTP_REQUESTS)
+        .doc(widget.otpID)
+        .snapshots()
+        .listen((snapshot) {
+      SafeOTPRequest otpRequest = SafeOTPRequest.fromSnapshot(snapshot);
+
+      switch (otpRequest.otp_status) {
+        case SafeOTPRequest.SAFE_OTP_STATUS_OTP_EXPIRED:
+          displayToastMessage('OTP Expired, Please Try Again', context);
+          Navigator.pop(context);
+          break;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _otpSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
           child: Column(
@@ -63,12 +108,12 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                 Positioned(
                     top: MediaQuery.of(context).size.height * 0.06,
                     left: 22.0,
-                      child: IconButton(
-                         icon: Icon(Icons.arrow_back_ios_new_sharp),
+                    child: IconButton(
+                        icon: Icon(Icons.arrow_back_ios_new_sharp),
                         color: Colors.white,
                         onPressed: () {
-                          Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => const LoginPage()));
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => const LoginPage()));
                         })),
                 Center(
                     child: Image(
@@ -88,7 +133,7 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                           color: Color(0xff000000), fontFamily: 'Open Sans'),
                     )),
                 OTPTextField(
-                  length: 6,
+                  length: OTP_LENGTH,
                   width: MediaQuery.of(context).size.width,
                   textFieldAlignment: MainAxisAlignment.spaceAround,
                   fieldWidth: 50,
@@ -100,15 +145,10 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                   outlineBorderRadius: 15,
                   style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
                   keyboardType: TextInputType.number,
-                  onChanged: (pin) {
-                    setState(() {
-                      _smsCode = pin;
-                    });
-                  },
                   onCompleted: (pin) {
                     //    print("Completed: " + pin);
                     setState(() {
-                      _smsCode = pin;
+                      _otpCode = pin;
                     });
                   },
                 ),
@@ -128,26 +168,15 @@ class _VerifyPhoneState extends State<VerifyPhone> {
                             borderRadius: BorderRadius.circular(25.0)),
                         width: MediaQuery.of(context).size.width * 0.5,
                         child: IgnorePointer(
-                            ignoring: !_activationIgnore,
+                            ignoring: _otpCode.length != OTP_LENGTH,
                             child: RoundedLoadingButton(
-                                color: _activationIgnore
+                                color: (_otpCode.length != OTP_LENGTH)
                                     ? Color(0xffDE0000)
                                     : Colors.white.withOpacity(0.1),
                                 child: Text('DONE'),
                                 controller: _verificationBtnController,
                                 onPressed: () async {
-                                  String? errMessage = await AuthService
-                                      .signInWithSMSVerificationCode(
-                                          context,
-                                          MainScreenCustomer.idScreen,
-                                          RegistrationScreen.idScreen,
-                                          _smsCode,
-                                          widget.verificationId);
-
-                                  if (errMessage != null) {
-                                    Navigator.pop(context);
-                                    displayToastMessage(errMessage, context);
-                                  }
+                                  verifyOTPRequest(context);
                                 })))),
               ],
             ),
@@ -155,5 +184,57 @@ class _VerifyPhoneState extends State<VerifyPhone> {
         ],
       )),
     );
+  }
+
+  Future<void> verifyOTPRequest(BuildContext context) async {
+    try {
+      Map<String, dynamic> params = {
+        "otp_id": widget.otpID,
+        "otp_code": _otpCode,
+      };
+      var response = await HttpUtil.getHttpsRequest(
+          "us-central1-safetransports-et.cloudfunctions.net",
+          "/OTPEndpoint${widget.instNo}/api/v1/verify_otp",
+          params);
+
+      bool success = response["success"];
+      if (!success) {
+        int otp_error = response["otp_error"];
+        if (otp_error == SafeOTPRequest.SAFE_OTP_ERROR_INVALID_STATE) {
+          displayToastMessage('OTP Expired, Please Try Again', context);
+          Navigator.pop(context);
+        } else {
+          displayToastMessage('Wrong OTP Code, Please Try Again', context);
+        }
+      }
+
+      String custom_token = response["token"];
+
+      UserCredential credential =
+          await FirebaseAuth.instance.signInWithCustomToken(custom_token);
+      final User? firebaseUser = credential.user;
+      if (firebaseUser == null) {
+        displayToastMessage('Error Authenticating, Please Try Again', context);
+        return;
+      }
+
+      await PrefUtil.setLoginStatus(PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW);
+
+      Customer customer = Customer.fromSnapshot(
+        await FirebaseFirestore.instance
+            .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+            .doc(firebaseUser.uid)
+            .get(),
+      );
+
+      Navigator.pushNamedAndRemoveUntil(
+          context,
+          customer.documentExists()
+              ? MainScreenCustomer.idScreen
+              : RegistrationScreen.idScreen,
+          (route) => false);
+    } catch (err) {
+      displayToastMessage('Login error, please try again', context);
+    }
   }
 }

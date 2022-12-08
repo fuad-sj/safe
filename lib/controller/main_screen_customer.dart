@@ -143,6 +143,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   String? customerName;
   String? referralCode;
 
+  String? _phoneNumber;
+
   DocumentReference<Map<String, dynamic>>? _rideRequestRef;
 
   RideRequest? _currentRideRequest;
@@ -210,6 +212,18 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     });
   }
 
+  Future<void> _loadPhoneNumber() async {
+    String phone = await PrefUtil.getCurrentUserPhone();
+    if (phone.startsWith('+251')) {
+      String prefix = phone.substring(4, 7);
+      String suffix = phone.substring(10);
+      String combined = prefix + '***' + suffix;
+      _phoneNumber = combined;
+    } else {
+      _phoneNumber = phone;
+    }
+  }
+
   @override
   void dispose() {
     _tripCounterTimer?.cancel();
@@ -260,6 +274,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void updateLoginCredentials() async {
+    await _loadPhoneNumber();
+
     int loginStatus = PrefUtil.getLoginStatus();
     if (loginStatus == PrefUtil.LOGIN_STATUS_SIGNED_OUT) {
       return;
@@ -268,7 +284,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       updatedFields[Customer.FIELD_DATE_LAST_LOGIN] = DateTime.now();
       updatedFields[Customer.FIELD_PHONE_NUMBER] =
-          PrefUtil.getCurrentUserPhone();
+          await PrefUtil.getCurrentUserPhone();
       updatedFields[Customer.FIELD_IS_LOGGED_IN] = true;
 
       await FirebaseFirestore.instance
@@ -478,17 +494,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     }
   }
 
-  String _getCustomerPhone(BuildContext context) {
-    String phone = PrefUtil.getCurrentUserPhone();
-    if (phone.startsWith('+251')) {
-      String prefix = phone.substring(4, 7);
-      String suffix = phone.substring(10);
-      String combined = prefix + '***' + suffix;
-      return combined;
-    }
-    return phone;
-  }
-
   Widget _getDrawerLayout(BuildContext context) {
     double DRAWER_WIDTH_PERCENT = 0.76;
     double PROFILE_HEIGHT_PERCENT = 0.14;
@@ -642,7 +647,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                         ),
                         Container(
                           child: Text(
-                            _getCustomerPhone(context),
+                            _phoneNumber ?? '',
                             style: TextStyle(
                                 fontSize: 10.0,
                                 color: Colors.grey,
@@ -1055,7 +1060,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 onSuccessfulReferralCallback: () async {
                   await loadCurrentUserInfo();
                   setState(() {});
-                }, actionCallback: () {  },
+                },
+                actionCallback: () {},
                 tickerProvider: this,
                 showBottomSheet: true,
               )
