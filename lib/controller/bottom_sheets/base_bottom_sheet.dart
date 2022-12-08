@@ -24,8 +24,11 @@ abstract class BaseBottomSheet extends StatefulWidget {
 
   double topCornerRadius(BuildContext context);
 
-  /// Subclasses should override this if they want to have height set by {@code bottomSheetHeight}
-  bool haveWrappedHeight(BuildContext context) {
+  double bottomOffset(BuildContext context) {
+    return 0;
+  }
+
+  bool showBoxShadow(BuildContext context) {
     return true;
   }
 
@@ -57,52 +60,47 @@ abstract class BaseBottomSheet extends StatefulWidget {
       radius = BorderRadius.all(Radius.circular(topCornerRadius(context)));
     }
 
-    Decoration? decoration = (showBottomSheet == false)
-        ? null
-        : BoxDecoration(
-            color: Colors.white,
-            borderRadius: radius,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.shade500,
-                blurRadius: 16.0,
-                //blurRadius: 8.0,
-                spreadRadius: 0.5,
-                //offset: Offset(0.7, 0.7),
-              ),
-              BoxShadow(
-                  color: Colors.grey.shade200,
-                  blurRadius: 8.0,
-                  offset: Offset(-1, 10)),
-              BoxShadow(
-                  color: Colors.grey.shade200,
-                  blurRadius: 8.0,
-                  offset: Offset(1, 10)),
-              BoxShadow(
-                  color: Colors.white, blurRadius: 24.0, offset: Offset(0, 10)),
-            ],
-          );
-
-    Widget? child = (showBottomSheet == false) ? Container() : builder(context);
-
     return Positioned(
-      bottom: offset * 1.5,
+      bottom: offset * 0.2 + bottomOffset(context) * screenHeight,
       left: offset,
       right: offset,
       child: AnimatedSize(
         vsync: tickerProvider,
         curve: Curves.bounceIn,
         duration: Duration(milliseconds: animationDuration()),
-        child: haveWrappedHeight(context)
-            ? Container(
-                decoration: decoration,
-                child: child,
-              )
-            : Container(
-                height: showBottomSheet ? bottomSheetHeight(context) : 0,
-                decoration: decoration,
-                child: child,
-              ),
+        child: Container(
+          //height: showBottomSheet ? bottomSheetHeight(context) : 0,
+          decoration: (showBottomSheet == false)
+              ? null
+              : BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: radius,
+                  boxShadow: showBoxShadow(context)
+                      ? [
+                          BoxShadow(
+                            color: Colors.grey.shade500,
+                            blurRadius: 16.0,
+                            //blurRadius: 8.0,
+                            spreadRadius: 0.5,
+                            //offset: Offset(0.7, 0.7),
+                          ),
+                          BoxShadow(
+                              color: Colors.grey.shade200,
+                              blurRadius: 8.0,
+                              offset: Offset(-1, 10)),
+                          BoxShadow(
+                              color: Colors.grey.shade200,
+                              blurRadius: 8.0,
+                              offset: Offset(1, 10)),
+                          BoxShadow(
+                              color: Colors.white,
+                              blurRadius: 24.0,
+                              offset: Offset(0, 10)),
+                        ]
+                      : [],
+                ),
+          child: (showBottomSheet == false) ? Container() : builder(context),
+        ),
       ),
     );
   }

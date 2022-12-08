@@ -18,7 +18,7 @@ import 'package:safe/utils/pref_util.dart';
 class DestinationPickerBottomSheet extends BaseBottomSheet {
   static const String KEY = 'DestinationPickerBottomSheet';
 
-  static const double HEIGHT_DESTINATION_SELECTOR_PERCENT = 0.88;
+  static const double HEIGHT_DESTINATION_SELECTOR_PERCENT = 0.80;
   static const double TOP_CORNER_BORDER_RADIUS = 15.0;
 
   VoidCallback onSelectPinCalled;
@@ -97,6 +97,7 @@ class _DestinationPickerBottomSheetState
     _pickupTextController.text = placeAddress;
 
     return Container(
+      height: MediaQuery.of(context).size.height * 0.80,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

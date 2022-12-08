@@ -14,6 +14,8 @@ class Customer extends FirebaseDocument {
 
   static const FIELD_PHONE_NUMBER = 'phone_number';
   static const FIELD_USER_NAME = 'user_name';
+  static const FIELD_USER_LAST_NAME = 'last_user_name';
+  static const FIELD_GENDER = 'gender';
   static const FIELD_EMAIL = 'email';
 
   static const FIELD_HAS_DEV_ACCESS = 'has_dev_access';
@@ -31,10 +33,16 @@ class Customer extends FirebaseDocument {
 
   // END field name declarations
 
+  static const int GENDER_FEMALE = 1;
+  static const int GENDER_MALE = 2;
+
   bool? client_triggered_event;
 
   String? phone_number;
   String? user_name;
+  String? last_user_name;
+  String? referral_code;
+  int? gender;
   String? email;
 
   bool? has_dev_access;
@@ -60,7 +68,6 @@ class Customer extends FirebaseDocument {
   String? link_img_profile;
 
   bool? referral_activation_complete;
-  String? referral_code;
 
   Customer();
 

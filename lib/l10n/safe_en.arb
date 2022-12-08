@@ -69,13 +69,13 @@
   "bottom_sheet_trip_details_distance_covered": "Distance Covered",
   "bottom_sheet_trip_details_ride_time": "Ride Time",
 
-  "bottom_sheet_where_to_hello_there": "Hello there",
+  "bottom_sheet_where_to_hello_there": "Hello",
   "bottom_sheet_where_to_where_to": "Where To?",
-  "bottom_sheet_where_to_where_are_you_going": "Where are you going?",
+  "bottom_sheet_where_to_where_are_you_going": "Where do you want to go?",
   "bottom_sheet_where_to_current_location": "Current Location",
   "bottom_sheet_where_to_enter_destination": "Enter Destination",
 
-  "order_history_title": "Order History",
+  "order_history_title": "My Orders",
   "order_history_order_status_placed": "Request Created",
   "order_history_order_status_confirmed": "Driver Confirmed",
   "order_history_order_status_started": "Trip Started",
@@ -83,7 +83,7 @@
   "order_history_order_status_cancelled": "Request Cancelled",
   "order_history_date": "Date: ",
 
-  "login_phone_number": "Phone Number",
+  "login_phone_number": "Enter Your Phone Number",
   "login_log_in": "Log In",
   "login_powered_by": "Powered By Mukera Technologies",
   "login_logging_in": "Logging In, Please Wait...",
@@ -91,8 +91,8 @@
 
   "registration_customer_profile_image": "Upload Profile",
   "registration_customer_profile_image_needed": "Please Select a Profile Image",
-  "registration_customer_name": "Name",
-  "registration_customer_name_hint": "Name",
+  "registration_customer_name": "First Name",
+  "registration_customer_name_hint": "First Name",
   "registration_customer_name_empty": "Specify Customer Name",
   "registration_customer_email": "Email",
   "registration_customer_email_hint": "abc@example.com",

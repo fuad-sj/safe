@@ -1,6 +1,10 @@
+//import 'dart:html';
+import 'dart:async';
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:safe/auth_service.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:safe/controller/custom_toast_message.dart';
@@ -26,9 +30,19 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   late String _verificationId;
 
+  bool _isVerifyClicked = false;
   bool _loginBtnActive = false;
   final RoundedLoadingButtonController _loginBtnController =
       RoundedLoadingButtonController();
+
+  void _startVerify() async {
+    Timer(Duration(seconds: 4), () {
+      if (_loginBtnActive) {
+        verifyPhone(context);
+        _loginBtnController.reset();
+      }
+    });
+  }
 
   String _countryCode = '+251'; //start off with Ethiopia
   TextEditingController _phoneController = TextEditingController();
@@ -36,6 +50,7 @@ class _LoginPageState extends State<LoginPage> {
   String? _appVersionNumber;
 
   bool _languageDialogShown = false;
+  bool _isVerifyTrue = false;
 
   void _setPhoneControllerText(String newPhone) {
     _phoneController.value = TextEditingValue(
@@ -55,7 +70,7 @@ class _LoginPageState extends State<LoginPage> {
 
       if (_countryCode == "+251") {
         // if the phone number is ethiopian, only allow valid phone numbers
-        if (!phone.startsWith('9')) {
+        if (!phone.startsWith('9') && !phone.startsWith('7')) {
           _setPhoneControllerText('');
         } else if (phone.length > 9) {
           _setPhoneControllerText(phone.substring(0, 9));
@@ -91,139 +106,186 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Color(0xff7f072d),
         body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Container(
-                height: MediaQuery.of(context).size.height * 0.4,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Image(
-                      image: AssetImage('images/logo.png'),
-                      height: MediaQuery.of(context).size.height * 0.20,
-                      width: 120.0,
+      child: Column(
+        children: [
+          Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                    begin: Alignment.bottomRight,
+                    end: Alignment.topRight,
+                    colors: [
+                      Color(0xff990000),
+                      Color(0xffDE0000),
+                    ]),
+                borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.elliptical(
+                        MediaQuery.of(context).size.width * 0.5,
+                        MediaQuery.of(context).size.height * 0.125),
+                    bottomRight: Radius.elliptical(
+                        MediaQuery.of(context).size.width * 0.5,
+                        MediaQuery.of(context).size.height * 0.125)),
+              ),
+              height: !_isVerifyTrue
+                  ? MediaQuery.of(context).size.height * 0.71
+                  : MediaQuery.of(context).size.height * 0.35,
+              width: MediaQuery.of(context).size.width,
+              child: Stack(
+                children: <Widget>[
+                  Positioned(
+                      top: !_isVerifyTrue
+                          ? 0.0
+                          : MediaQuery.of(context).size.height * 0.06,
+                      left: !_isVerifyTrue ? 0.0 : 22.0,
+                      child: IconButton(
+                          icon: Icon(Icons.arrow_back_ios_new_sharp,
+                              size: !_isVerifyTrue ? 0.0 : 18.0),
+                          color: Colors.white,
+                          onPressed: () {
+                            FocusScope.of(context).unfocus();
+                          })),
+                  Center(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                          top: !_isVerifyTrue
+                              ? MediaQuery.of(context).size.height * 0.20
+                              : MediaQuery.of(context).size.height * 0.11),
+                      child: Image(
+                        image: AssetImage('images/white_logo.png'),
+                        height: !_isVerifyTrue
+                            ? MediaQuery.of(context).size.height * 0.180
+                            : MediaQuery.of(context).size.height * 0.120,
+                      ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 20.0),
+                  )
+                ],
+              )),
+          Container(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                    padding: EdgeInsets.only(
+                        top: MediaQuery.of(context).size.height * 0.02),
+                    child: Visibility(
+                      visible: !_isVerifyTrue,
+                      child: Container(
+                        child: Text(
+                          'THE FUTURE IS SAFE',
+                          style: TextStyle(
+                              fontSize:
+                                  MediaQuery.of(context).size.height * 0.02,
+                              fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    )),
+                Padding(
+                    padding: EdgeInsets.only(
+                      top: MediaQuery.of(context).size.height * 0.02,
+                      left: MediaQuery.of(context).size.width * 0.1,
+                      right: MediaQuery.of(context).size.width * 0.1,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Color(0xffDD0000),
+                            width: 3.0,
+                          ),
+                          borderRadius: BorderRadius.circular(20.0)),
                       child: Row(
                         children: [
                           CountryCodePicker(
-                              onChanged: (newCode) {
-                                _countryCode = newCode.dialCode ?? '+251';
-                              },
-                              initialSelection: 'ET',
-                              favorite: ['+251', 'ET'],
-                              showFlagDialog: true,
-                              enabled: true,
-                              textStyle: TextStyle(color: Colors.white),
-                              padding: EdgeInsets.all(15.0)),
+                            onChanged: (newCode) {
+                              _countryCode = newCode.dialCode ?? '+251';
+                            },
+                            initialSelection: 'ET',
+                            favorite: ['+251', 'ET'],
+                            showFlagDialog: true,
+                            enabled: true,
+                            textStyle: TextStyle(color: Colors.black),
+                          ),
+                          Container(
+                            height: MediaQuery.of(context).size.height * 0.04,
+                            width: 1.0,
+                            decoration: BoxDecoration(color: Color(0xff0f0f0f)),
+                          ),
                           Expanded(
-                            child: Container(
-                              width: MediaQuery.of(context).size.width,
-                              padding: EdgeInsets.only(top: 5.0, right: 30.0),
-                              child: TextField(
-                                style: TextStyle(color: Colors.white),
-                                keyboardType: TextInputType.phone,
-                                controller: _phoneController,
-                                decoration: InputDecoration(
-                                    suffixIcon: Icon(
-                                      Icons.phone_android,
-                                      color: Colors.white,
+                              child: Container(
+                                  width: MediaQuery.of(context).size.width,
+                                  padding: EdgeInsets.only(right: 30.0),
+                                  child: FocusScope(
+                                      child: Focus(
+                                    onFocusChange: (focus) =>
+                                        _isVerifyTrue = !_isVerifyTrue,
+                                    child: TextField(
+                                      style: TextStyle(
+                                          color: Colors.black, fontSize: 20),
+                                      keyboardType: TextInputType.phone,
+                                      controller: _phoneController,
+                                      decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                  horizontal: 10.0,
+                                                  vertical: 10.0),
+                                          hintText: '912345678',
+                                          hintStyle:
+                                              TextStyle(color: Colors.grey),
+                                          fillColor: Colors.black),
                                     ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                          color: Colors.blueGrey, width: 2.0),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: const BorderSide(
-                                          color: Colors.white, width: 2.0),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 10.0, horizontal: 10.0),
-                                    labelText: SafeLocalizations.of(context)!
-                                        .login_phone_number,
-                                    labelStyle: TextStyle(color: Colors.white),
-                                    hintText: '912345678',
-                                    hintStyle: TextStyle(color: Colors.grey),
-                                    fillColor: Colors.white),
-                              ),
-                            ),
-                          )
+                                  ))))
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xffffffff),
-                          Color(0xffb1aeaf),
-                        ]),
-                    borderRadius:
-                        BorderRadius.only(topLeft: Radius.circular(150.0)),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.blueGrey.shade50.withOpacity(0.8),
-                          spreadRadius: 7,
-                          blurRadius: 6,
-                          offset: Offset(0, 7))
-                    ]),
-                height: MediaQuery.of(context).size.height * 0.6,
-                width: MediaQuery.of(context).size.width,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 30.0),
+                    )),
+                Visibility(
+                    visible: _isVerifyTrue,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                          top: MediaQuery.of(context).size.height * 0.04),
                       child: Container(
-                          width: MediaQuery.of(context).size.width * 0.5,
+                          width: _isVerifyClicked
+                              ? MediaQuery.of(context).size.width * 0.11
+                              : MediaQuery.of(context).size.width * 0.5,
+                          height: MediaQuery.of(context).size.width * 0.1,
+                          decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                  begin: Alignment.bottomRight,
+                                  end: Alignment.topRight,
+                                  colors: [
+                                    Color(0xff990000),
+                                    Color(0xffDE0000),
+                                  ]),
+                              borderRadius: BorderRadius.circular(
+                                25.0,
+                              )),
                           child: IgnorePointer(
                             ignoring: !_loginBtnActive,
                             child: RoundedLoadingButton(
                                 child: Text('Verify Your Phone',
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(color: Colors.white)),
                                 controller: _loginBtnController,
                                 onPressed: () {
-                                  if (_loginBtnActive) {
-                                    verifyPhone(context);
-                                  }
+                                  _isVerifyClicked = false;
+                                  _startVerify();
                                 },
                                 color: _loginBtnActive
-                                    ? Color(0xff077f59)
-                                    : Colors.grey.shade700),
+                                    ? Color(0xffDE0000)
+                                    : Colors.white.withOpacity(0.1)),
                           )),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 50.0),
-                      child: Container(
-                        child: Text(
-                            SafeLocalizations.of(context)!.login_powered_by +
-                                (_appVersionNumber != null
-                                    ? ' $_appVersionNumber'
-                                    : ''),
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Open Sans')),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                    )),
+              ],
+            ),
           ),
-        ));
+        ],
+      ),
+    ));
   }
 
   Future<void> verifyPhone(BuildContext context) async {
     PhoneVerificationCompleted verificationCompleted =
         (AuthCredential authCredential) {
+      _isVerifyClicked = false;
       AuthService.signInWithLoginCredential(
           context,
           MainScreenCustomer.idScreen,
@@ -246,12 +308,13 @@ class _LoginPageState extends State<LoginPage> {
     PhoneCodeAutoRetrievalTimeout autoRetrievalTimeout =
         (String verificationID) {
       _verificationId = verificationID;
+      _isVerifyClicked = false;
       if (mounted) {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) =>
-                  VerifyPhone(verificationId: _verificationId)),
+            builder: (context) => VerifyPhone(verificationId: _verificationId),
+          ),
         );
       }
     };
