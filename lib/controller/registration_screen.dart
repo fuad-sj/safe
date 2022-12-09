@@ -417,7 +417,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             ? Customer.GENDER_FEMALE
             : Customer.GENDER_MALE;
         customerFields[Customer.FIELD_EMAIL] = _emailController.text.trim();
-        customerFields[Customer.FIELD_PHONE_NUMBER] = firebaseUser.phoneNumber!;
+        customerFields[Customer.FIELD_PHONE_NUMBER] =
+            await PrefUtil.getCurrentUserPhone();
         customerFields[Customer.FIELD_LINK_IMG_PROFILE] = profileURL;
         customerFields[Customer.FIELD_IS_ACTIVE] = false;
         customerFields[Customer.FIELD_IS_LOGGED_IN] = true;
