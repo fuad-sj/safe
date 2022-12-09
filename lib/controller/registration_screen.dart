@@ -360,9 +360,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               right: MediaQuery.of(context).size.width * 0.1,
               child: GestureDetector(
                 onTap: () async {
-                        MaterialPageRoute(
-                          builder: (context) => MainScreenCustomer() );
-                  },
+                  Navigator.pushNamedAndRemoveUntil(
+                      context, MainScreenCustomer.idScreen, (route) => false);
+                },
                 child: Text(
                   'Skip',
                   style: TextStyle(
