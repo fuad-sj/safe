@@ -71,22 +71,29 @@ class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
   }
 
   Future<void> loadDriverProfile() async {
-    if ((widget.pickedDriver?.link_img_common_profile ?? null) == null) return;
-    _driverProfileImage =
-        NetworkImage(widget.pickedDriver!.link_img_common_profile!);
+    if (widget.pickedDriver?.link_img_common_profile == null) {
+      return;
+    }
+    try {
+      _driverProfileImage =
+          NetworkImage(widget.pickedDriver!.link_img_common_profile!);
 
-    _driverProfileImage
-        .resolve(new ImageConfiguration())
-        .addListener(ImageStreamListener(
-          (_, __) {
-            _networkProfileLoaded = true;
-            setState(() {});
-          },
-          onError: (_, __) {
-            _networkProfileLoaded = false;
-            setState(() {});
-          },
-        ));
+      _driverProfileImage
+          .resolve(new ImageConfiguration())
+          .addListener(ImageStreamListener(
+            (_, __) {
+              _networkProfileLoaded = true;
+              if (mounted) {
+                setState(() {});
+              }
+            },
+            onError: (_, __) {
+              _networkProfileLoaded = false;
+            },
+          ));
+    } catch (err) {
+      //print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> error loading driver profile $err');
+    }
   }
 
   @override
@@ -98,7 +105,6 @@ class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
           GestureDetector(
             onTap: () {
               widget.onActionCallback();
-              print('this is clicked ');
             },
             child: Padding(
               padding: const EdgeInsets.all(1.0),

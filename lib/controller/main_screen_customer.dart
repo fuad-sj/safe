@@ -469,20 +469,24 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       return;
     }
 
-    _networkProfileImage = NetworkImage(_currentCustomer!.link_img_profile!);
+    try {
+      _networkProfileImage = NetworkImage(_currentCustomer!.link_img_profile!);
 
-    _networkProfileImage
-        .resolve(new ImageConfiguration())
-        .addListener(ImageStreamListener(
-          (_, __) {
-            _networkProfileLoaded = true;
-            setState(() {});
-          },
-          onError: (_, __) {
-            _networkProfileLoaded = false;
-            setState(() {});
-          },
-        ));
+      _networkProfileImage
+          .resolve(new ImageConfiguration())
+          .addListener(ImageStreamListener(
+            (_, __) {
+          _networkProfileLoaded = true;
+          setState(() {});
+        },
+        onError: (_, __) {
+          _networkProfileLoaded = false;
+          setState(() {});
+        },
+      ));
+    } catch (err) {
+      //print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> found a bug $err');
+    }
   }
 
   Future<void> loadMapIcons() async {
