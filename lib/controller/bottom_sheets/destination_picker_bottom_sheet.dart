@@ -234,7 +234,7 @@ class _DestinationPickerBottomSheetState
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderSide: const BorderSide(
-                                color: ColorConstants.lyftColor, width: 2.0),
+                                color: ColorConstants.appThemeColor, width: 2.0),
                           ),
                         ),
                       ),
@@ -249,7 +249,7 @@ class _DestinationPickerBottomSheetState
           Container(
               margin: EdgeInsets.symmetric(horizontal: 25.0),
               height: 1.0,
-              color: ColorConstants.lyftColor),
+              color: ColorConstants.appThemeColor),
 
           if (_placePredictionList != null) ...[
             //     greyVerticalDivider(0.5),

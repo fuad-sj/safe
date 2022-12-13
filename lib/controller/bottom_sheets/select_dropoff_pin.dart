@@ -311,7 +311,7 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   SizedBox(height: VSpace(0.05), width: HSpace(0.03)),
-                  Icon(Icons.search, color: ColorConstants.lyftColor),
+                  Icon(Icons.search, color: ColorConstants.appThemeColor),
                   SizedBox(width: HSpace(0.05)),
                   Expanded(
                     child: Text(
@@ -328,7 +328,7 @@ class _SetPickupBottomSheetState extends State<_SetPickupBottomSheet>
             style: TextButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 45.0, vertical: 20.0),
               backgroundColor: widget.destinationAddress != null
-                  ? ColorConstants.lyftColor
+                  ? ColorConstants.appThemeColor
                   : Colors.grey.shade700,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15.0),

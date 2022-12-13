@@ -178,7 +178,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   /// We ONLY want to show the referral dialog IF we know for SURE referral is NOT complete
   bool get isReferralSurelyIncomplete {
-    return !(_currentCustomer?.referral_activation_complete ?? true);
+    if (_currentCustomer?.referral_activation_complete == null) {
+      return true;
+    } else {
+      return _currentCustomer?.referral_activation_complete ?? false;
+    }
   }
 
   final Connectivity _connectivity = Connectivity();
@@ -195,17 +199,20 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     _defaultProfileImage = AssetImage('images/mask2.png');
 
-    initConnectivity();
-
-    updateLoginCredentials();
-
-    loadCurrentUserInfo();
-    setBottomMapPadding(WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
-
-    _connectivitySubscription =
-        _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
-
     Future.delayed(Duration.zero, () async {
+      initConnectivity();
+
+      try {
+        await updateLoginCredentials();
+      } catch (e) {}
+
+      loadCurrentUserInfo();
+      setBottomMapPadding(
+          WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
+
+      _connectivitySubscription =
+          _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
+
       loadMapIcons();
       await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
       _geoFireInitialized = true;
@@ -273,7 +280,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     return _updateConnectionStatus(result);
   }
 
-  void updateLoginCredentials() async {
+  Future<void> updateLoginCredentials() async {
     await _loadPhoneNumber();
 
     int loginStatus = PrefUtil.getLoginStatus();
@@ -283,8 +290,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       Map<String, dynamic> updatedFields = Map();
 
       updatedFields[Customer.FIELD_DATE_LAST_LOGIN] = DateTime.now();
-      updatedFields[Customer.FIELD_PHONE_NUMBER] =
-          await PrefUtil.getCurrentUserPhone();
       updatedFields[Customer.FIELD_IS_LOGGED_IN] = true;
 
       await FirebaseFirestore.instance

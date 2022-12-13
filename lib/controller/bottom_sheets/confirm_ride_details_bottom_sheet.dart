@@ -81,7 +81,7 @@ class _ConfirmRideDetailsBottomSheetState
       if (states.any(interactiveStates.contains)) {
         return Colors.blue;
       }
-      return ColorConstants.gucciColor;
+      return ColorConstants.appThemeColor;
     }
 
     Widget _getCarTypeWidget(int carType) {
@@ -117,7 +117,7 @@ class _ConfirmRideDetailsBottomSheetState
         },
         child: Container(
           color: isSelected
-              ? ColorConstants.lyftColor.withOpacity(0.1)
+              ? ColorConstants.appThemeColor.withOpacity(0.1)
               : Colors.white,
           width: double.infinity,
           child: Row(
@@ -125,7 +125,7 @@ class _ConfirmRideDetailsBottomSheetState
               Container(
                 width: HSpace(0.015),
                 height: VSpace(0.07),
-                color: isSelected ? ColorConstants.lyftColor : Colors.white,
+                color: isSelected ? ColorConstants.appThemeColor : Colors.white,
               ),
               SizedBox(width: 16.0),
               Image.asset(carImage, height: VSpace(0.05), width: 80.0),
@@ -194,7 +194,7 @@ class _ConfirmRideDetailsBottomSheetState
                     padding: EdgeInsets.symmetric(
                         horizontal: 35.0, vertical: VSpace(0.02)),
                     backgroundColor: _selectedCarType == CAR_TYPE_ANY
-                        ? ColorConstants.lyftColor
+                        ? ColorConstants.appThemeColor
                         : Colors.grey.shade400,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(15.0),

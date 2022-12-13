@@ -86,7 +86,7 @@ class _RideCancellationDialogState extends State<RideCancellationDialog> {
         children: [
           // Dialog Header
           Container(
-            color: ColorConstants.lyftColor,
+            color: ColorConstants.appThemeColor,
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
