@@ -16,6 +16,13 @@ class FIRESTORE_PATHS {
   static final COL_CONFIG = 'config';
   static final DOC_CONFIG = 'CONFIGURATION';
 
+  static final COL_UPDATE_VERSIONS = "update_versions";
+  static final DOC_UPDATE_VERSIONS_CUSTOMERS = "CUSTOMERS";
+  static final DOC_UPDATE_VERSIONS_DRIVERS = "DRIVERS";
+  static final SUB_COL_UPDATE_VERSION_CUSTOMERS =
+      "sub_update_version_customers";
+  static final SUB_COL_UPDATE_VERSION_DRIVERS = "sub_update_version_drivers";
+
   static final COL_OTP_REQUESTS = "otp_requests";
 }
 

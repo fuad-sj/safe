@@ -20,6 +20,13 @@ class Customer extends FirebaseDocument {
 
   static const FIELD_VERSION_NUMBER = 'version_number';
 
+  static const FIELD_DATETIME_VERSION_DATE = 'datetime_version_date';
+
+  static const FIELD_LAST_CHECKED_VERSION_NUMBER =
+      'last_checked_version_number';
+  static const FIELD_LAST_CHECKED_VERSION_DATETIME =
+      'last_checked_version_datetime';
+
   static const FIELD_HAS_DEV_ACCESS = 'has_dev_access';
 
   static const FIELD_DATE_CREATED = 'date_created';
@@ -48,6 +55,17 @@ class Customer extends FirebaseDocument {
   String? email;
 
   String? version_number;
+
+  @JsonKey(
+      fromJson: FirebaseDocument.DateTimeFromJson,
+      toJson: FirebaseDocument.DateTimeToJson)
+  DateTime? datetime_version_date;
+
+  String? last_checked_version_number;
+  @JsonKey(
+      fromJson: FirebaseDocument.DateTimeFromJson,
+      toJson: FirebaseDocument.DateTimeToJson)
+  DateTime? last_checked_version_datetime;
 
   bool? has_dev_access;
   bool? is_available_active; // for FTA purposes
