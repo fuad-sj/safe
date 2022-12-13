@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:safe/GraphView.dart';
+import 'package:safe/controller/graphview/GraphView.dart';
 import 'dart:ui' as ui;
 
 class PaymentScreen extends StatefulWidget {
