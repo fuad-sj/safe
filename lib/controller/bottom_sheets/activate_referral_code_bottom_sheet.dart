@@ -257,12 +257,12 @@ class _ActivateReferralCodeBottomSheetState
                           _referralSubscription = _referralRequestRef
                               .snapshots()
                               .listen((snapshot) async {
+                            // this event was generated locally, pass. we want server side responses
+                            if (snapshot.metadata.hasPendingWrites) {
+                              return;
+                            }
                             ReferralRequest request =
                                 ReferralRequest.fromSnapshot(snapshot);
-
-                            if (request.referral_status_code ==
-                                null) // this is fired b/c we created a doc ourselves, wait for the server to respond
-                              return;
 
                             switch (request.referral_status_code) {
                               case ReferralRequest.REFERRAL_STATUS_SUCCESSFUL:
