@@ -9,6 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:package_info/package_info.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:safe/controller/bottom_sheets/activate_referral_code_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/driver_picked_bottom_sheet.dart';
@@ -206,7 +207,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         await updateLoginCredentials();
       } catch (e) {}
 
-      loadCurrentUserInfo();
       setBottomMapPadding(
           WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
 
@@ -281,65 +281,52 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   Future<void> updateLoginCredentials() async {
-    await _loadPhoneNumber();
-
     int loginStatus = PrefUtil.getLoginStatus();
     if (loginStatus == PrefUtil.LOGIN_STATUS_SIGNED_OUT) {
       return;
-    } else if (loginStatus == PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW) {
+    }
+    await _loadPhoneNumber();
+    await loadCurrentUserInfo();
+
+    if (_currentCustomer == null || !_currentCustomer!.documentExists()) {
+      Future.delayed(Duration.zero).then((_) {
+        Navigator.pushNamedAndRemoveUntil(
+            context, LoginPage.idScreen, (route) => false);
+      });
+    } else {
       Map<String, dynamic> updatedFields = Map();
 
-      updatedFields[Customer.FIELD_DATE_LAST_LOGIN] = DateTime.now();
+      updatedFields[Customer.FIELD_DATE_LAST_LOGIN] =
+          FieldValue.serverTimestamp();
       updatedFields[Customer.FIELD_IS_LOGGED_IN] = true;
 
-      await FirebaseFirestore.instance
-          .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
-          .doc(PrefUtil.getCurrentUserID())
-          .set(updatedFields, SetOptions(merge: true));
+      if (loginStatus == PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW) {
+        await PrefUtil.setLoginStatus(
+            PrefUtil.LOGIN_STATUS_PREVIOUSLY_LOGGED_IN);
+      }
 
-      await PrefUtil.setLoginStatus(PrefUtil.LOGIN_STATUS_PREVIOUSLY_LOGGED_IN);
+      List<String> deviceTokens =
+          _currentCustomer!.device_registration_tokens ?? [];
+
+      String? newToken = await FirebaseMessaging.instance.getToken();
+
+      if (newToken != null && !deviceTokens.contains(newToken)) {
+        deviceTokens.add(newToken);
+
+        updatedFields[Customer.FIELD_DEVICE_REGISTRATION_TOKENS] = deviceTokens;
+      }
+
+      PackageInfo info = await PackageInfo.fromPlatform();
+
+      updatedFields[Customer.FIELD_VERSION_NUMBER] = info.version;
+
+      if (updatedFields.isNotEmpty) {
+        await FirebaseFirestore.instance
+            .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+            .doc(PrefUtil.getCurrentUserID())
+            .set(updatedFields, SetOptions(merge: true));
+      }
     }
-
-    await saveDeviceRegistrationToken();
-  }
-
-  Future<void> saveDeviceRegistrationToken() async {
-    String? newToken = await FirebaseMessaging.instance.getToken();
-    if (newToken == null) {
-      print('Error fetching FCM token');
-      return;
-    }
-
-    var customerDoc = await FirebaseFirestore.instance
-        .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
-        .doc(PrefUtil.getCurrentUserID())
-        .get();
-
-    Customer customer = Customer.fromSnapshot(customerDoc);
-    if (!customer.documentExists()) {
-      return;
-    }
-
-    List<String> deviceTokens = customer.device_registration_tokens ?? [];
-
-    // token already exists, don't add
-    if (deviceTokens.contains(newToken)) {
-      return;
-    }
-
-    deviceTokens.add(newToken);
-
-    Map<String, dynamic> updatedFields = {
-      Customer.FIELD_DEVICE_REGISTRATION_TOKENS: deviceTokens,
-    };
-
-    await FirebaseFirestore.instance
-        .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
-        .doc(PrefUtil.getCurrentUserID())
-        .set(
-          updatedFields,
-          SetOptions(mergeFields: updatedFields.keys.toList()),
-        );
   }
 
   Future<void> loadCurrentUserInfo() async {

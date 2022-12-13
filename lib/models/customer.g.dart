@@ -14,6 +14,7 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
   ..referral_code = json['referral_code'] as String?
   ..gender = json['gender'] as int?
   ..email = json['email'] as String?
+  ..version_number = json['version_number'] as String?
   ..has_dev_access = json['has_dev_access'] as bool?
   ..is_available_active = json['is_available_active'] as bool?
   ..date_created = FirebaseDocument.DateTimeFromJson(json['date_created'])
@@ -36,6 +37,7 @@ Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'referral_code': instance.referral_code,
       'gender': instance.gender,
       'email': instance.email,
+      'version_number': instance.version_number,
       'has_dev_access': instance.has_dev_access,
       'is_available_active': instance.is_available_active,
       'date_created': FirebaseDocument.DateTimeToJson(instance.date_created),

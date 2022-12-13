@@ -18,6 +18,8 @@ class Customer extends FirebaseDocument {
   static const FIELD_GENDER = 'gender';
   static const FIELD_EMAIL = 'email';
 
+  static const FIELD_VERSION_NUMBER = 'version_number';
+
   static const FIELD_HAS_DEV_ACCESS = 'has_dev_access';
 
   static const FIELD_DATE_CREATED = 'date_created';
@@ -44,6 +46,8 @@ class Customer extends FirebaseDocument {
   String? referral_code;
   int? gender;
   String? email;
+
+  String? version_number;
 
   bool? has_dev_access;
   bool? is_available_active; // for FTA purposes
