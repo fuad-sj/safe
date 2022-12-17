@@ -13,6 +13,8 @@ part 'ride_request.g.dart';
 class RideRequest extends FirebaseDocument {
   static const FIELD_CLIENT_TRIGGERED_EVENT = 'client_triggered_event';
 
+  static const FIELD_ORDER_SOURCE = 'order_source';
+
   static const FIELD_RIDE_STATUS = 'ride_status';
 
   static const FIELD_IS_DEV_TEST_ORDER = 'is_dev_test_order';
@@ -115,6 +117,10 @@ class RideRequest extends FirebaseDocument {
   static const int CANCEL_SOURCE_DRIVER = 2;
   static const int CANCEL_SOURCE_DISPATCHER = 3;
 
+  static const int ORDER_SOURCE_CLIENT_APP = 1;
+  static const int ORDER_SOURCE_DISPATCHER = 2;
+  static const int ORDER_SOURCE_DRIVER_INITIATE = 3;
+
   static bool isRideRequestCancelled(int rideStatus) {
     return rideStatus < 0;
   }
@@ -124,6 +130,8 @@ class RideRequest extends FirebaseDocument {
   }
 
   bool? client_triggered_event;
+
+  int? order_source;
 
   late int ride_status;
 

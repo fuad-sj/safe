@@ -476,14 +476,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           .resolve(new ImageConfiguration())
           .addListener(ImageStreamListener(
             (_, __) {
-          _networkProfileLoaded = true;
-          setState(() {});
-        },
-        onError: (_, __) {
-          _networkProfileLoaded = false;
-          setState(() {});
-        },
-      ));
+              _networkProfileLoaded = true;
+              setState(() {});
+            },
+            onError: (_, __) {
+              _networkProfileLoaded = false;
+              setState(() {});
+            },
+          ));
     } catch (err) {
       //print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> found a bug $err');
     }
@@ -1500,6 +1500,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       rideFields[RideRequest.FIELD_SCHEDULED_AFTER_SECONDS] =
           scheduledDuration.inSeconds;
     }
+    rideFields[RideRequest.FIELD_ORDER_SOURCE] =
+        RideRequest.ORDER_SOURCE_CLIENT_APP;
 
     _rideRequestRef = await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_RIDES)
