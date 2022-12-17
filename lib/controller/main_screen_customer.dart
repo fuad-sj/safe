@@ -9,7 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:launch_review/launch_review.dart';
+//import 'package:launch_review/launch_review.dart';
 import 'package:package_info/package_info.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:safe/controller/bottom_sheets/activate_referral_code_bottom_sheet.dart';
@@ -863,7 +863,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       ),
     );
   }
-
+/*
   Future<void> startUpdater() async {
     Fluttertoast.showToast(
       msg: "Safe Update",
@@ -879,6 +879,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         writeReview: false,
         showToast: false);
   }
+
+ */
 
   @override
   Widget build(BuildContext context) {
@@ -897,7 +899,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 isUpdateForceful: forcefulUpdateAvailable,
                 updateVersionNumber: availableUpdateVersionNumber ?? '',
                 updateBtnClicked: () {
-                  startUpdater();
+                  //startUpdater();
                   //setState(() {});
                 },
               );

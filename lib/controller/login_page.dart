@@ -203,30 +203,33 @@ class _LoginPageState extends State<LoginPage> {
                             decoration: BoxDecoration(color: Color(0xff0f0f0f)),
                           ),
                           Expanded(
-                              child: Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  padding: EdgeInsets.only(right: 30.0),
-                                  child: FocusScope(
-                                      child: Focus(
-                                    onFocusChange: (focus) =>
-                                        _isVerifyTrue = !_isVerifyTrue,
-                                    child: TextField(
-                                      style: TextStyle(
-                                          color: Colors.black, fontSize: 20),
-                                      keyboardType: TextInputType.phone,
-                                      controller: _phoneController,
-                                      decoration: InputDecoration(
-                                          border: InputBorder.none,
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                                  horizontal: 10.0,
-                                                  vertical: 10.0),
-                                          hintText: '912345678',
-                                          hintStyle:
-                                              TextStyle(color: Colors.grey),
-                                          fillColor: Colors.black),
-                                    ),
-                                  ))))
+                            child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.only(right: 30.0),
+                              child: FocusScope(
+                                child: Focus(
+                                  onFocusChange: (focus) =>
+                                      _isVerifyTrue = !_isVerifyTrue,
+                                  child: TextField(
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 20),
+                                    keyboardType: TextInputType.phone,
+                                    controller: _phoneController,
+                                    decoration: InputDecoration(
+                                        border: InputBorder.none,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 10.0,
+                                                vertical: 10.0),
+                                        hintText: '912345678',
+                                        hintStyle:
+                                            TextStyle(color: Colors.grey),
+                                        fillColor: Colors.black),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     )),

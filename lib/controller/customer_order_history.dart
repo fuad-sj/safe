@@ -260,13 +260,13 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
               bottom: vHeight * 0.032),
           decoration: BoxDecoration(
               color: Color(0xffF6F6F6),
-              borderRadius: BorderRadius.circular(35),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
                     color: Colors.grey.withOpacity(0.5),
                     spreadRadius: 2,
-                    blurRadius: 7,
-                    offset: Offset(3, 9))
+                    blurRadius: 5,
+                    offset: Offset(2, 4))
               ]),
           child: Column(
             mainAxisSize: MainAxisSize.min,

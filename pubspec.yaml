@@ -55,8 +55,6 @@ dependencies:
   widget_mask: ^1.0.0+0
   bubble_bottom_bar: ^2.0.0
   syncfusion_flutter_charts: ^20.3.59
-  launch_review:
-    path: ./launch_review
 
 dev_dependencies:
   flutter_test:
@@ -100,6 +98,7 @@ flutter:
     - images/whiteSafeLogo.png
     - images/referal.png
     - images/location.png
+    - images/safe_gray.png
 
 
   fonts:
