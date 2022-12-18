@@ -29,12 +29,13 @@ class _cashOutDialogState extends State<cashOutDialog> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
 
     double HORIZONTAL_PADDING = 15.0;
 
     return Dialog(
       elevation: 2.0,
-      insetPadding: EdgeInsets.symmetric(horizontal: 10.0),
+      insetPadding: EdgeInsets.symmetric(horizontal: screenHeight * 0.034),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(20.0))),
       child: Column(
@@ -43,6 +44,7 @@ class _cashOutDialogState extends State<cashOutDialog> {
         children: [
           // Dialog Header
           Container(
+            height: screenHeight * 0.086,
             decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomLeft,
@@ -57,70 +59,99 @@ class _cashOutDialogState extends State<cashOutDialog> {
                     topRight: Radius.circular(20.0))),
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  child: Text(
-                    "CASH OUT",
-                    style: TextStyle(
+                  padding: EdgeInsets.only(left: screenWidth * 0.044),
+
+                  child: GestureDetector(
+                    onTap:() {
+                      Navigator.pop(context, true);
+                    },
+                    child: Icon(
+                      Icons.close,
+                      size: 34,
                       color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 28.0,
                     ),
                   ),
                 ),
+                Spacer(flex: 1),
+                Container(
+                  padding: EdgeInsets.only(left: screenWidth * 0.044),
+                  child: Text(
+                    "Cash out",
+                    style: TextStyle(
+                        fontFamily: 'Lato',
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white),
+                  ),
+                ),
+                Spacer(flex: 2),
               ],
             ),
           ),
-          SizedBox(height: 35.0),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: HORIZONTAL_PADDING),
-            width: (screenWidth - 2 * HORIZONTAL_PADDING),
-            child: Center(
-              child: Column(
+          SizedBox(height: screenHeight * 0.045),
+
+          Center(
+            child: Container(
+              width: screenWidth * 0.70,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'AMOUNT',
-                          style: TextStyle(
-                              fontFamily: 'Lato',
-                              fontWeight: FontWeight.w700,
-                              fontSize: 20.0),
+                    child: Text(
+                      'Amount',
+                      style: TextStyle(
+                          fontFamily: 'Lato',
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.w700,
+                          color: Color.fromRGBO(43, 47, 45, 1)),
+                    ),
+                  ),
+                  SizedBox(width: screenWidth * 0.025),
+                  Expanded(
+                    child: Container(
+                      height: screenHeight * 0.045,
+                      decoration: BoxDecoration(
+                        color: Color.fromRGBO(225, 224, 223, 1),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(15.0),
                         ),
-                        SizedBox(width: 20.0),
-                        Container(
-                          decoration: BoxDecoration(
-                              color: Color.fromRGBO(34, 34, 34, 0.2),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(20.0))),
-                          width: MediaQuery.of(context).size.width * 0.5,
-                          padding: EdgeInsets.only(right: 30.0),
-                          child: TextField(
-                            style: TextStyle(color: Colors.black, fontSize: 20),
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration(
+                      ),
+                      child: Row(
+                        children: [
+                          SizedBox(width: screenWidth * 0.025),
+                          Expanded(
+                            child: TextField(
+                              expands: true,
+                              maxLines: null,
+                              minLines: null,
+                              style: TextStyle(color: Colors.black, fontSize: 12),
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration(
                                 border: InputBorder.none,
-                                contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 10.0, vertical: 10.0),
                                 hintText: '200',
                                 hintStyle: TextStyle(color: Colors.grey),
-                                fillColor: Colors.black),
+                                fillColor: Colors.black,
+                                contentPadding: const  EdgeInsets.symmetric(
+                                    horizontal: 5.0,
+                                    vertical: 10.0
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-
-          SizedBox(height: 35.0),
+          SizedBox(height: screenHeight * 0.040),
           Container(
-            height: MediaQuery.of(context).size.height * 0.040,
+            height: screenHeight * 0.040,
             child: ListView(
               scrollDirection: Axis.horizontal,
               children: amounts.map((amountCount) {
@@ -133,7 +164,7 @@ class _cashOutDialogState extends State<cashOutDialog> {
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 30.0),
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20.0),
+                        borderRadius: BorderRadius.circular(15.0),
                         gradient: LinearGradient(
                           begin: Alignment.bottomLeft,
                           end: Alignment.topRight,
@@ -148,7 +179,9 @@ class _cashOutDialogState extends State<cashOutDialog> {
                           amountCount.amount,
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 21,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1,
                             fontFamily: 'Lato',
                           ),
                         ),
@@ -159,37 +192,40 @@ class _cashOutDialogState extends State<cashOutDialog> {
               }).toList(),
             ),
           ),
-          SizedBox(height: 20.0),
+          SizedBox(height: screenHeight * 0.040),
 
-          Container(
-            decoration: BoxDecoration(
+          Center(
+            child: Container(
+              height: screenHeight * 0.04 ,
+              width: screenWidth * 0.36,
+              padding: EdgeInsets.symmetric(horizontal: 30.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.0),
                 gradient: LinearGradient(
                   begin: Alignment.bottomLeft,
                   end: Alignment.topRight,
                   colors: [
-                    Color(0xffffffff),
-                    Color(0xffffffff),
+                    Color(0xffDE0000),
+                    Color(0xff990000),
                   ],
                 ),
-                borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(10.0),
-                    bottomRight: Radius.circular(10.0))),
-            child: Center(
-              child: TextButton(
-                onPressed: () async {},
+              ),
+              child: Center(
                 child: Text(
-                  'Send',
+                 'Confirm',
                   style: TextStyle(
-                    color: Colors.red,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 28.0,
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    fontFamily: 'Lato',
+                    letterSpacing: 1
                   ),
                 ),
               ),
             ),
           ),
-          SizedBox(height: 20.0),
           // Done Trip
+          SizedBox(height: screenHeight * 0.040),
         ],
       ),
     );

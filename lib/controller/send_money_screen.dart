@@ -127,13 +127,13 @@ class _sendMoneyScreenState extends State<sendMoneyScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
-                onTap: () async {
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () async {
                     await showDialog(
                       context: context,
-                      builder: (_) => cashOutDialog(
-                      ),
+                      builder: (_) => cashOutDialog(),
                     );
-                },
+                  },
                   child: Container(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -152,40 +152,39 @@ class _sendMoneyScreenState extends State<sendMoneyScreen> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.only(
-                      left: hWidth * 0.1, right: hWidth * 0.1),
+                  padding:
+                      EdgeInsets.only(left: hWidth * 0.1, right: hWidth * 0.1),
                   child: Container(
                     height: vHeight * 0.16,
                     width: 1.0,
                     color: Colors.black26,
                   ),
                 ),
-               GestureDetector(
-                onTap: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (_) => sendMoneyDialog(
-
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () async {
+                    await showDialog(
+                      context: context,
+                      builder: (_) => sendMoneyDialog(),
+                    );
+                  },
+                  child: Container(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.monetization_on_outlined,
+                          color: Colors.black,
+                        ),
+                        SizedBox(height: 15.0),
+                        Text(
+                          'Send Money',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ],
                     ),
-                  );
-                },
-                 child: Container(
-                   child: Column(
-                     mainAxisAlignment: MainAxisAlignment.center,
-                     children: [
-                       Icon(
-                         Icons.monetization_on_outlined,
-                         color: Colors.black,
-                       ),
-                       SizedBox(height: 15.0),
-                       Text(
-                         'Send Money',
-                         style: TextStyle(color: Colors.black),
-                       ),
-                     ],
-                   ),
-                 ),
-               ),
+                  ),
+                ),
               ],
             ),
           )

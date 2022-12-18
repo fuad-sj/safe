@@ -105,7 +105,7 @@ class _DestinationPickerBottomSheetState
           // Pickup Location
           SizedBox(height: 10.0),
           Container(
-            child: Text('Your safe journey',
+            child: Text('',
                 style: TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,

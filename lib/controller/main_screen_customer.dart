@@ -135,11 +135,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   LatLng? _tripStartedLocation;
   Timer? _tripCounterTimer;
   DateTime? _tripStartTimestamp;
-
   RouteDetails? _pickupToDropOffRouteDetail;
-
   bool _isNearbyDriverLoadingComplete = false;
-
   bool _isBottomToggleOn = true;
 
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?

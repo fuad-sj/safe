@@ -220,7 +220,8 @@ class _LoginPageState extends State<LoginPage> {
                                         contentPadding:
                                             const EdgeInsets.symmetric(
                                                 horizontal: 10.0,
-                                                vertical: 10.0),
+                                                vertical: 10.0
+                                            ),
                                         hintText: '912345678',
                                         hintStyle:
                                             TextStyle(color: Colors.grey),
