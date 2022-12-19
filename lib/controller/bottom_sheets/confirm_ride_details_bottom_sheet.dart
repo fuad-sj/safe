@@ -79,7 +79,7 @@ class _ConfirmRideDetailsBottomSheetState
         MaterialState.focused,
       };
       if (states.any(interactiveStates.contains)) {
-        return Colors.blue;
+        return Colors.red;
       }
       return ColorConstants.appThemeColor;
     }
@@ -134,8 +134,7 @@ class _ConfirmRideDetailsBottomSheetState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(typeDescription,
-                      style: TextStyle(
-                          fontSize: 18.0,
+                      style: TextStyle( fontSize: 18.0,
                           fontFamily: 'Brand-Bold',
                           fontWeight: (isSelected
                               ? FontWeight.bold
@@ -172,19 +171,23 @@ class _ConfirmRideDetailsBottomSheetState
     }
 
     return Container(
-      // padding: EdgeInsets.symmetric(horizontal: HSpace(0.00)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          SizedBox(height: VSpace(0.02)),
           Center(
-              child: Container(
-                  margin: EdgeInsets.only(top: VSpace(0.005)),
-                  width: 100.0,
-                  height: 4.0,
-                  color: Colors.grey.shade700)),
+            child: Container(
+              margin: EdgeInsets.only(top: VSpace(0.005)),
+              width: 75.0,
+              height: 5.0,
+              color: Color(0xffDE0000),
+            ),
+          ),
+          SizedBox(height: VSpace(0.02)),
           ...[CAR_TYPE_ANY, CAR_TYPE_MINIVAN, CAR_TYPE_MINIBUS]
               .map((e) => _getCarTypeWidget(e)),
+          SizedBox(height: VSpace(0.02)),
           Row(
             children: [
               SizedBox(width: HSpace(0.05)),
@@ -224,75 +227,9 @@ class _ConfirmRideDetailsBottomSheetState
                 ),
               ),
               SizedBox(width: 20.0),
-              /*
-
-
-              GestureDetector(
-                onTap: () {
-                  DateTime now = DateTime.now();
-                  showDatePicker(
-                          context: context,
-                          initialDate: now,
-                          firstDate: now,
-                          // allow upto 30 days into the future
-                          lastDate: now.add(Duration(days: 30)))
-                      .then((pickedDate) {
-                    if (pickedDate == null) {
-                      Provider.of<PickUpAndDropOffLocations>(context,
-                              listen: false)
-                          .updateScheduledDuration(null);
-                    } else {
-                      showTimePicker(
-                        context: context,
-                        initialTime:
-                            TimeOfDay(hour: now.hour, minute: now.minute),
-                      ).then((pickedTime) {
-                        if (pickedTime == null) {
-                          Provider.of<PickUpAndDropOffLocations>(context,
-                                  listen: false)
-                              .updateScheduledDuration(null);
-                        } else {
-                          DateTime scheduledTime = new DateTime(
-                              pickedDate.year,
-                              pickedDate.month,
-                              pickedDate.day,
-                              pickedTime.hour,
-                              pickedTime.minute);
-
-                          Duration bookingDuration =
-                              scheduledTime.difference(now);
-
-                          Provider.of<PickUpAndDropOffLocations>(context,
-                                  listen: false)
-                              .updateScheduledDuration(
-                                  bookingDuration.inSeconds < 0
-                                      ? null
-                                      : bookingDuration);
-                        }
-                      });
-                    }
-                  });
-                },
-                behavior: HitTestBehavior.opaque,
-                child: CircleAvatar(
-                  backgroundColor:
-                      Provider.of<PickUpAndDropOffLocations>(context)
-                                  .scheduledDuration !=
-                              null
-                          ? Colors.pinkAccent
-                          : Colors.grey.shade500,
-                  child: Icon(Icons.date_range,
-                      color: Colors.white, size: 26.0),
-                  radius: 25.0,
-                ),
-              ),
-
-               */
-
-              //       SizedBox(width: HSpace(0.05)),
             ],
           ),
-          SizedBox(height: VSpace(0.01)),
+          SizedBox(height: VSpace(0.03)),
         ],
       ),
     );

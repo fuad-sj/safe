@@ -110,7 +110,7 @@ class _SelectDropOffPinBottomSheetState
           ),
           child: CircleAvatar(
             backgroundColor: Colors.white,
-            child: Icon(Icons.arrow_back, color: Colors.grey.shade800),
+            child: Icon(Icons.arrow_back, color: Colors.red),
             radius: 24.0,
           ),
         ),

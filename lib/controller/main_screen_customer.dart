@@ -9,6 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 //import 'package:launch_review/launch_review.dart';
 import 'package:package_info/package_info.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
@@ -65,6 +66,7 @@ import 'package:safe/utils/phone_call.dart';
 import 'package:widget_mask/widget_mask.dart';
 
 import '../current_locale.dart';
+import 'dialogs/contact_us_dialog.dart';
 
 class MainScreenCustomer extends StatefulWidget {
   static const String idScreen = "mainScreenRider";
@@ -473,14 +475,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           .resolve(new ImageConfiguration())
           .addListener(ImageStreamListener(
             (_, __) {
-          _networkProfileLoaded = true;
-          setState(() {});
-        },
-        onError: (_, __) {
-          _networkProfileLoaded = false;
-          setState(() {});
-        },
-      ));
+              _networkProfileLoaded = true;
+              setState(() {});
+            },
+            onError: (_, __) {
+              _networkProfileLoaded = false;
+              setState(() {});
+            },
+          ));
     } catch (err) {
       //print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> found a bug $err');
     }
@@ -496,7 +498,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         context, 'images/dot_blue.png', PIN_ICON_SIZE_RATIO);
 
     _CURRENT_PIN_ICON = Image.asset(
-      'images/redmarker.png',
+      'images/pin_map_locator.png',
       height: SIZE_CURRENT_PIN_IMAGE,
       width: SIZE_CURRENT_PIN_IMAGE,
     );
@@ -591,6 +593,21 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => PaymentScreen()),
+        );
+        break;
+
+      case MenuOption.MENU_OPTION_CONTACT_US:
+         showDialog(
+            context: context,
+            builder: (_) => ContactUsDialog(),
+
+        /*
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DriverNotFoundDialog()),
+
+         */
+
         );
         break;
 
@@ -860,6 +877,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       ),
     );
   }
+
 /*
   Future<void> startUpdater() async {
     Fluttertoast.showToast(
@@ -1276,7 +1294,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         double? bottomSheetHeightPercent;
 
         if (isDriverPicked) {
-          pathColor = Color(0xff299bfb);
+           pathColor = Color(0xffDE0000);
           encodedPathRoute =
               _currentRideRequest!.driver_to_pickup_encoded_points!;
           lineWidth = 3;
@@ -1287,7 +1305,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
           _UIState = UI_STATE_DRIVER_PICKED;
         } else if (isOnWayToPickup) {
-          pathColor = Color(0xff299bfb);
+          pathColor = Color(0xffDE0000);
           encodedPathRoute =
               _currentRideRequest!.driver_to_pickup_encoded_points!;
           lineWidth = 5;
@@ -1297,7 +1315,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
           _UIState = UI_STATE_DRIVER_CONFIRMED;
         } else if (hasTripStarted) {
-          pathColor = Color(0xff299bfb);
+          pathColor = Color(0xffDE0000);
           encodedPathRoute = _currentRideRequest!
               .actual_pickup_to_initial_dropoff_encoded_points!;
           lineWidth = 5;
@@ -1545,7 +1563,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _mapPolyLines = {
       Polyline(
         polylineId: PolylineId('route line id'),
-        color: Color(0xff299bfb),
+        color: Color(0xffDE0000),
         jointType: JointType.round,
         points: _POLYLINE_POINTS_DECODER
             .decodePolyline(_pickupToDropOffRouteDetail!.encodedPoints)
