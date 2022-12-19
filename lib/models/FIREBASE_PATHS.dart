@@ -24,6 +24,8 @@ class FIRESTORE_PATHS {
   static final SUB_COL_UPDATE_VERSION_DRIVERS = "sub_update_version_drivers";
 
   static final COL_OTP_REQUESTS = "otp_requests";
+
+  static final COL_REFERRAL_TRAVERSED_TREE = "referral_traversed_tree";
 }
 
 class FCM_MESSAGING_TOPICS {

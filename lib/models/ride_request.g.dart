@@ -8,6 +8,7 @@ part of 'ride_request.dart';
 
 RideRequest _$RideRequestFromJson(Map<String, dynamic> json) => RideRequest()
   ..client_triggered_event = json['client_triggered_event'] as bool?
+  ..order_source = json['order_source'] as int?
   ..ride_status = json['ride_status'] as int
   ..is_dev_test_order = json['is_dev_test_order'] as bool?
   ..is_available_active_order = json['is_available_active_order'] as bool?
@@ -73,6 +74,7 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) => RideRequest()
 Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
     <String, dynamic>{
       'client_triggered_event': instance.client_triggered_event,
+      'order_source': instance.order_source,
       'ride_status': instance.ride_status,
       'is_dev_test_order': instance.is_dev_test_order,
       'is_available_active_order': instance.is_available_active_order,
