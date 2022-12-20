@@ -61,3 +61,23 @@ Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'link_img_profile': instance.link_img_profile,
       'referral_activation_complete': instance.referral_activation_complete,
     };
+
+FlatAncestryNode _$FlatAncestryNodeFromJson(Map<String, dynamic> json) =>
+    FlatAncestryNode()
+      ..child_referral_code = json['child_referral_code'] as String?
+      ..child_id = json['child_id'] as String?
+      ..parent_referral_code = json['parent_referral_code'] as String?
+      ..parent_id = json['parent_id'] as String?
+      ..separation = json['separation'] as int?
+      ..date_referral =
+          FirebaseDocument.DateTimeFromJson(json['date_referral']);
+
+Map<String, dynamic> _$FlatAncestryNodeToJson(FlatAncestryNode instance) =>
+    <String, dynamic>{
+      'child_referral_code': instance.child_referral_code,
+      'child_id': instance.child_id,
+      'parent_referral_code': instance.parent_referral_code,
+      'parent_id': instance.parent_id,
+      'separation': instance.separation,
+      'date_referral': FirebaseDocument.DateTimeToJson(instance.date_referral),
+    };

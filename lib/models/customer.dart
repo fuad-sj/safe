@@ -230,3 +230,45 @@ class Customer extends FirebaseDocument {
         rightParity2 == parityBits[2];
   }
 }
+
+@JsonSerializable()
+class FlatAncestryNode extends FirebaseDocument {
+  static const FIELD_CHILD_REFERRAL_CODE = "child_referral_code";
+  static const FIELD_CHILD_ID = "child_id";
+  static const FIELD_CHILD_PHONE = "child_phone";
+  static const FIELD_PARENT_REFERRAL_CODE = "parent_referral_code";
+  static const FIELD_PARENT_ID = "parent_id";
+  static const FIELD_PARENT_PHONE = "parent_phone";
+  static const FIELD_SEPARATION = "separation";
+  static const FIELD_DATE_REFERRAL = "date_referral";
+
+  String? child_referral_code;
+  String? child_id;
+  //String? child_phone;
+  String? parent_referral_code;
+  String? parent_id;
+  //String? parent_phone;
+  int? separation;
+
+  @JsonKey(
+      fromJson: FirebaseDocument.DateTimeFromJson,
+      toJson: FirebaseDocument.DateTimeToJson)
+  DateTime? date_referral;
+
+  FlatAncestryNode();
+
+  factory FlatAncestryNode.fromSnapshot(
+      DocumentSnapshot<Map<String, dynamic>> snapshot) {
+    FlatAncestryNode node = FlatAncestryNode();
+
+    var json = snapshot.data();
+    if (json != null) {
+      node = _$FlatAncestryNodeFromJson(json);
+      node.documentID = snapshot.id;
+    }
+
+    return node;
+  }
+
+  Map<String, dynamic> toJson() => _$FlatAncestryNodeToJson(this);
+}
