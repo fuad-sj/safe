@@ -1,7 +1,14 @@
+import 'dart:async';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:safe/models/FIREBASE_PATHS.dart';
+import 'package:safe/models/customer.dart';
+import 'package:safe/models/referral_traversed_tree.dart';
+import 'package:safe/utils/pref_util.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'package:safe/controller/graphview/GraphView.dart';
 import 'dart:ui' as ui;
@@ -13,12 +20,28 @@ class PaymentScreen extends StatefulWidget {
   _PaymentScreenState createState() => _PaymentScreenState();
 }
 
+class NodePair {
+  SubTreeNode nodeInfo;
+  Node graphNode;
+
+  NodePair(this.nodeInfo, this.graphNode);
+}
+
 class _PaymentScreenState extends State<PaymentScreen> {
   final Graph graph = Graph();
+
+  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
+      _traversedTreeSubscription;
 
   SugiyamaConfiguration builder = SugiyamaConfiguration()
     ..bendPointShape = CurvedBendPointShape(curveLength: 20);
   late int bottomIndex;
+
+  ReferralTraversedTree? _traversedTree;
+
+  NodePair? _rootNode; // useful for resetting the graph
+  Map<String, NodePair> _mapNodes = Map();
+  Map<String, Set<String>> _eachNodeChildren = Map();
 
   void changeScreenPayment(int? index) {
     setState(() {
@@ -30,28 +53,94 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void initState() {
     super.initState();
     bottomIndex = 0;
-    final node1 = Node.Id(1);
-    final node2 = Node.Id(2);
-    final node3 = Node.Id(3);
-    final node4 = Node.Id(4);
-    final node5 = Node.Id(5);
-    final node6 = Node.Id(6);
-    final node8 = Node.Id(7);
-    final node7 = Node.Id(8);
-    final node9 = Node.Id(9);
 
-    graph.addEdge(node1, node2, paint: Paint()..color = Colors.red);
-    graph.addEdge(node1, node3);
-    graph.addEdge(node1, node4);
-    graph.addEdge(node2, node5);
-    graph.addEdge(node2, node6);
-    graph.addEdge(node3, node7);
-    graph.addEdge(node3, node8);
-    graph.addEdge(node5, node9);
     builder
       ..nodeSeparation = (15)
       ..levelSeparation = (15)
       ..orientation = SugiyamaConfiguration.ORIENTATION_TOP_BOTTOM;
+
+    subscribeToTreeTraversal();
+  }
+
+  @override
+  void didUpdateWidget(PaymentScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    subscribeToTreeTraversal();
+  }
+
+  void subscribeToTreeTraversal() async {
+    _traversedTreeSubscription?.cancel();
+    _traversedTreeSubscription = FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_REFERRAL_TRAVERSED_TREE)
+        .doc(PrefUtil.getCurrentUserID())
+        .snapshots()
+        .listen((snapshot) async {
+      _mapNodes.clear();
+      _eachNodeChildren.clear();
+
+      _traversedTree = ReferralTraversedTree.fromSnapshot(snapshot);
+      if (_traversedTree!.documentExists()) {
+        _traversedTree!.explored_nodes?.forEach((node) async {
+          NodePair nodePair = new NodePair(node, Node.Id(node.node_id));
+          _mapNodes[node.node_id] = nodePair;
+          await loadUpdatedNodeInfoFromDb(node.node_id);
+        });
+      }
+
+      if (_rootNode != null) {
+        graph.removeNode(_rootNode!.graphNode);
+      }
+      _rootNode = await loadUpdatedNodeInfoFromDb(PrefUtil.getCurrentUserID());
+
+      graph.addNode(_rootNode!.graphNode);
+
+      _traversedTree!.explored_links?.forEach((link) {
+        NodePair startNode = _mapNodes[link.start_node]!;
+        NodePair endNode = _mapNodes[link.end_node]!;
+
+        graph.addEdge(startNode.graphNode, endNode.graphNode);
+
+        if (!_eachNodeChildren.containsKey(link.start_node)) {
+          _eachNodeChildren[link.start_node] = new Set();
+        }
+
+        _eachNodeChildren[link.start_node]!.add(link.end_node);
+      });
+
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  Future<NodePair?> loadUpdatedNodeInfoFromDb(String nodeId) async {
+    Customer customer = Customer.fromSnapshot(await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+        .doc("" + nodeId)
+        .get());
+    if (!customer.documentExists()) return null;
+
+    if (_mapNodes.containsKey(nodeId)) {
+      NodePair pair = _mapNodes[nodeId]!;
+      SubTreeNode subNode = pair.nodeInfo;
+      subNode.updated_num_children = customer.num_children_under_node ?? 0;
+      return pair;
+    } else {
+      SubTreeNode subNode = new SubTreeNode(nodeId, customer.user_name!,
+          customer.phone_number!, 0, customer.num_children_under_node ?? 0);
+      NodePair nodePair = new NodePair(subNode, Node.Id(subNode.node_id));
+      _mapNodes[nodeId] = nodePair;
+
+      return nodePair;
+    }
+  }
+
+  @override
+  void dispose() {
+    _traversedTreeSubscription?.cancel();
+
+    super.dispose();
   }
 
   List<_SalesData> data = [
@@ -486,9 +575,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           ),
                         ),
                         SfCartesianChart(
-                          primaryXAxis: CategoryAxis(
-                            opposedPosition: false
-                          ),
+                          primaryXAxis: CategoryAxis(opposedPosition: false),
                           legend: Legend(isVisible: false),
                           enableAxisAnimation: true,
                           tooltipBehavior: TooltipBehavior(enable: true),
@@ -553,26 +640,26 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   )
                 : Container(),
           ),
-          Expanded(
-            child: InteractiveViewer(
-                constrained: false,
-                boundaryMargin: EdgeInsets.all(100),
-                minScale: 0.0002,
-                maxScale: 10.6,
-                child: GraphView(
-                  graph: graph,
-                  algorithm: SugiyamaAlgorithm(builder),
-                  paint: Paint()
-                    ..color = Colors.green
-                    ..strokeWidth = 1
-                    ..style = PaintingStyle.stroke,
-                  builder: (Node node) {
-                    // I can decide what widget should be shown here based on the id
-                    var a = node.key!.value as int?;
-                    return rectangleWidget(a);
-                  },
-                )),
-          ),
+          if (_mapNodes.isNotEmpty) ...[
+            Expanded(
+              child: InteractiveViewer(
+                  constrained: false,
+                  boundaryMargin: EdgeInsets.all(100),
+                  minScale: 0.0002,
+                  maxScale: 100.6,
+                  child: GraphView(
+                    graph: graph,
+                    algorithm: SugiyamaAlgorithm(builder),
+                    paint: Paint()
+                      ..color = Colors.green
+                      ..strokeWidth = 1
+                      ..style = PaintingStyle.stroke,
+                    builder: (Node node) {
+                      return nodeWidget(node.key!.value as String);
+                    },
+                  )),
+            ),
+          ],
         ],
       ),
       bottomNavigationBar: Container(
@@ -625,20 +712,77 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Random r = Random();
+  Widget nodeWidget(String node_id) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        loadNodeChildren(node_id);
+      },
+      child: Container(
+          width: 100,
+          height: 50,
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(25),
+            boxShadow: [
+              BoxShadow(color: Colors.blue[100]!, spreadRadius: 1),
+            ],
+          ),
+          child: Text('${node_id}')),
+    );
+  }
 
-  Widget rectangleWidget(int? a) {
-    return Container(
-        width: 100,
-        height: 50,
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
-          boxShadow: [
-            BoxShadow(color: Colors.blue[100]!, spreadRadius: 1),
-          ],
-        ),
-        child: Text('Node ${a}'));
+  Future<void> loadNodeChildren(String node_id) async {
+    if (_traversedTree ==
+        null) // we can't continue without actually having loaded the initial tree
+      return;
+
+    var directChildrenSnapshot = await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_FLAT_REFERRAL_TREE)
+        .where(FlatAncestryNode.FIELD_PARENT_ID, isEqualTo: node_id)
+        .where(FlatAncestryNode.FIELD_SEPARATION, isEqualTo: 0)
+        .get();
+
+    if (directChildrenSnapshot.docs.isEmpty) {
+      return;
+    }
+
+    bool updateTraversalTree = false;
+
+    if (!_traversedTree!.documentExists()) {
+      _traversedTree = (new ReferralTraversedTree())
+        ..explored_links = []
+        ..explored_nodes = [];
+      updateTraversalTree = true;
+    }
+
+    if (!_eachNodeChildren.containsKey(node_id)) {
+      _eachNodeChildren[node_id] = new Set();
+    }
+
+    directChildrenSnapshot.docs.forEach((snapshot) {
+      FlatAncestryNode fNode = FlatAncestryNode.fromSnapshot(snapshot);
+
+      // if we've already seen this child, don't do anything
+      if (_eachNodeChildren[node_id]!.contains(fNode.child_id!)) {
+        return;
+      }
+
+      SubTreeNode node = SubTreeNode(fNode.child_id!, "", '', 0, 0);
+      SubTreeLink link = SubTreeLink(node_id, fNode.child_id!);
+
+      _traversedTree!.explored_nodes!.add(node);
+      _traversedTree!.explored_links!.add(link);
+
+      updateTraversalTree = true;
+    });
+
+    if (updateTraversalTree) {
+      await FirebaseFirestore.instance
+          .collection(FIRESTORE_PATHS.COL_REFERRAL_TRAVERSED_TREE)
+          .doc(PrefUtil.getCurrentUserID())
+          .set(_traversedTree!.toJson(), SetOptions(merge: true));
+    }
   }
 }
 
