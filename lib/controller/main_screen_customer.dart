@@ -791,7 +791,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => CustomerProfileScreen()),
+                                builder: (context) => CustomerProfileScreenNew()),
                           );
                           _currentCustomer = Customer.fromSnapshot(
                             await FirebaseFirestore.instance

@@ -198,8 +198,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             child: Container(
                               width: MediaQuery.of(context).size.width * 0.8,
                               decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                  color: Color(0xffE1E0DF)),
+                                borderRadius: BorderRadius.circular(15.0),
+                                color: Color(0xffE1E0DF),
+                              ),
                               child: TextFormField(
                                 style: TextStyle(color: Colors.black),
                                 // keyboardType: TextInputType.text,
@@ -245,9 +246,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     activeColor: Color(0xffDE0000),
                                     groupValue: _character,
                                     onChanged: (Gender? value) {
-                                      setState(() {
-                                        _character = value!;
-                                      });
+                                      setState(
+                                        () {
+                                          _character = value!;
+                                        },
+                                      );
                                     },
                                   ),
                                 ),
@@ -294,52 +297,50 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             ),
                           ),
                           Container(
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(
-                                      child: Container(
-                                          width: MediaQuery.of(context)
-                                                  .size
-                                                  .width *
-                                              0.35,
-                                          height: MediaQuery.of(context)
-                                                  .size
-                                                  .height *
-                                              0.042,
-                                          child: IgnorePointer(
-                                            ignoring: !_enableRegisterBtn,
-                                            child: RoundedLoadingButton(
-                                              child: Text('Sign Up',
-                                                  style: TextStyle(
-                                                      color: Colors.white)),
-                                              controller:
-                                                  _CustomerLoadingBtnController,
-                                              onPressed: () {
-                                                if (_enableRegisterBtn) {
-                                                  registerNewUser(context);
-                                                } else if (_profileImage ==
-                                                        null ||
-                                                    _profileFile == null) {
-                                                  displayToastMessage(
-                                                      SafeLocalizations.of(
-                                                              context)!
-                                                          .registration_customer_profile_image_needed,
-                                                      context);
-                                                }
-                                              },
-                                              color: _enableRegisterBtn
-                                                  ? Color(0xffDD0000)
-                                                  : Color(0xff990000),
-                                            ),
-                                          ))),
-                                  Expanded(
-                                      child: Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.35,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.042,
+                                    child: IgnorePointer(
+                                      ignoring: !_enableRegisterBtn,
+                                      child: RoundedLoadingButton(
+                                        child: Text('Sign Up',
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                        controller:
+                                            _CustomerLoadingBtnController,
+                                        onPressed: () {
+                                          if (_enableRegisterBtn) {
+                                            registerNewUser(context);
+                                          } else if (_profileImage == null ||
+                                              _profileFile == null) {
+                                            displayToastMessage(
+                                                SafeLocalizations.of(context)!
+                                                    .registration_customer_profile_image_needed,
+                                                context);
+                                          }
+                                        },
+                                        color: _enableRegisterBtn
+                                            ? Color(0xffDD0000)
+                                            : Color(0xff990000),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
                                     width: MediaQuery.of(context).size.width *
                                         0.45,
-                                  )),
-                                ],
-                              ))
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),

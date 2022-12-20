@@ -54,7 +54,7 @@ class MainApp extends StatelessWidget {
             RegistrationScreen.idScreen: (_) => RegistrationScreen(),
             LoginPage.idScreen: (_) => LoginPage(),
             MainScreenCustomer.idScreen: (_) => MainScreenCustomer(),
-            CustomerProfileScreen.idScreen: (_) => CustomerProfileScreen(),
+            CustomerProfileScreenNew.idScreen: (_) => CustomerProfileScreenNew(),
           },
           debugShowCheckedModeBanner: false,
         );
