@@ -15,6 +15,7 @@ Driver _$DriverFromJson(Map<String, dynamic> json) => Driver()
   ..gender = json['gender'] as int?
   ..email = json['email'] as String?
   ..version_number = json['version_number'] as String?
+  ..num_children_under_node = json['num_children_under_node'] as int?
   ..datetime_version_date =
       FirebaseDocument.DateTimeFromJson(json['datetime_version_date'])
   ..last_checked_version_number = json['last_checked_version_number'] as String?
@@ -73,6 +74,7 @@ Map<String, dynamic> _$DriverToJson(Driver instance) => <String, dynamic>{
       'gender': instance.gender,
       'email': instance.email,
       'version_number': instance.version_number,
+      'num_children_under_node': instance.num_children_under_node,
       'datetime_version_date':
           FirebaseDocument.DateTimeToJson(instance.datetime_version_date),
       'last_checked_version_number': instance.last_checked_version_number,

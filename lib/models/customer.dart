@@ -20,6 +20,8 @@ class Customer extends FirebaseDocument {
 
   static const FIELD_VERSION_NUMBER = 'version_number';
 
+  static const FIELD_NUM_CHILDREN_UNDER_NODE = 'num_children_under_node';
+
   static const FIELD_DATETIME_VERSION_DATE = 'datetime_version_date';
 
   static const FIELD_LAST_CHECKED_VERSION_NUMBER =
@@ -55,6 +57,8 @@ class Customer extends FirebaseDocument {
   String? email;
 
   String? version_number;
+
+  int? num_children_under_node;
 
   @JsonKey(
       fromJson: FirebaseDocument.DateTimeFromJson,
