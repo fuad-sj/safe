@@ -8,8 +8,6 @@ part 'referral_traversed_tree.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class ReferralTraversedTree extends FirebaseDocument {
-  SubTreeNode? root_node;
-
   List<SubTreeNode>? explored_nodes;
 
   List<SubTreeLink>? explored_links;

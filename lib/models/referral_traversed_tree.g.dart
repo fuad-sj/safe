@@ -9,9 +9,6 @@ part of 'referral_traversed_tree.dart';
 ReferralTraversedTree _$ReferralTraversedTreeFromJson(
         Map<String, dynamic> json) =>
     ReferralTraversedTree()
-      ..root_node = json['root_node'] == null
-          ? null
-          : SubTreeNode.fromJson(json['root_node'] as Map<String, dynamic>)
       ..explored_nodes = (json['explored_nodes'] as List<dynamic>?)
           ?.map((e) => SubTreeNode.fromJson(e as Map<String, dynamic>))
           .toList()
@@ -24,7 +21,6 @@ ReferralTraversedTree _$ReferralTraversedTreeFromJson(
 Map<String, dynamic> _$ReferralTraversedTreeToJson(
         ReferralTraversedTree instance) =>
     <String, dynamic>{
-      'root_node': instance.root_node?.toJson(),
       'explored_nodes':
           instance.explored_nodes?.map((e) => e.toJson()).toList(),
       'explored_links':
