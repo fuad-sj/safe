@@ -41,6 +41,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Map<String, Set<String>> _nodeDirectChildren = Map();
   Set<String> _nodesNeedingReloadingChildren = Set();
   bool graphLoadFinished = false;
+  Map<String, NodePair> _removedNodes = Map();
 
   void changeScreenPayment(int? index) {
     setState(() {
@@ -67,10 +68,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         .collection(FIRESTORE_PATHS.COL_REFERRAL_TRAVERSED_TREE)
         .doc(PrefUtil.getCurrentUserID())
         .get());
-
-    _mapNodes.clear();
-    _nodeDirectChildren.clear();
-    _nodesNeedingReloadingChildren.clear();
 
     if (_traversedTree!.documentExists()) {
       int len = (_traversedTree!.explored_nodes ?? []).length;
@@ -125,7 +122,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
 
     for (final nodeId in _nodesNeedingReloadingChildren) {
-      await loadNodeDirectChildren(nodeId);
+      await loadNodeDirectChildren(nodeId, false);
     }
 
     graphLoadFinished = true;
@@ -768,7 +765,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        await loadNodeDirectChildren(node_id);
+        await loadNodeDirectChildren(node_id, true);
         setState(() {});
       },
       child: Container(
@@ -785,7 +782,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Future<void> loadNodeDirectChildren(String parentId) async {
+  void removeSubTreeNode(String nodeId, bool removeSelf) {
+    // hack to remove ids from a map after iterating through them
+    // https://stackoverflow.com/a/22410848
+    var toRemoveId = [];
+    _nodeDirectChildren[nodeId]?.forEach((childId) {
+      removeSubTreeNode(childId, true);
+      toRemoveId.add(childId);
+    });
+
+    _nodeDirectChildren[nodeId]?.removeWhere((e) => toRemoveId.contains(e));
+
+    if (!removeSelf) return;
+
+    NodePair node = _mapNodes[nodeId]!;
+    graph.removeNode(node.graphNode);
+    _removedNodes[nodeId] = node;
+    _traversedTree!.explored_nodes!
+        .removeWhere((elem) => elem.node_id == nodeId);
+    _traversedTree!.explored_links!.removeWhere(
+        (link) => (link.start_node == nodeId) || (link.end_node == nodeId));
+  }
+
+  Future<void> loadNodeDirectChildren(
+      String parentId, bool clickInitiatedLoad) async {
     if (_traversedTree == null ||
         _rootNodeInfo ==
             null) // we can't continue without actually having loaded the initial tree
@@ -805,25 +825,32 @@ class _PaymentScreenState extends State<PaymentScreen> {
       _nodeDirectChildren[parentId] = new Set();
     }
 
-    for (final snapshot in directChildrenSnapshot.docs) {
-      FlatAncestryNode fNode = FlatAncestryNode.fromSnapshot(snapshot);
+    // user is clicking again a node that has already been fully expanded
+    if (clickInitiatedLoad &&
+        (directChildrenSnapshot.docs.length ==
+            _nodeDirectChildren[parentId]!.length)) {
+      removeSubTreeNode(parentId, false);
+    } else {
+      for (final snapshot in directChildrenSnapshot.docs) {
+        FlatAncestryNode fNode = FlatAncestryNode.fromSnapshot(snapshot);
 
-      // if we've already seen this child, don't do anything
-      if (_nodeDirectChildren[parentId]!.contains(fNode.child_id!)) {
-        continue;
-      }
-      _nodeDirectChildren[parentId]!.add(fNode.child_id!);
+        // if we've already seen this child, don't do anything
+        if (_nodeDirectChildren[parentId]!.contains(fNode.child_id!)) {
+          continue;
+        }
+        _nodeDirectChildren[parentId]!.add(fNode.child_id!);
 
-      NodePair? nodeInfo = await loadUpdatedNodeInfo(null, fNode.child_id!);
-      if (nodeInfo != null) {
-        _traversedTree!.explored_nodes!.add(nodeInfo.treeNode);
-        _traversedTree!.explored_links!
-            .add(SubTreeLink(parentId, fNode.child_id!));
+        NodePair? nodeInfo = await loadUpdatedNodeInfo(null, fNode.child_id!);
+        if (nodeInfo != null) {
+          _traversedTree!.explored_nodes!.add(nodeInfo.treeNode);
+          _traversedTree!.explored_links!
+              .add(SubTreeLink(parentId, fNode.child_id!));
 
-        Node source = _mapNodes[parentId]!.graphNode;
-        Node dest = nodeInfo.graphNode;
+          Node source = _mapNodes[parentId]!.graphNode;
+          Node dest = nodeInfo.graphNode;
 
-        graph.addEdge(source, dest);
+          graph.addEdge(source, dest);
+        }
       }
     }
   }

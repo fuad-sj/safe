@@ -8,6 +8,7 @@ class Graph {
   List<Node> get nodes => _nodes; //  List<Node> nodes = _nodes;
   List<Edge> get edges => _edges;
 
+  //var isTree = true;
   var isTree = false;
 
   int nodeCount() => _nodes.length;
@@ -36,6 +37,9 @@ class Graph {
 
     notifyGraphObserver();
   }
+  List<Node> successorsOf(Node? node) => getOutEdges(node!).map((e) => e.destination).toList();
+
+  List<Edge> getOutEdges(Node node) => _edges.where((element) => element.source == node).toList();
 
   void removeNodes(List<Node> nodes) => nodes.forEach((it) => removeNode(it));
 
@@ -88,7 +92,6 @@ class Graph {
 
   bool hasSuccessor(Node? node) => _edges.any((element) => element.source == node);
 
-  List<Node> successorsOf(Node? node) => getOutEdges(node!).map((e) => e.destination).toList();
 
   bool hasPredecessor(Node node) => _edges.any((element) => element.destination == node);
 
@@ -121,7 +124,6 @@ class Graph {
 
   Node getNodeUsingId(dynamic id) => _nodes.firstWhere((element) => element.key == ValueKey(id));
 
-  List<Edge> getOutEdges(Node node) => _edges.where((element) => element.source == node).toList();
 
   List<Edge> getInEdges(Node node) => _edges.where((element) => element.destination == node).toList();
 
