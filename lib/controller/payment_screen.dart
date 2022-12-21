@@ -21,17 +21,14 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class NodePair {
-  SubTreeNode nodeInfo;
+  SubTreeNode treeNode;
   Node graphNode;
 
-  NodePair(this.nodeInfo, this.graphNode);
+  NodePair(this.treeNode, this.graphNode);
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
   final Graph graph = Graph();
-
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
-      _traversedTreeSubscription;
 
   SugiyamaConfiguration builder = SugiyamaConfiguration()
     ..bendPointShape = CurvedBendPointShape(curveLength: 20);
@@ -39,9 +36,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   ReferralTraversedTree? _traversedTree;
 
-  NodePair? _rootNode; // useful for resetting the graph
+  NodePair? _rootNodeInfo = null; // useful for resetting the graph
   Map<String, NodePair> _mapNodes = Map();
-  Map<String, Set<String>> _eachNodeChildren = Map();
+  Map<String, Set<String>> _nodeDirectChildren = Map();
+  Set<String> _nodesNeedingReloadingChildren = Set();
+  bool graphLoadFinished = false;
 
   void changeScreenPayment(int? index) {
     setState(() {
@@ -59,87 +58,140 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ..levelSeparation = (15)
       ..orientation = SugiyamaConfiguration.ORIENTATION_TOP_BOTTOM;
 
-    subscribeToTreeTraversal();
+    loadTraversedTreeCache();
   }
 
-  @override
-  void didUpdateWidget(PaymentScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    subscribeToTreeTraversal();
-  }
-
-  void subscribeToTreeTraversal() async {
-    _traversedTreeSubscription?.cancel();
-    _traversedTreeSubscription = FirebaseFirestore.instance
+  Future<void> loadTraversedTreeCache() async {
+    _traversedTree = ReferralTraversedTree.fromSnapshot(await FirebaseFirestore
+        .instance
         .collection(FIRESTORE_PATHS.COL_REFERRAL_TRAVERSED_TREE)
         .doc(PrefUtil.getCurrentUserID())
-        .snapshots()
-        .listen((snapshot) async {
-      _mapNodes.clear();
-      _eachNodeChildren.clear();
+        .get());
 
-      _traversedTree = ReferralTraversedTree.fromSnapshot(snapshot);
-      if (_traversedTree!.documentExists()) {
-        _traversedTree!.explored_nodes?.forEach((node) async {
-          NodePair nodePair = new NodePair(node, Node.Id(node.node_id));
-          _mapNodes[node.node_id] = nodePair;
-          await loadUpdatedNodeInfoFromDb(node.node_id);
-        });
-      }
+    _mapNodes.clear();
+    _nodeDirectChildren.clear();
+    _nodesNeedingReloadingChildren.clear();
 
-      if (_rootNode != null) {
-        graph.removeNode(_rootNode!.graphNode);
-      }
-      _rootNode = await loadUpdatedNodeInfoFromDb(PrefUtil.getCurrentUserID());
+    if (_traversedTree!.documentExists()) {
+      int len = (_traversedTree!.explored_nodes ?? []).length;
+      for (int i = 0; i < len; i++) {
+        SubTreeNode node = _traversedTree!.explored_nodes![i];
+        NodePair? updatedNodeInfo =
+            await loadUpdatedNodeInfo(node, node.node_id);
+        if (updatedNodeInfo == null) {
+          return;
+        }
+        _traversedTree!.explored_nodes![i] = updatedNodeInfo.treeNode;
 
-      graph.addNode(_rootNode!.graphNode);
-
-      _traversedTree!.explored_links?.forEach((link) {
-        NodePair startNode = _mapNodes[link.start_node]!;
-        NodePair endNode = _mapNodes[link.end_node]!;
-
-        graph.addEdge(startNode.graphNode, endNode.graphNode);
-
-        if (!_eachNodeChildren.containsKey(link.start_node)) {
-          _eachNodeChildren[link.start_node] = new Set();
+        _mapNodes[node.node_id] = updatedNodeInfo;
+        if (_rootNodeInfo == null) {
+          _rootNodeInfo = updatedNodeInfo;
         }
 
-        _eachNodeChildren[link.start_node]!.add(link.end_node);
-      });
-
-      if (mounted) {
-        setState(() {});
+        SubTreeNode treeNode = updatedNodeInfo.treeNode;
+        // if the # of direct-children at the node has changed, load its children
+        if (treeNode.last_cached_num_direct_children !=
+            treeNode.updated_num_direct_children) {
+          _nodesNeedingReloadingChildren.add(treeNode.node_id);
+        }
       }
+    } else {
+      // create a new traversal node if one doesn't exist, and put root node as the first node of list
+      _traversedTree = (new ReferralTraversedTree())
+        ..explored_links = []
+        ..explored_nodes = [];
+
+      _rootNodeInfo =
+          await loadUpdatedNodeInfo(null, PrefUtil.getCurrentUserID());
+      if (_rootNodeInfo == null) {
+        return; // if we can't have a root node, don't bother
+      }
+      _traversedTree!.explored_nodes!.add(_rootNodeInfo!.treeNode);
+    }
+
+    graph.addNode(_rootNodeInfo!.graphNode);
+
+    _traversedTree!.explored_links?.forEach((link) {
+      NodePair startNode = _mapNodes[link.start_node]!;
+      NodePair endNode = _mapNodes[link.end_node]!;
+
+      graph.addEdge(startNode.graphNode, endNode.graphNode);
+
+      if (!_nodeDirectChildren.containsKey(link.start_node)) {
+        _nodeDirectChildren[link.start_node] = new Set();
+      }
+
+      _nodeDirectChildren[link.start_node]!.add(link.end_node);
     });
+
+    for (final nodeId in _nodesNeedingReloadingChildren) {
+      await loadNodeDirectChildren(nodeId);
+    }
+
+    graphLoadFinished = true;
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
-  Future<NodePair?> loadUpdatedNodeInfoFromDb(String nodeId) async {
+  Future<NodePair?> loadUpdatedNodeInfo(
+      SubTreeNode? prevInfo, String nodeId) async {
     Customer customer = Customer.fromSnapshot(await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
         .doc("" + nodeId)
         .get());
     if (!customer.documentExists()) return null;
 
-    if (_mapNodes.containsKey(nodeId)) {
-      NodePair pair = _mapNodes[nodeId]!;
-      SubTreeNode subNode = pair.nodeInfo;
-      subNode.updated_num_children = customer.num_children_under_node ?? 0;
-      return pair;
-    } else {
-      SubTreeNode subNode = new SubTreeNode(nodeId, customer.user_name!,
-          customer.phone_number!, 0, customer.num_children_under_node ?? 0);
-      NodePair nodePair = new NodePair(subNode, Node.Id(subNode.node_id));
-      _mapNodes[nodeId] = nodePair;
+    NodePair? nodePair;
 
-      return nodePair;
+    if (_mapNodes.containsKey(nodeId)) {
+      nodePair = _mapNodes[nodeId]!;
+    } else {
+      nodePair = new NodePair(new SubTreeNode(nodeId), Node.Id(nodeId));
+      _mapNodes[nodeId] = nodePair;
     }
+
+    SubTreeNode subNode = nodePair.treeNode;
+    subNode.updated_num_direct_children = customer.num_direct_children ?? 0;
+    subNode.updated_num_total_children = customer.num_total_children ?? 0;
+
+    if (prevInfo != null) {
+      subNode.last_cached_num_direct_children =
+          prevInfo.last_cached_num_direct_children;
+      subNode.last_cached_num_total_children =
+          prevInfo.last_cached_num_total_children;
+    }
+
+    return nodePair;
+  }
+
+  Future<void> saveTraversedTreeInfo() async {
+    // nothing to do if we don't have a tree
+    if (_traversedTree == null ||
+        (_traversedTree?.explored_nodes ?? []).length == 0) return;
+
+    _traversedTree!.explored_nodes!.forEach((node) {
+      node.last_cached_num_direct_children =
+          node.updated_num_direct_children ?? 0;
+      node.last_cached_num_total_children =
+          node.updated_num_total_children ?? 0;
+
+      node.updated_num_direct_children = null;
+      node.updated_num_total_children = null;
+    });
+
+    await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_REFERRAL_TRAVERSED_TREE)
+        .doc(PrefUtil.getCurrentUserID())
+        .set(_traversedTree!.toJson(), SetOptions(merge: true));
   }
 
   @override
   void dispose() {
-    _traversedTreeSubscription?.cancel();
-
+    Future.delayed(Duration.zero, () async {
+      await saveTraversedTreeInfo();
+    });
     super.dispose();
   }
 
@@ -640,7 +692,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   )
                 : Container(),
           ),
-          if (_mapNodes.isNotEmpty) ...[
+          if (graphLoadFinished) ...[
             Expanded(
               child: InteractiveViewer(
                   constrained: false,
@@ -715,8 +767,9 @@ class _PaymentScreenState extends State<PaymentScreen> {
   Widget nodeWidget(String node_id) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
-        loadNodeChildren(node_id);
+      onTap: () async {
+        await loadNodeDirectChildren(node_id);
+        setState(() {});
       },
       child: Container(
           width: 100,
@@ -732,14 +785,15 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Future<void> loadNodeChildren(String node_id) async {
-    if (_traversedTree ==
-        null) // we can't continue without actually having loaded the initial tree
+  Future<void> loadNodeDirectChildren(String parentId) async {
+    if (_traversedTree == null ||
+        _rootNodeInfo ==
+            null) // we can't continue without actually having loaded the initial tree
       return;
 
     var directChildrenSnapshot = await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_FLAT_REFERRAL_TREE)
-        .where(FlatAncestryNode.FIELD_PARENT_ID, isEqualTo: node_id)
+        .where(FlatAncestryNode.FIELD_PARENT_ID, isEqualTo: parentId)
         .where(FlatAncestryNode.FIELD_SEPARATION, isEqualTo: 0)
         .get();
 
@@ -747,41 +801,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
       return;
     }
 
-    bool updateTraversalTree = false;
-
-    if (!_traversedTree!.documentExists()) {
-      _traversedTree = (new ReferralTraversedTree())
-        ..explored_links = []
-        ..explored_nodes = [];
-      updateTraversalTree = true;
+    if (!_nodeDirectChildren.containsKey(parentId)) {
+      _nodeDirectChildren[parentId] = new Set();
     }
 
-    if (!_eachNodeChildren.containsKey(node_id)) {
-      _eachNodeChildren[node_id] = new Set();
-    }
-
-    directChildrenSnapshot.docs.forEach((snapshot) {
+    for (final snapshot in directChildrenSnapshot.docs) {
       FlatAncestryNode fNode = FlatAncestryNode.fromSnapshot(snapshot);
 
       // if we've already seen this child, don't do anything
-      if (_eachNodeChildren[node_id]!.contains(fNode.child_id!)) {
-        return;
+      if (_nodeDirectChildren[parentId]!.contains(fNode.child_id!)) {
+        continue;
       }
+      _nodeDirectChildren[parentId]!.add(fNode.child_id!);
 
-      SubTreeNode node = SubTreeNode(fNode.child_id!, "", '', 0, 0);
-      SubTreeLink link = SubTreeLink(node_id, fNode.child_id!);
+      NodePair? nodeInfo = await loadUpdatedNodeInfo(null, fNode.child_id!);
+      if (nodeInfo != null) {
+        _traversedTree!.explored_nodes!.add(nodeInfo.treeNode);
+        _traversedTree!.explored_links!
+            .add(SubTreeLink(parentId, fNode.child_id!));
 
-      _traversedTree!.explored_nodes!.add(node);
-      _traversedTree!.explored_links!.add(link);
+        Node source = _mapNodes[parentId]!.graphNode;
+        Node dest = nodeInfo.graphNode;
 
-      updateTraversalTree = true;
-    });
-
-    if (updateTraversalTree) {
-      await FirebaseFirestore.instance
-          .collection(FIRESTORE_PATHS.COL_REFERRAL_TRAVERSED_TREE)
-          .doc(PrefUtil.getCurrentUserID())
-          .set(_traversedTree!.toJson(), SetOptions(merge: true));
+        graph.addEdge(source, dest);
+      }
     }
   }
 }

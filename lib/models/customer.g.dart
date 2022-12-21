@@ -15,7 +15,8 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
   ..gender = json['gender'] as int?
   ..email = json['email'] as String?
   ..version_number = json['version_number'] as String?
-  ..num_children_under_node = json['num_children_under_node'] as int?
+  ..num_direct_children = json['num_direct_children'] as int?
+  ..num_total_children = json['num_total_children'] as int?
   ..datetime_version_date =
       FirebaseDocument.DateTimeFromJson(json['datetime_version_date'])
   ..last_checked_version_number = json['last_checked_version_number'] as String?
@@ -44,7 +45,8 @@ Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'gender': instance.gender,
       'email': instance.email,
       'version_number': instance.version_number,
-      'num_children_under_node': instance.num_children_under_node,
+      'num_direct_children': instance.num_direct_children,
+      'num_total_children': instance.num_total_children,
       'datetime_version_date':
           FirebaseDocument.DateTimeToJson(instance.datetime_version_date),
       'last_checked_version_number': instance.last_checked_version_number,

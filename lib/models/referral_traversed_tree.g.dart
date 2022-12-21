@@ -31,19 +31,23 @@ Map<String, dynamic> _$ReferralTraversedTreeToJson(
 
 SubTreeNode _$SubTreeNodeFromJson(Map<String, dynamic> json) => SubTreeNode(
       json['node_id'] as String,
-      json['name'] as String,
-      json['phone_number'] as String,
-      json['last_seen_num_children'] as int,
-      json['updated_num_children'] as int,
-    );
+    )
+      ..last_cached_num_direct_children =
+          json['last_cached_num_direct_children'] as int?
+      ..last_cached_num_total_children =
+          json['last_cached_num_total_children'] as int?
+      ..updated_num_direct_children =
+          json['updated_num_direct_children'] as int?
+      ..updated_num_total_children = json['updated_num_total_children'] as int?;
 
 Map<String, dynamic> _$SubTreeNodeToJson(SubTreeNode instance) =>
     <String, dynamic>{
       'node_id': instance.node_id,
-      'name': instance.name,
-      'phone_number': instance.phone_number,
-      'last_seen_num_children': instance.last_seen_num_children,
-      'updated_num_children': instance.updated_num_children,
+      'last_cached_num_direct_children':
+          instance.last_cached_num_direct_children,
+      'last_cached_num_total_children': instance.last_cached_num_total_children,
+      'updated_num_direct_children': instance.updated_num_direct_children,
+      'updated_num_total_children': instance.updated_num_total_children,
     };
 
 SubTreeLink _$SubTreeLinkFromJson(Map<String, dynamic> json) => SubTreeLink(

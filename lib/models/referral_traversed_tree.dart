@@ -8,6 +8,7 @@ part 'referral_traversed_tree.g.dart';
 
 @JsonSerializable(explicitToJson: true)
 class ReferralTraversedTree extends FirebaseDocument {
+  // the root node is the 0-indexed node
   List<SubTreeNode>? explored_nodes;
 
   List<SubTreeLink>? explored_links;
@@ -38,19 +39,31 @@ class ReferralTraversedTree extends FirebaseDocument {
 @JsonSerializable()
 class SubTreeNode {
   String node_id;
+  /*
   String name;
   String phone_number;
+   */
 
-  int last_seen_num_children;
-  int updated_num_children;
+  // the cached values are from db
+  int? last_cached_num_direct_children;
+  int? last_cached_num_total_children;
 
+  // the updated ones are the new ones, not from db. they're basically memory
+  int? updated_num_direct_children;
+  int? updated_num_total_children;
+
+  /*
   SubTreeNode(String node_id, String name, String phone_number,
-      int last_seen_num_children, int updated_num_children)
+      int last_cached_num_direct_children, int last_cached_num_total_children)
       : node_id = node_id,
         name = name,
         phone_number = phone_number,
-        last_seen_num_children = last_seen_num_children,
-        updated_num_children = updated_num_children;
+        last_cached_num_direct_children = last_cached_num_direct_children,
+        last_cached_num_total_children = last_cached_num_total_children;
+  */
+
+  SubTreeNode(String node_id)
+      : node_id = node_id;
 
   static SubTreeNode fromJson(Map<String, dynamic> json) =>
       _$SubTreeNodeFromJson(json);

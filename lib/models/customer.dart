@@ -20,6 +20,9 @@ class Customer extends FirebaseDocument {
 
   static const FIELD_VERSION_NUMBER = 'version_number';
 
+  static const FIELD_NUM_DIRECT_CHILDREN = 'num_direct_children';
+  static const FIELD_NUM_TOTAL_CHILDREN = 'num_total_children';
+
   static const FIELD_NUM_CHILDREN_UNDER_NODE = 'num_children_under_node';
 
   static const FIELD_DATETIME_VERSION_DATE = 'datetime_version_date';
@@ -58,7 +61,8 @@ class Customer extends FirebaseDocument {
 
   String? version_number;
 
-  int? num_children_under_node;
+  int? num_direct_children;
+  int? num_total_children;
 
   @JsonKey(
       fromJson: FirebaseDocument.DateTimeFromJson,
@@ -235,19 +239,15 @@ class Customer extends FirebaseDocument {
 class FlatAncestryNode extends FirebaseDocument {
   static const FIELD_CHILD_REFERRAL_CODE = "child_referral_code";
   static const FIELD_CHILD_ID = "child_id";
-  static const FIELD_CHILD_PHONE = "child_phone";
   static const FIELD_PARENT_REFERRAL_CODE = "parent_referral_code";
   static const FIELD_PARENT_ID = "parent_id";
-  static const FIELD_PARENT_PHONE = "parent_phone";
   static const FIELD_SEPARATION = "separation";
   static const FIELD_DATE_REFERRAL = "date_referral";
 
   String? child_referral_code;
   String? child_id;
-  //String? child_phone;
   String? parent_referral_code;
   String? parent_id;
-  //String? parent_phone;
   int? separation;
 
   @JsonKey(
