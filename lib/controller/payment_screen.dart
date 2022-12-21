@@ -762,6 +762,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Widget nodeWidget(String node_id) {
+    NodePair nodePair = _mapNodes[node_id]!;
+
+    bool didTotalChildrenChange =
+        nodePair.treeNode.updated_num_total_children !=
+            nodePair.treeNode.last_cached_num_total_children;
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
@@ -775,10 +781,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
             boxShadow: [
-              BoxShadow(color: Colors.blue[100]!, spreadRadius: 1),
+              BoxShadow(
+                  color: didTotalChildrenChange
+                      ? Colors.red[100]!
+                      : Colors.blue[100]!,
+                  spreadRadius: 1),
             ],
           ),
-          child: Text('${node_id}')),
+          child: Text('${nodePair.treeNode.updated_num_total_children}')),
     );
   }
 
@@ -840,7 +850,13 @@ class _PaymentScreenState extends State<PaymentScreen> {
         }
         _nodeDirectChildren[parentId]!.add(fNode.child_id!);
 
-        NodePair? nodeInfo = await loadUpdatedNodeInfo(null, fNode.child_id!);
+        NodePair? nodeInfo;
+        if (_removedNodes.containsKey(fNode.child_id!)) {
+          nodeInfo = _removedNodes[fNode.child_id!];
+          _removedNodes.remove(fNode.child_id!);
+        } else {
+          nodeInfo = await loadUpdatedNodeInfo(null, fNode.child_id!);
+        }
         if (nodeInfo != null) {
           _traversedTree!.explored_nodes!.add(nodeInfo.treeNode);
           _traversedTree!.explored_links!
