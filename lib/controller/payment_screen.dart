@@ -122,7 +122,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
 
     for (final nodeId in _nodesNeedingReloadingChildren) {
-      await loadNodeDirectChildren(nodeId, false);
+      //await loadNodeDirectChildren(nodeId, false);
     }
 
     graphLoadFinished = true;
