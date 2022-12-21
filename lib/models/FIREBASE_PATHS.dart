@@ -7,6 +7,7 @@ class FIRESTORE_PATHS {
   static final SUB_COL_CUSTOMERS_RIDE_HISTORY = 'sub_customer_ride_history';
 
   static final COL_REFERRAL_REQUEST = 'referral_request';
+  static final COL_FLAT_REFERRAL_TREE = "flat_referral_tree";
 
   static final COL_DRIVERS = 'drivers';
   static final SUB_COL_DRIVERS_RIDE_HISTORY = 'driver_ride_history';
@@ -24,6 +25,8 @@ class FIRESTORE_PATHS {
   static final SUB_COL_UPDATE_VERSION_DRIVERS = "sub_update_version_drivers";
 
   static final COL_OTP_REQUESTS = "otp_requests";
+
+  static final COL_REFERRAL_TRAVERSED_TREE = "referral_traversed_tree";
 }
 
 class FCM_MESSAGING_TOPICS {

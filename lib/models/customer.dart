@@ -20,6 +20,11 @@ class Customer extends FirebaseDocument {
 
   static const FIELD_VERSION_NUMBER = 'version_number';
 
+  static const FIELD_NUM_DIRECT_CHILDREN = 'num_direct_children';
+  static const FIELD_NUM_TOTAL_CHILDREN = 'num_total_children';
+
+  static const FIELD_NUM_CHILDREN_UNDER_NODE = 'num_children_under_node';
+
   static const FIELD_DATETIME_VERSION_DATE = 'datetime_version_date';
 
   static const FIELD_LAST_CHECKED_VERSION_NUMBER =
@@ -55,6 +60,9 @@ class Customer extends FirebaseDocument {
   String? email;
 
   String? version_number;
+
+  int? num_direct_children;
+  int? num_total_children;
 
   @JsonKey(
       fromJson: FirebaseDocument.DateTimeFromJson,
@@ -225,4 +233,42 @@ class Customer extends FirebaseDocument {
         rightParity1 == parityBits[0] &&
         rightParity2 == parityBits[2];
   }
+}
+
+@JsonSerializable()
+class FlatAncestryNode extends FirebaseDocument {
+  static const FIELD_CHILD_REFERRAL_CODE = "child_referral_code";
+  static const FIELD_CHILD_ID = "child_id";
+  static const FIELD_PARENT_REFERRAL_CODE = "parent_referral_code";
+  static const FIELD_PARENT_ID = "parent_id";
+  static const FIELD_SEPARATION = "separation";
+  static const FIELD_DATE_REFERRAL = "date_referral";
+
+  String? child_referral_code;
+  String? child_id;
+  String? parent_referral_code;
+  String? parent_id;
+  int? separation;
+
+  @JsonKey(
+      fromJson: FirebaseDocument.DateTimeFromJson,
+      toJson: FirebaseDocument.DateTimeToJson)
+  DateTime? date_referral;
+
+  FlatAncestryNode();
+
+  factory FlatAncestryNode.fromSnapshot(
+      DocumentSnapshot<Map<String, dynamic>> snapshot) {
+    FlatAncestryNode node = FlatAncestryNode();
+
+    var json = snapshot.data();
+    if (json != null) {
+      node = _$FlatAncestryNodeFromJson(json);
+      node.documentID = snapshot.id;
+    }
+
+    return node;
+  }
+
+  Map<String, dynamic> toJson() => _$FlatAncestryNodeToJson(this);
 }
