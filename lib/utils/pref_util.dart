@@ -34,7 +34,7 @@ class PrefUtil {
   static Future<String> getCurrentUserPhone() async {
     User firebaseUser = FirebaseAuth.instance.currentUser!;
 
-    final idTokenResult = await firebaseUser.getIdTokenResult(false);
+    final idTokenResult = await firebaseUser.getIdTokenResult(true);
     return idTokenResult.claims!["phoneNumber"] ?? '';
     //return FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
   }

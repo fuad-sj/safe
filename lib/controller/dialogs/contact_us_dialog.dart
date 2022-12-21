@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 
-class DriverNotFoundDialog extends StatefulWidget {
-  const DriverNotFoundDialog({Key? key}) : super(key: key);
+import '../../utils/phone_call.dart';
+
+class ContactUsDialog extends StatefulWidget {
+  const ContactUsDialog({Key? key}) : super(key: key);
 
   @override
-  _DriverNotFoundDialogState createState() => _DriverNotFoundDialogState();
+  _ContactUsDialogState createState() => _ContactUsDialogState();
 }
 
-class _DriverNotFoundDialogState extends State<DriverNotFoundDialog> {
+class _ContactUsDialogState extends State<ContactUsDialog> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -38,17 +40,16 @@ class _DriverNotFoundDialogState extends State<DriverNotFoundDialog> {
                 ),
                 borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(10.0),
-                    topRight: Radius.circular(10.0))
-            ),
+                    topRight: Radius.circular(10.0))),
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
-                SafeLocalizations.of(context)!.dialog_driver_not_found_title,
+                ' Contact Us',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20.0,
-                ),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20.0,
+                    fontFamily: 'Lato'),
               ),
             ),
           ),
@@ -57,9 +58,39 @@ class _DriverNotFoundDialogState extends State<DriverNotFoundDialog> {
             padding: EdgeInsets.symmetric(horizontal: HORIZONTAL_PADDING),
             width: (screenWidth - 2 * HORIZONTAL_PADDING),
             child: Center(
-                child: Text(
-                    SafeLocalizations.of(context)!.dialog_driver_not_found_body,
-                    style: TextStyle(fontSize: 14.0))),
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () async {
+                    try {
+                      String phoneNumber =  '9981';
+                      PhoneCaller.callPhone(phoneNumber);
+                    }
+                    catch (err) {}
+                  },
+                child: Container(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.phone,
+                        color: Colors.black,
+                        size: 40.0,
+                      ),
+                      SizedBox(height: 10.0),
+                      Text(
+                        '9981',
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 40.0,
+                            fontFamily: 'Lato',
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
           SizedBox(height: 15.0),
 
@@ -75,8 +106,7 @@ class _DriverNotFoundDialogState extends State<DriverNotFoundDialog> {
                       // pop off the dialog
                       Navigator.pop(context);
                     },
-                    style: ElevatedButton.styleFrom(
-                        primary: Colors.black),
+                    style: ElevatedButton.styleFrom(primary: Colors.black),
                     child: Container(
                       padding: EdgeInsets.symmetric(vertical: 16.0),
                       width: double.infinity,

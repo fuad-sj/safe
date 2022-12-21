@@ -101,155 +101,157 @@ class _DestinationPickerBottomSheetState
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Pickup and DropOff container(top section)
-          // Pickup Location
+          SizedBox(height: 20.0),
+          Text('Your Safe Journey',
+            style: TextStyle(
+              color:Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 20.0,
+              fontFamily: 'Lato'
+            ),
+          ),
+          SizedBox(height: 20.0),
+          Container(
+            child: Row(
+              children: [
+                SizedBox(width: MediaQuery.of(context).size.width * 0.022),
+                Container(
+                  child: Image.asset('images/location.png'),
+                ),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 15.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(3.0),
+                                  child: IgnorePointer(
+                                    ignoring: true,
+                                    child: TextFormField(
+                                      controller: _pickupTextController,
+                                      decoration: InputDecoration(
+                                        hintText: SafeLocalizations.of(context)!
+                                            .bottom_sheet_destination_picker_pickup_location,
+                                        fillColor: Color.fromRGBO(0, 0, 0, 0.1),
+                                        filled: true,
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        suffixIcon: Icon(
+                                          Icons.menu,
+                                          color: Colors.black,
+                                        ),
+                                        contentPadding: EdgeInsets.only(
+                                            left: 11.0, top: 15.0, bottom: 8.0),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: const BorderSide(
+                                              color: Colors.white, width: 0.0),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Colors.black, width: 2.0),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 15.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(4.0),
+                                  child: TextFormField(
+                                    controller: _dropOffTextController,
+                                    autofocus: true,
+                                    onChanged: (newVal) {
+                                      _searchPlace = newVal.trim();
+                                      _autoCompleteTimer?.cancel();
+                                      if (_searchPlace.isEmpty) {
+                                        _placePredictionList = null;
+                                        setState(() {});
+                                        return;
+                                      }
+
+                                      _autoCompleteTimer = new Timer(
+                                        Duration(milliseconds: 400),
+                                        () async {
+                                          try {
+                                            _placePredictionList =
+                                                await GoogleApiUtils
+                                                    .autoCompletePlaceName(
+                                                        _searchPlace,
+                                                        _sessionId);
+                                          } catch (err) {
+                                            _placePredictionList = null;
+                                          }
+                                          setState(() {});
+                                        },
+                                      );
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: SafeLocalizations.of(context)!
+                                          .bottom_sheet_select_drop_off_select_dropoff,
+                                      fillColor: Colors.white,
+                                      filled: true,
+                                      border: InputBorder.none,
+                                      isDense: true,
+                                      suffixIcon: Icon(
+                                        Icons.menu,
+                                        color: Colors.black,
+                                      ),
+                                      contentPadding: EdgeInsets.only(
+                                          left: 11.0, top: 15.0, bottom: 8.0),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                        borderSide: const BorderSide(
+                                            color: Colors.white, width: 0.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: const BorderSide(
+                                            color: Color.fromRGBO(221, 0, 0, 1),
+                                            width: 2.0),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           SizedBox(height: 10.0),
           Container(
-            child: Text('Your safe journey',
-                style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20.0)),
+              margin: EdgeInsets.symmetric(horizontal: 20.0),
+              height: 2.0,
+              color: ColorConstants.appThemeSecondaryColor
           ),
-          SizedBox(height: 20.0),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 25.0),
-            child: Row(
-              children: [
-                Image.asset('images/dot_blue.png', height: 16.0, width: 16.0),
-                SizedBox(width: 18.0),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(3.0),
-                      child: IgnorePointer(
-                        ignoring: true,
-                        child: TextFormField(
-                          controller: _pickupTextController,
-                          decoration: InputDecoration(
-                            hintText: SafeLocalizations.of(context)!
-                                .bottom_sheet_destination_picker_pickup_location,
-                            fillColor: Color.fromARGB(255, 195, 80, 152)
-                                .withOpacity(0.3),
-                            filled: true,
-                            border: InputBorder.none,
-                            isDense: true,
-                            suffixIcon: Icon(
-                              Icons.menu,
-                              color: Colors.black,
-                            ),
-                            contentPadding: EdgeInsets.only(
-                                left: 11.0, top: 15.0, bottom: 8.0),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(
-                                  color: Colors.white, width: 0.0),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide: const BorderSide(
-                                  color: Colors.black, width: 2.0),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Dropoff Location
-          Container(
-            child: Row(
-              children: [
-                Container(
-                    padding: EdgeInsets.symmetric(horizontal: 32.0),
-                    child: Image.asset('images/separator.png', height: 10.0)),
-                Expanded(child: Container())
-              ],
-            ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 25.0),
-            child: Row(
-              children: [
-                Image.asset('images/dot_red.png', height: 16.0, width: 16.0),
-                SizedBox(width: 18.0),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15.0),
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.all(4.0),
-                      child: TextFormField(
-                        controller: _dropOffTextController,
-                        autofocus: true,
-                        onChanged: (newVal) {
-                          _searchPlace = newVal.trim();
-                          _autoCompleteTimer?.cancel();
-                          if (_searchPlace.isEmpty) {
-                            _placePredictionList = null;
-                            setState(() {});
-                            return;
-                          }
-
-                          _autoCompleteTimer = new Timer(
-                            Duration(milliseconds: 400),
-                            () async {
-                              try {
-                                _placePredictionList =
-                                    await GoogleApiUtils.autoCompletePlaceName(
-                                        _searchPlace, _sessionId);
-                              } catch (err) {
-                                _placePredictionList = null;
-                              }
-                              setState(() {});
-                            },
-                          );
-                        },
-                        decoration: InputDecoration(
-                          hintText: SafeLocalizations.of(context)!
-                              .bottom_sheet_select_drop_off_select_dropoff,
-                          fillColor: Colors.white,
-                          filled: true,
-                          border: InputBorder.none,
-                          isDense: true,
-                          suffixIcon: Icon(
-                            Icons.menu,
-                            color: Colors.black,
-                          ),
-                          contentPadding: EdgeInsets.only(
-                              left: 11.0, top: 15.0, bottom: 8.0),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            borderSide: const BorderSide(
-                                color: Colors.white, width: 0.0),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                                color: ColorConstants.appThemeColor, width: 2.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 20.0),
-
-          Container(
-              margin: EdgeInsets.symmetric(horizontal: 25.0),
-              height: 1.0,
-              color: ColorConstants.appThemeColor),
 
           if (_placePredictionList != null) ...[
             //     greyVerticalDivider(0.5),
@@ -265,7 +267,7 @@ class _DestinationPickerBottomSheetState
               },
               behavior: HitTestBehavior.opaque,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 25.0, vertical: 24.0),
+                padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 24.0),
                 child: Row(
                   children: [
                     Container(
@@ -273,20 +275,21 @@ class _DestinationPickerBottomSheetState
                       width: 40.0,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(40.0),
-                        color:
-                            Color.fromARGB(255, 195, 80, 152).withOpacity(0.2),
+                        color: Color.fromRGBO(221, 0, 0, 1),
                       ),
-                      padding: EdgeInsets.all(10.0),
+                      padding: EdgeInsets.all(5.0),
                       child:
-                          Image.asset('images/pin_location.png', height: 30.0),
+                          Image.asset('images/white_logo_1.png', height: 30.0),
                     ),
                     SizedBox(width: 18.0),
                     Text(
                       SafeLocalizations.of(context)!
                           .bottom_sheet_destination_picker_pin_your_location,
                       style: TextStyle(
-                        fontSize: 16.0,
-                        color: Color.fromARGB(255, 195, 80, 152),
+                        fontSize: 18.0,
+                        fontFamily: 'Lato',
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromRGBO(221, 0, 0, 1),
                       ),
                     ),
                   ],
@@ -298,7 +301,7 @@ class _DestinationPickerBottomSheetState
 
           // Search Results
           Container(
-            padding: EdgeInsets.symmetric(horizontal: 25.0),
+            padding: EdgeInsets.symmetric(horizontal: 15.0),
             child: ListView.separated(
               shrinkWrap: true,
               physics: ClampingScrollPhysics(),

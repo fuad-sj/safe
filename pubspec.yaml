@@ -55,8 +55,6 @@ dependencies:
   widget_mask: ^1.0.0+0
   bubble_bottom_bar: ^2.0.0
   syncfusion_flutter_charts: ^20.3.59
-  launch_review:
-    path: ./launch_review
 
 dev_dependencies:
   flutter_test:
@@ -78,13 +76,8 @@ flutter:
     - images/dot_blue.png
     - images/dot_red.png
     - images/redmarker.png
-    - images/user_icon.png
     - images/pin_location.png
-    - images/separator.png
-    - images/logo.png
-    - images/wait.png
     - images/car_side.png
-    - images/yellow_car.png
     - images/minibus.png
     - images/minivan.png
     - images/pin_logo.png
@@ -100,6 +93,9 @@ flutter:
     - images/whiteSafeLogo.png
     - images/referal.png
     - images/location.png
+    - images/safe_gray.png
+    - images/white_logo_1.png
+    - images/pin_map_locator.png
 
 
   fonts:

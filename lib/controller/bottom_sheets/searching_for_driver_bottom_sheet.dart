@@ -74,7 +74,7 @@ class _SearchingForDriverBottomSheetState
               child: SpinKitFadingCircle(itemBuilder: (_, int index) {
                 return DecoratedBox(
                   decoration: BoxDecoration(
-                    color: index.isEven ? Color.fromARGB(255, 190, 19, 147) : Color.fromARGB(255, 207, 17, 10),
+                    color: index.isEven ? Color.fromRGBO(153, 0, 0, 1) : Color.fromRGBO(221, 0, 0, 1),
                   ),
                 );
               }),
