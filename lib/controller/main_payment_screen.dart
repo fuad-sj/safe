@@ -30,7 +30,7 @@ class _homePageState extends State<homePage> {
   final Graph graph = Graph();
 
   SugiyamaConfiguration builder = SugiyamaConfiguration()
-    ..bendPointShape = CurvedBendPointShape(curveLength: 20);
+    ..bendPointShape = CurvedBendPointShape(curveLength: 50);
 
   ReferralTraversedTree? _traversedTree;
 
@@ -46,8 +46,8 @@ class _homePageState extends State<homePage> {
     super.initState();
 
     builder
-      ..nodeSeparation = (15)
-      ..levelSeparation = (15)
+      ..nodeSeparation = (100)
+      ..levelSeparation = (40)
       ..orientation = SugiyamaConfiguration.ORIENTATION_TOP_BOTTOM;
 
     loadTraversedTreeCache();
@@ -631,8 +631,8 @@ class _homePageState extends State<homePage> {
                   graph: graph,
                   algorithm: SugiyamaAlgorithm(builder),
                   paint: Paint()
-                    ..color = Colors.green
-                    ..strokeWidth = 1
+                    ..color = Colors.grey.shade400
+                    ..strokeWidth = 2.5
                     ..style = PaintingStyle.stroke,
                   builder: (Node node) {
                     return nodeWidget(node.key!.value as String);
@@ -644,12 +644,29 @@ class _homePageState extends State<homePage> {
     );
   }
 
+  Random r = new Random();
+
   Widget nodeWidget(String node_id) {
+    double log10(num x) => log(x) / ln10;
+
     NodePair nodePair = _mapNodes[node_id]!;
+
+    //int numChildren = nodePair.treeNode.updated_num_total_children!;
+    int numChildren = r.nextInt(100000);
+    int numDigits = log10(numChildren).floor() + 1;
 
     bool didTotalChildrenChange =
         nodePair.treeNode.updated_num_total_children !=
             nodePair.treeNode.last_cached_num_total_children;
+    double fontSize = 16.0, widthSize = 60.0;
+
+    if (numDigits == 4) {
+      fontSize = 15.0;
+      widthSize = 70.0;
+    } else if (numDigits >= 5) {
+      fontSize = 14.0;
+      widthSize = 80.0;
+    }
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -658,17 +675,32 @@ class _homePageState extends State<homePage> {
         setState(() {});
       },
       child: Container(
-        width: 100,
+        width: widthSize,
         height: 50,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
-          gradient: unSelectedDateColorGradiant(),
+          gradient: LinearGradient(
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+            colors: [
+              //Color(0xFCC0BEBE),
+              //Color(0xff9b9b9b),
+              Color(0xffffffff),
+              Color(0xffffffff),
+            ],
+          ),
         ),
         child: Center(
           child: Text(
-            '${nodePair.treeNode.updated_num_total_children}',
-            style: selectedTextFieldStyle(),
+            '${numChildren}',
+            style: TextStyle(
+              color: Color(0xffDE0000),
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Lato',
+              fontSize: fontSize,
+              //letterSpacing: 1.0,
+            ),
           ),
         ),
       ),
