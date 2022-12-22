@@ -44,6 +44,31 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
   Set<String> _initiallyCachedNodes = Set();
   Map<String, NodePair> _removedNodes = Map();
 
+  List<_SalesData> data = [
+    _SalesData('Sun', 10),
+    _SalesData('Mon', 22),
+    _SalesData('Thu', 43),
+    _SalesData('Wed', 23),
+    _SalesData('Thr', 15),
+    _SalesData('Fri', 33),
+    _SalesData('Sat', 28),
+  ];
+
+  final Dates = [
+    DateOfEarning('1 D'),
+    DateOfEarning('1 W'),
+    DateOfEarning('2 W'),
+    DateOfEarning('1 M'),
+    DateOfEarning('2 M'),
+    DateOfEarning('3 M'),
+    DateOfEarning('6 M'),
+    DateOfEarning('1 Y'),
+  ];
+
+  bool showTree = false;
+
+  int selectedDateRange = -1;
+
   @override
   void initState() {
     super.initState();
@@ -124,7 +149,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
         .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
         .doc("" + nodeId)
         .get());
-    if (!customer.documentExists()) return null;
+    //if (!customer.documentExists()) return null;
 
     NodePair? nodePair;
 
@@ -196,30 +221,6 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
     });
     super.dispose();
   }
-
-  List<_SalesData> data = [
-    _SalesData('Sun', 10),
-    _SalesData('Mon', 22),
-    _SalesData('Thu', 43),
-    _SalesData('Wed', 23),
-    _SalesData('Thr', 15),
-    _SalesData('Fri', 33),
-    _SalesData('Sat', 28),
-  ];
-
-  List<DateOfEarning> Dates = [
-    DateOfEarning('1 D'),
-    DateOfEarning('1 W'),
-    DateOfEarning('2 W'),
-    DateOfEarning('1 M'),
-    DateOfEarning('2 M'),
-    DateOfEarning('3 M'),
-    DateOfEarning('6 M'),
-    DateOfEarning('1 Y'),
-  ];
-
-  bool showTree = false;
-  bool textSelected = false;
 
   TextStyle unSelectedTextFieldStyle() {
     return const TextStyle(
@@ -343,7 +344,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                       child: Container(
                         height: vHeight * 0.001,
                         width: hWidth * 0.90,
-                        color: Colors.white,
+                        color: Color(0xff3b3b3d),
                       ),
                     ),
                     SizedBox(height: vHeight * 0.015),
@@ -418,7 +419,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                           SizedBox(width: 10.0),
                           Container(
                             height: vHeight * 0.069,
-                            color: Colors.grey,
+                            color: Color(0xff3b3b3d),
                             width: hWidth * 0.0015,
                           ),
                           SizedBox(width: 10.0),
@@ -493,107 +494,101 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                       child: Container(
                         height: vHeight * 0.001,
                         width: hWidth * 0.90,
-                        color: Colors.white,
+                        color: Color(0xff3b3b3d),
                       ),
                     ),
-                    SizedBox(height: vHeight * 0.015),
+                    //SizedBox(height: vHeight * 0.015),
                   ],
                 ),
               ),
               Container(
                 color: Color(0xff1c1c1e),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Time Window Selector
-                      Container(
-                        height: vHeight * 0.06,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: Dates.map((dateCount) {
-                            return InkWell(
-                              onTap: () {
-                                textSelected = true;
-                                setState(() {});
-                              },
-                              child: Padding(
-                                padding: EdgeInsets.only(left: hWidth * 0.04),
-                                child: Container(
-                                  padding:
-                                      EdgeInsets.symmetric(horizontal: 10.0),
-                                  decoration: BoxDecoration(
-                                      borderRadius:
-                                          BorderRadius.circular(10.0)),
-                                  child: Center(
-                                    child: Text(
-                                      dateCount.date,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                        fontFamily: 'Lato',
-                                      ),
-                                    ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Time Window Selector
+                    Container(
+                      height: vHeight * 0.06,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: Dates.length,
+                        itemBuilder: (context, index) {
+                          bool is_selected_index = selectedDateRange == index;
+
+                          Decoration decoration;
+                          if (is_selected_index) {
+                            decoration = BoxDecoration(
+                              color: Color(0xff39383d),
+                              borderRadius: BorderRadius.circular(8),
+                            );
+                          } else {
+                            decoration = BoxDecoration(
+                                borderRadius: BorderRadius.circular(8.0));
+                          }
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              selectedDateRange = index;
+                              setState(() {});
+                            },
+                            child: Container(
+                              margin: EdgeInsets.only(left: hWidth * 0.04),
+                              padding: EdgeInsets.symmetric(horizontal: 10.0),
+                              decoration: decoration,
+                              child: Center(
+                                child: Text(
+                                  Dates[index].date,
+                                  style: TextStyle(
+                                    //color: Color(0xfffbfbfb),
+                                    color: Colors.grey.shade100,
+                                    fontSize: 18,
+                                    fontFamily: 'Lato',
                                   ),
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
+                            ),
+                          );
+                        },
                       ),
-                      Align(
-                        alignment: Alignment.topLeft,
-                        child: Container(
-                          padding: EdgeInsets.only(left: hWidth * 0.05),
-                          child: Text(
-                            'Your Daily Earnings',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontFamily: 'Lato',
-                                fontSize: 16,
-                                color: Colors.white,
-                                letterSpacing: 1),
-                          ),
-                        ),
+                    ),
+
+                    Container(
+                      padding: EdgeInsets.only(
+                          left: hWidth * 0.03, right: hWidth * 0.04),
+                      child: SfCartesianChart(
+                        primaryXAxis: CategoryAxis(opposedPosition: false),
+                        legend: Legend(isVisible: false),
+                        enableAxisAnimation: true,
+                        tooltipBehavior: TooltipBehavior(enable: true),
+                        series: <ChartSeries>[
+                          SplineAreaSeries<_SalesData, String>(
+                              dataSource: data,
+                              splineType: SplineType.cardinal,
+                              cardinalSplineTension: 0.5,
+                              borderColor: Color.fromRGBO(0, 255, 0, 1),
+                              onCreateShader: (ShaderDetails details) {
+                                return ui.Gradient.linear(
+                                    details.rect.topCenter,
+                                    details.rect.bottomCenter, <Color>[
+                                  Color.fromRGBO(0, 255, 0, 0.7),
+                                  Color.fromRGBO(60, 60, 60, 0.4)
+                                ], <double>[
+                                  0.1,
+                                  0.9
+                                ]);
+                              },
+                              xValueMapper: (_SalesData sales, _) =>
+                              sales.year,
+                              yValueMapper: (_SalesData sales, _) =>
+                              sales.sales,
+                              name: ' Earning ',
+                              borderWidth: 3,
+                              dataLabelSettings:
+                              const DataLabelSettings(isVisible: false))
+                        ],
                       ),
-                      Container(
-                        padding: EdgeInsets.only(
-                            left: hWidth * 0.03, right: hWidth * 0.04),
-                        child: SfCartesianChart(
-                          primaryXAxis: CategoryAxis(opposedPosition: false),
-                          legend: Legend(isVisible: false),
-                          enableAxisAnimation: true,
-                          tooltipBehavior: TooltipBehavior(enable: true),
-                          series: <ChartSeries>[
-                            SplineAreaSeries<_SalesData, String>(
-                                dataSource: data,
-                                splineType: SplineType.cardinal,
-                                cardinalSplineTension: 0.5,
-                                borderColor: Color.fromRGBO(0, 255, 0, 1),
-                                onCreateShader: (ShaderDetails details) {
-                                  return ui.Gradient.linear(
-                                      details.rect.topCenter,
-                                      details.rect.bottomCenter, <Color>[
-                                    Color.fromRGBO(0, 255, 0, 0.7),
-                                    Color.fromRGBO(60, 60, 60, 0.4)
-                                  ], <double>[
-                                    0.1,
-                                    0.9
-                                  ]);
-                                },
-                                xValueMapper: (_SalesData sales, _) =>
-                                    sales.year,
-                                yValueMapper: (_SalesData sales, _) =>
-                                    sales.sales,
-                                name: ' Earning ',
-                                borderWidth: 4,
-                                dataLabelSettings:
-                                    const DataLabelSettings(isVisible: false))
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ],
