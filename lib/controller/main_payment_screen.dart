@@ -676,26 +676,61 @@ class _homePageState extends State<homePage> {
         await loadNodeDirectChildren(node_id, true);
         setState(() {});
       },
-      child: Container(
-        width: widthSize,
-        height: 50,
-        padding: EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
-          color: invertColor ? redColor : whiteColor,
-        ),
-        child: Center(
-          child: Text(
-            '${numChildren}',
-            style: TextStyle(
-              color: invertColor ? whiteColor : redColor,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Lato',
-              fontSize: fontSize,
-              //letterSpacing: 1.0,
+      onDoubleTap: () async {
+        removeSubTreeNode(node_id, false);
+        setState(() {});
+      },
+      child: Stack(
+        children: [
+          Container(
+            width: widthSize,
+            height: 50,
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(25),
+              color: invertColor ? redColor : whiteColor,
+            ),
+            child: Center(
+              child: Text(
+                '${numChildren}',
+                style: TextStyle(
+                  color: invertColor ? whiteColor : redColor,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Lato',
+                  fontSize: fontSize,
+                  //letterSpacing: 1.0,
+                ),
+              ),
             ),
           ),
-        ),
+
+          // notification icon
+          Positioned(
+            right: 0,
+            top: 0,
+            child: new Container(
+              padding: EdgeInsets.all(2),
+              decoration: new BoxDecoration(
+                color: Colors.green,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              constraints: BoxConstraints(
+                minWidth: 20,
+                minHeight: 14,
+              ),
+              child: Text(
+                '+400',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -744,37 +779,31 @@ class _homePageState extends State<homePage> {
     }
 
     // user is clicking again a node that has already been fully expanded
-    if (clickInitiatedLoad &&
-        (directChildrenSnapshot.docs.length ==
-            _nodeDirectChildren[parentId]!.length)) {
-      removeSubTreeNode(parentId, false);
-    } else {
-      for (final snapshot in directChildrenSnapshot.docs) {
-        FlatAncestryNode fNode = FlatAncestryNode.fromSnapshot(snapshot);
+    for (final snapshot in directChildrenSnapshot.docs) {
+      FlatAncestryNode fNode = FlatAncestryNode.fromSnapshot(snapshot);
 
-        // if we've already seen this child, don't do anything
-        if (_nodeDirectChildren[parentId]!.contains(fNode.child_id!)) {
-          continue;
-        }
-        _nodeDirectChildren[parentId]!.add(fNode.child_id!);
+      // if we've already seen this child, don't do anything
+      if (_nodeDirectChildren[parentId]!.contains(fNode.child_id!)) {
+        continue;
+      }
+      _nodeDirectChildren[parentId]!.add(fNode.child_id!);
 
-        NodePair? nodeInfo;
-        if (_removedNodes.containsKey(fNode.child_id!)) {
-          nodeInfo = _removedNodes[fNode.child_id!];
-          _removedNodes.remove(fNode.child_id!);
-        } else {
-          nodeInfo = await loadUpdatedNodeInfo(null, fNode.child_id!);
-        }
-        if (nodeInfo != null) {
-          _traversedTree!.explored_nodes!.add(nodeInfo.treeNode);
-          _traversedTree!.explored_links!
-              .add(SubTreeLink(parentId, fNode.child_id!));
+      NodePair? nodeInfo;
+      if (_removedNodes.containsKey(fNode.child_id!)) {
+        nodeInfo = _removedNodes[fNode.child_id!];
+        _removedNodes.remove(fNode.child_id!);
+      } else {
+        nodeInfo = await loadUpdatedNodeInfo(null, fNode.child_id!);
+      }
+      if (nodeInfo != null) {
+        _traversedTree!.explored_nodes!.add(nodeInfo.treeNode);
+        _traversedTree!.explored_links!
+            .add(SubTreeLink(parentId, fNode.child_id!));
 
-          Node source = _mapNodes[parentId]!.graphNode;
-          Node dest = nodeInfo.graphNode;
+        Node source = _mapNodes[parentId]!.graphNode;
+        Node dest = nodeInfo.graphNode;
 
-          graph.addEdge(source, dest);
-        }
+        graph.addEdge(source, dest);
       }
     }
   }
