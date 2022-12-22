@@ -37,8 +37,9 @@ class _homePageState extends State<homePage> {
   NodePair? _rootNodeInfo = null; // useful for resetting the graph
   Map<String, NodePair> _mapNodes = Map();
   Map<String, Set<String>> _nodeDirectChildren = Map();
-  Set<String> _nodesNeedingReloadingChildren = Set();
   bool graphLoadFinished = false;
+  Set<String> _nodesUpdatedDirectChildren = Set();
+  Set<String> _initiallyCachedNodes = Set();
   Map<String, NodePair> _removedNodes = Map();
 
   @override
@@ -67,7 +68,7 @@ class _homePageState extends State<homePage> {
         NodePair? updatedNodeInfo =
             await loadUpdatedNodeInfo(node, node.node_id);
         if (updatedNodeInfo == null) {
-          return;
+          continue;
         }
         _traversedTree!.explored_nodes![i] = updatedNodeInfo.treeNode;
 
@@ -80,8 +81,10 @@ class _homePageState extends State<homePage> {
         // if the # of direct-children at the node has changed, load its children
         if (treeNode.last_cached_num_direct_children !=
             treeNode.updated_num_direct_children) {
-          _nodesNeedingReloadingChildren.add(treeNode.node_id);
+          _nodesUpdatedDirectChildren.add(treeNode.node_id);
         }
+
+        _initiallyCachedNodes.add(node.node_id);
       }
     } else {
       // create a new traversal node if one doesn't exist, and put root node as the first node of list
@@ -111,10 +114,6 @@ class _homePageState extends State<homePage> {
 
       _nodeDirectChildren[link.start_node]!.add(link.end_node);
     });
-
-    for (final nodeId in _nodesNeedingReloadingChildren) {
-      //await loadNodeDirectChildren(nodeId, false);
-    }
 
     graphLoadFinished = true;
 
@@ -655,9 +654,9 @@ class _homePageState extends State<homePage> {
     int numChildren = r.nextInt(100000);
     int numDigits = log10(numChildren).floor() + 1;
 
-    bool didTotalChildrenChange =
-        nodePair.treeNode.updated_num_total_children !=
-            nodePair.treeNode.last_cached_num_total_children;
+    bool invertColor = _nodesUpdatedDirectChildren.contains(node_id) ||
+        !_initiallyCachedNodes.contains(node_id);
+
     double fontSize = 16.0, widthSize = 60.0;
 
     if (numDigits == 4) {
@@ -667,6 +666,9 @@ class _homePageState extends State<homePage> {
       fontSize = 14.0;
       widthSize = 80.0;
     }
+
+    const whiteColor = Color(0xffffffff);
+    const redColor = Color(0xffDE0000);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -680,22 +682,13 @@ class _homePageState extends State<homePage> {
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
-          gradient: LinearGradient(
-            begin: Alignment.bottomLeft,
-            end: Alignment.topRight,
-            colors: [
-              //Color(0xFCC0BEBE),
-              //Color(0xff9b9b9b),
-              Color(0xffffffff),
-              Color(0xffffffff),
-            ],
-          ),
+          color: invertColor ? redColor : whiteColor,
         ),
         child: Center(
           child: Text(
             '${numChildren}',
             style: TextStyle(
-              color: Color(0xffDE0000),
+              color: invertColor ? whiteColor : redColor,
               fontWeight: FontWeight.bold,
               fontFamily: 'Lato',
               fontSize: fontSize,
