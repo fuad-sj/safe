@@ -6,7 +6,7 @@ import 'package:safe/models/ride_request.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
 
-import '../utils/alpha_numeric_utils.dart';
+import '../../utils/alpha_numeric_utils.dart';
 
 class RecentTransactionsScreen extends StatefulWidget {
   const RecentTransactionsScreen({Key? key}) : super(key: key);

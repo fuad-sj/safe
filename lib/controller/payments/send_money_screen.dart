@@ -8,17 +8,17 @@ import 'package:safe/controller/graphview/GraphView.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:ui' as ui;
 
-import 'dialogs/driver_not_found_dialog.dart';
-import 'dialogs/ride_cancellation_dialog.dart';
+import '../dialogs/driver_not_found_dialog.dart';
+import '../dialogs/ride_cancellation_dialog.dart';
 
-class sendMoneyScreen extends StatefulWidget {
-  const sendMoneyScreen({Key? key}) : super(key: key);
+class SendMoneyScreen extends StatefulWidget {
+  const SendMoneyScreen({Key? key}) : super(key: key);
 
   @override
-  _sendMoneyScreenState createState() => _sendMoneyScreenState();
+  _SendMoneyScreenState createState() => _SendMoneyScreenState();
 }
 
-class _sendMoneyScreenState extends State<sendMoneyScreen> {
+class _SendMoneyScreenState extends State<SendMoneyScreen> {
   @override
   void initState() {
     super.initState();

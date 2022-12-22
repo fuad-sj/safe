@@ -12,11 +12,11 @@ import 'package:safe/models/referral_traversed_tree.dart';
 import 'package:safe/utils/pref_util.dart';
 import 'package:safe/controller/graphview/GraphView.dart';
 
-class homePage extends StatefulWidget {
-  const homePage({Key? key}) : super(key: key);
+class MainPaymentScreen extends StatefulWidget {
+  const MainPaymentScreen({Key? key}) : super(key: key);
 
   @override
-  _homePageState createState() => _homePageState();
+  _MainPaymentScreenState createState() => _MainPaymentScreenState();
 }
 
 class NodePair {
@@ -26,7 +26,7 @@ class NodePair {
   NodePair(this.treeNode, this.graphNode);
 }
 
-class _homePageState extends State<homePage> {
+class _MainPaymentScreenState extends State<MainPaymentScreen> {
   final Graph graph = Graph();
 
   SugiyamaConfiguration builder = SugiyamaConfiguration()

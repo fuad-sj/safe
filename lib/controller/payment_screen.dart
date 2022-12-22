@@ -3,13 +3,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
-import 'package:safe/controller/recent_transaction_screen.dart';
-import 'package:safe/controller/send_money_screen.dart';
+import 'package:safe/controller/payments/recent_transaction_screen.dart';
+import 'package:safe/controller/payments/send_money_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:ui' as ui;
 
-import 'main_payment_screen.dart';
+import 'payments/main_payment_screen.dart';
 
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({Key? key}) : super(key: key);
@@ -19,7 +19,6 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-
   late int bottomIndex;
 
   void changeScreenPayment(int? index) {
@@ -28,26 +27,30 @@ class _PaymentScreenState extends State<PaymentScreen> {
     });
   }
 
-  var paymentPages = [
-    homePage(),
-    sendMoneyScreen(),
-    RecentTransactionsScreen(),
-  ];
+  late var paymentPages;
 
   @override
   void initState() {
     super.initState();
-    bottomIndex = 0;
 
+    paymentPages = [
+      MainPaymentScreen(),
+      SendMoneyScreen(),
+      RecentTransactionsScreen(),
+    ];
+
+    bottomIndex = 0;
   }
 
   @override
   Widget build(BuildContext context) {
+    bool is_dark_mode = bottomIndex == 0;
+
     return Scaffold(
-      backgroundColor: Color(bottomIndex == 0 ? 0xff1c1c1e : 0xffffffff),
+      backgroundColor: Color(is_dark_mode ? 0xff1c1c1e : 0xffffffff),
       appBar: AppBar(
         toolbarHeight: MediaQuery.of(context).size.height * 0.05,
-        backgroundColor: Color(bottomIndex == 0 ? 0xff1c1c1e : 0xffffffff),
+        backgroundColor: Color(is_dark_mode ? 0xff1c1c1e : 0xffffffff),
         elevation: 0.0,
         leading: MaterialButton(
           elevation: 6.0,
@@ -64,7 +67,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         title: Text(
           'Payments',
           style: TextStyle(
-              color: Color(bottomIndex == 0 ? 0xffffffff : 0xff1c1c1e),
+              color: Color(is_dark_mode ? 0xffffffff : 0xff1c1c1e),
               fontWeight: FontWeight.w800,
               fontFamily: 'Lato',
               fontSize: 21.0,
@@ -76,7 +79,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       bottomNavigationBar: Container(
         height: MediaQuery.of(context).size.height * 0.05,
         child: BubbleBottomBar(
-          backgroundColor: Color(bottomIndex == 0 ? 0xff1c1c1e : 0xffffffff),
+          backgroundColor: Color(is_dark_mode ? 0xff1c1c1e : 0xffffffff),
           opacity: 1.0,
           hasNotch: true,
           currentIndex: bottomIndex,
@@ -87,7 +90,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               backgroundColor: Color(0xffDE0000),
               icon: Icon(
                 Icons.home,
-                color: Color(bottomIndex == 0 ? 0xffffffff : 0xff1c1c1e),
+                color: Color(is_dark_mode ? 0xff1c1c1e : 0xffffffff),
               ),
               activeIcon: Icon(
                 Icons.home,
@@ -104,7 +107,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               badgeColor: Colors.green,
               backgroundColor: Color(0xffDE0000),
               icon: Icon(Icons.monetization_on,
-                  color: Color(bottomIndex == 0 ? 0xffffffff : 0xff1c1c1e)),
+                  color: Color(is_dark_mode ? 0xffffffff : 0xff1c1c1e)),
               activeIcon: Icon(
                 Icons.monetization_on_outlined,
                 color: Colors.white,
@@ -118,7 +121,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               backgroundColor: Color(0xffDE0000),
               icon: Icon(
                 Icons.history,
-                color: Color(bottomIndex == 0 ? 0xffffffff : 0xff1c1c1e),
+                color: Color(is_dark_mode ? 0xffffffff : 0xff1c1c1e),
               ),
               activeIcon: Icon(
                 Icons.history,
@@ -134,35 +137,4 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
     );
   }
-
-}
-
-class DateOfEarning {
-  DateOfEarning(this.date);
-
-  final String date;
-}
-
-class CustomTotalPriceClipPath extends CustomClipper<Path> {
-  var radius = 100.0;
-
-  @override
-  Path getClip(Size size) {
-    Path path0 = Path();
-    path0.moveTo(size.width * 0.001, size.height * 0.200);
-    path0.lineTo(size.width * 0.448, size.height * 0.204);
-    path0.lineTo(size.width * 0.500, size.height * 0.002);
-    path0.lineTo(size.width * 0.55075, size.height * 0.19892);
-    path0.lineTo(size.width * 0.999, size.height * 0.200);
-    path0.lineTo(size.width * 0.997, size.height * 0.994);
-    path0.lineTo(size.width * 0.001, size.height * 0.996);
-    path0.lineTo(size.width * 0.001, size.height * 0.200);
-    path0.close();
-
-    return path0;
-    throw UnimplementedError();
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
