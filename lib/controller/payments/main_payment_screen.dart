@@ -268,72 +268,72 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
     return Column(
       mainAxisSize: MainAxisSize.max,
       children: [
-        Container(
-          color: Color(0xff1c1c1e),
-          child: Wrap(
-            children: [
-              Center(
-                child: Container(
-                  padding: EdgeInsets.only(left: hWidth * 0.04),
-                  width: hWidth * 0.65,
-                  height: vHeight * 0.065,
-                  decoration: BoxDecoration(
-                      color: Color.fromRGBO(70, 70, 70, 1),
-                      borderRadius: BorderRadius.circular(50)),
-                  child: Row(
-                    children: [
-                      GestureDetector(
-                        onTap: () async {
-                          showTree = false;
-                          setState(() {});
-                        },
-                        child: Container(
-                          width: hWidth * 0.25,
-                          height: vHeight * 0.045,
-                          decoration: !showTree
-                              ? BoxDecoration(
-                                  color: Color.fromRGBO(255, 255, 255, 1),
-                                  borderRadius: BorderRadius.circular(40),
-                                )
-                              : BoxDecoration(),
-                          child: Center(
-                              child: Text(
-                            'Earning',
-                            style: !showTree
-                                ? selectedTextFieldStyle()
-                                : unSelectedTextFieldStyle(),
-                          )),
-                        ),
+        Wrap(
+          children: [
+            // Earnings | Your Network Graph Selector
+            Center(
+              child: Container(
+                padding: EdgeInsets.only(left: hWidth * 0.04),
+                width: hWidth * 0.65,
+                height: vHeight * 0.065,
+                decoration: BoxDecoration(
+                    color: Color.fromRGBO(70, 70, 70, 1),
+                    borderRadius: BorderRadius.circular(50)),
+                child: Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        showTree = false;
+                        setState(() {});
+                      },
+                      child: Container(
+                        width: hWidth * 0.25,
+                        height: vHeight * 0.045,
+                        decoration: !showTree
+                            ? BoxDecoration(
+                                color: Color.fromRGBO(255, 255, 255, 1),
+                                borderRadius: BorderRadius.circular(40),
+                              )
+                            : BoxDecoration(),
+                        child: Center(
+                            child: Text(
+                          'Earning',
+                          style: !showTree
+                              ? selectedTextFieldStyle()
+                              : unSelectedTextFieldStyle(),
+                        )),
                       ),
-                      SizedBox(width: hWidth * 0.01),
-                      GestureDetector(
-                        onTap: () {
-                          showTree = true;
-                          setState(() {});
-                        },
-                        child: Container(
-                          padding: EdgeInsets.only(left: 5, right: 5.0),
-                          width: hWidth * 0.31,
-                          height: vHeight * 0.045,
-                          decoration: showTree
-                              ? BoxDecoration(
-                                  color: Color.fromRGBO(255, 255, 255, 1),
-                                  borderRadius: BorderRadius.circular(40),
-                                )
-                              : BoxDecoration(),
-                          child: Center(
-                              child: Text(
-                            'Your Network',
-                            style: showTree
-                                ? selectedTextFieldStyle()
-                                : unSelectedTextFieldStyle(),
-                          )),
-                        ),
+                    ),
+                    SizedBox(width: hWidth * 0.01),
+                    GestureDetector(
+                      onTap: () {
+                        showTree = true;
+                        setState(() {});
+                      },
+                      child: Container(
+                        padding: EdgeInsets.only(left: 5, right: 5.0),
+                        width: hWidth * 0.31,
+                        height: vHeight * 0.045,
+                        decoration: showTree
+                            ? BoxDecoration(
+                                color: Color.fromRGBO(255, 255, 255, 1),
+                                borderRadius: BorderRadius.circular(40),
+                              )
+                            : BoxDecoration(),
+                        child: Center(
+                            child: Text(
+                          'Your Network',
+                          style: showTree
+                              ? selectedTextFieldStyle()
+                              : unSelectedTextFieldStyle(),
+                        )),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
+            ),
+            if (!showTree) ...[
               Container(
                 height: vHeight * 0.14,
                 child: Column(
@@ -499,19 +499,16 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                     SizedBox(height: vHeight * 0.015),
                   ],
                 ),
-              )
-            ],
-          ),
-        ),
-        Container(
-          height: !showTree ? vHeight * 0.66 : vHeight * 0.0,
-          color: Color(0xff1c1c1e),
-          child: !showTree
-              ? SingleChildScrollView(
+              ),
+              Container(
+                color: Color(0xff1c1c1e),
+                child: SingleChildScrollView(
                   child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Time Window Selector
                       Container(
-                        height: vHeight * 0.060,
+                        height: vHeight * 0.06,
                         child: ListView(
                           scrollDirection: Axis.horizontal,
                           children: Dates.map((dateCount) {
@@ -595,52 +592,20 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                           ],
                         ),
                       ),
-                      Align(
-                        alignment: Alignment.topLeft,
-                        child: Container(
-                          padding: EdgeInsets.only(left: hWidth * 0.07),
-                          child: Text(
-                            'Your Daily new Network',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w700,
-                                fontFamily: 'Lato',
-                                fontSize: 16,
-                                color: Colors.white,
-                                letterSpacing: 1),
-                          ),
-                        ),
-                      ),
-                      Container(
-                        height: vHeight * 0.08,
-                        padding: EdgeInsets.only(
-                            left: hWidth * 0.03, right: hWidth * 0.04),
-                        child: SfCartesianChart(
-                          primaryXAxis: CategoryAxis(
-                            majorGridLines: const MajorGridLines(width: 0),
-                          ),
-                          series: <ChartSeries>[
-                            HistogramSeries<_SalesData, num>(
-                                dataSource: data,
-                                color: Colors.white38,
-                                yValueMapper: (_SalesData sales, _) =>
-                                    sales.sales,
-                                binInterval: 20,
-                                borderWidth: 1),
-                          ],
-                        ),
-                      )
                     ],
                   ),
-                )
-              : Container(),
+                ),
+              ),
+            ],
+          ],
         ),
-        if (graphLoadFinished) ...[
+        if (showTree && graphLoadFinished) ...[
           Expanded(
             child: InteractiveViewer(
                 constrained: false,
-                boundaryMargin: EdgeInsets.all(100),
-                minScale: 0.0002,
-                maxScale: 10.6,
+                boundaryMargin: EdgeInsets.all(1000),
+                minScale: 0.00000000000001,
+                maxScale: 5.6,
                 child: GraphView(
                   graph: graph,
                   algorithm: SugiyamaAlgorithm(builder),
