@@ -34,7 +34,9 @@ class _homePageState extends State<homePage> {
 
   ReferralTraversedTree? _traversedTree;
 
-  NodePair? _rootNodeInfo = null; // useful for resetting the graph
+  String? _rootNodeId;
+  NodePair? _rootNodeInfo; // useful for resetting the graph
+
   Map<String, NodePair> _mapNodes = Map();
   Map<String, Set<String>> _nodeDirectChildren = Map();
   bool graphLoadFinished = false;
@@ -65,26 +67,20 @@ class _homePageState extends State<homePage> {
       int len = (_traversedTree!.explored_nodes ?? []).length;
       for (int i = 0; i < len; i++) {
         SubTreeNode node = _traversedTree!.explored_nodes![i];
-        NodePair? updatedNodeInfo =
-            await loadUpdatedNodeInfo(node, node.node_id);
-        if (updatedNodeInfo == null) {
-          continue;
-        }
-        _traversedTree!.explored_nodes![i] = updatedNodeInfo.treeNode;
+        NodePair nodePair = new NodePair(node, Node.Id(node.node_id));
 
-        _mapNodes[node.node_id] = updatedNodeInfo;
+        _traversedTree!.explored_nodes![i] = node;
+
+        _mapNodes[node.node_id] = nodePair;
         if (_rootNodeInfo == null) {
-          _rootNodeInfo = updatedNodeInfo;
-        }
-
-        SubTreeNode treeNode = updatedNodeInfo.treeNode;
-        // if the # of direct-children at the node has changed, load its children
-        if (treeNode.last_cached_num_direct_children !=
-            treeNode.updated_num_direct_children) {
-          _nodesUpdatedDirectChildren.add(treeNode.node_id);
+          _rootNodeInfo = nodePair;
+          _rootNodeId = node.node_id;
         }
 
         _initiallyCachedNodes.add(node.node_id);
+
+        // don't await on this, when it finishes, will update UI then. Lazy-instantiation is WAY faster
+        loadUpdatedNodeInfo(node, node.node_id, true);
       }
     } else {
       // create a new traversal node if one doesn't exist, and put root node as the first node of list
@@ -93,7 +89,7 @@ class _homePageState extends State<homePage> {
         ..explored_nodes = [];
 
       _rootNodeInfo =
-          await loadUpdatedNodeInfo(null, PrefUtil.getCurrentUserID());
+          await loadUpdatedNodeInfo(null, PrefUtil.getCurrentUserID(), false);
       if (_rootNodeInfo == null) {
         return; // if we can't have a root node, don't bother
       }
@@ -123,7 +119,7 @@ class _homePageState extends State<homePage> {
   }
 
   Future<NodePair?> loadUpdatedNodeInfo(
-      SubTreeNode? prevInfo, String nodeId) async {
+      SubTreeNode? prevInfo, String nodeId, bool resetState) async {
     Customer customer = Customer.fromSnapshot(await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
         .doc("" + nodeId)
@@ -136,7 +132,6 @@ class _homePageState extends State<homePage> {
       nodePair = _mapNodes[nodeId]!;
     } else {
       nodePair = new NodePair(new SubTreeNode(nodeId), Node.Id(nodeId));
-      _mapNodes[nodeId] = nodePair;
     }
 
     SubTreeNode subNode = nodePair.treeNode;
@@ -148,6 +143,26 @@ class _homePageState extends State<homePage> {
           prevInfo.last_cached_num_direct_children;
       subNode.last_cached_num_total_children =
           prevInfo.last_cached_num_total_children;
+    }
+
+    _mapNodes[nodeId] = nodePair;
+
+    if (nodeId == _rootNodeId) {
+      _rootNodeInfo = nodePair;
+    }
+
+    if (_initiallyCachedNodes.contains(nodeId)) {
+      SubTreeNode treeNode = nodePair.treeNode;
+
+      // if the # of direct-children at the node has changed, load its children
+      if (treeNode.last_cached_num_direct_children !=
+          treeNode.updated_num_direct_children) {
+        _nodesUpdatedDirectChildren.add(treeNode.node_id);
+      }
+    }
+
+    if (resetState && mounted) {
+      setState(() {});
     }
 
     return nodePair;
@@ -643,8 +658,6 @@ class _homePageState extends State<homePage> {
     );
   }
 
-  Random r = new Random();
-
   Widget nodeWidget(String node_id) {
     double log10(num x) => log(x) / ln10;
 
@@ -652,7 +665,7 @@ class _homePageState extends State<homePage> {
 
     SubTreeNode treeNode = nodePair.treeNode;
 
-    int numChildren = treeNode.updated_num_total_children!;
+    int numChildren = treeNode.updated_num_total_children ?? 0;
 
     int deltaChildren =
         numChildren - (treeNode.last_cached_num_total_children ?? 0);
@@ -801,7 +814,7 @@ class _homePageState extends State<homePage> {
         nodeInfo = _removedNodes[fNode.child_id!];
         _removedNodes.remove(fNode.child_id!);
       } else {
-        nodeInfo = await loadUpdatedNodeInfo(null, fNode.child_id!);
+        nodeInfo = await loadUpdatedNodeInfo(null, fNode.child_id!, false);
       }
       if (nodeInfo != null) {
         _traversedTree!.explored_nodes!.add(nodeInfo.treeNode);
