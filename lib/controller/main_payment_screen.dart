@@ -650,9 +650,15 @@ class _homePageState extends State<homePage> {
 
     NodePair nodePair = _mapNodes[node_id]!;
 
-    //int numChildren = nodePair.treeNode.updated_num_total_children!;
-    int numChildren = r.nextInt(100000);
-    int numDigits = log10(numChildren).floor() + 1;
+    SubTreeNode treeNode = nodePair.treeNode;
+
+    int numChildren = treeNode.updated_num_total_children!;
+
+    int deltaChildren =
+        numChildren - (treeNode.last_cached_num_total_children ?? 0);
+    bool showDelta =
+        (treeNode.last_cached_num_total_children != null) && deltaChildren > 0;
+    int numDigits = numChildren <= 0 ? 1 : log10(numChildren).floor() + 1;
 
     bool invertColor = _nodesUpdatedDirectChildren.contains(node_id) ||
         !_initiallyCachedNodes.contains(node_id);
@@ -692,7 +698,7 @@ class _homePageState extends State<homePage> {
             ),
             child: Center(
               child: Text(
-                '${numChildren}',
+                '${numChildren > 0 ? '${numChildren}' : '-'}',
                 style: TextStyle(
                   color: invertColor ? whiteColor : redColor,
                   fontWeight: FontWeight.bold,
@@ -705,31 +711,33 @@ class _homePageState extends State<homePage> {
           ),
 
           // notification icon
-          Positioned(
-            right: 0,
-            top: 0,
-            child: new Container(
-              padding: EdgeInsets.all(2),
-              decoration: new BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              constraints: BoxConstraints(
-                minWidth: 20,
-                minHeight: 14,
-              ),
-              child: Text(
-                '+400',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontStyle: FontStyle.italic,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
+          if (showDelta) ...[
+            Positioned(
+              right: 0,
+              top: 0,
+              child: new Container(
+                padding: EdgeInsets.all(2),
+                decoration: new BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                textAlign: TextAlign.center,
+                constraints: BoxConstraints(
+                  minWidth: 20,
+                  minHeight: 14,
+                ),
+                child: Text(
+                  '+ $deltaChildren',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 10,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
