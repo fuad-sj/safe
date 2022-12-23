@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:safe/controller/graphview/GraphView.dart';
+import 'package:safe/models/referral_daily_earnings.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -32,6 +33,8 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
   SugiyamaConfiguration builder = SugiyamaConfiguration()
     ..bendPointShape = CurvedBendPointShape(curveLength: 50);
 
+  bool graphMode = false;
+
   ReferralTraversedTree? _traversedTree;
 
   String? _rootNodeId;
@@ -43,31 +46,17 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
   Set<String> _nodesUpdatedDirectChildren = Set();
   Set<String> _initiallyCachedNodes = Set();
   Map<String, NodePair> _removedNodes = Map();
+  List<ReferralDailyEarnings> _dailyEarnings = [];
 
-  List<_SalesData> data = [
-    _SalesData('Sun', 10),
-    _SalesData('Mon', 22),
-    _SalesData('Thu', 43),
-    _SalesData('Wed', 23),
-    _SalesData('Thr', 15),
-    _SalesData('Fri', 33),
-    _SalesData('Sat', 28),
+  int selectedDateRange = 0; // default is 1 Week
+  final DATE_RANGES = [
+    DateWindow('1 W', 7),
+    DateWindow('2 W', 14),
+    DateWindow('1 M', 30),
+    DateWindow('3 M', 90),
+    DateWindow('6 M', 180),
+    DateWindow('1 Y', 360),
   ];
-
-  final Dates = [
-    DateOfEarning('1 D'),
-    DateOfEarning('1 W'),
-    DateOfEarning('2 W'),
-    DateOfEarning('1 M'),
-    DateOfEarning('2 M'),
-    DateOfEarning('3 M'),
-    DateOfEarning('6 M'),
-    DateOfEarning('1 Y'),
-  ];
-
-  bool showTree = false;
-
-  int selectedDateRange = -1;
 
   @override
   void initState() {
@@ -79,6 +68,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
       ..orientation = SugiyamaConfiguration.ORIENTATION_TOP_BOTTOM;
 
     loadTraversedTreeCache();
+    loadReferralEarningsForDateRange();
   }
 
   Future<void> loadTraversedTreeCache() async {
@@ -262,6 +252,43 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
     );
   }
 
+  static int timeWindowForDate(DateTime date) {
+    int day = date.day;
+    int month = date.month;
+    int year = date.year;
+
+    return year * 10000 + month * 100 + day;
+  }
+
+  void loadReferralEarningsForDateRange() async {
+    _dailyEarnings.clear();
+
+    int daysToCollect = DATE_RANGES[selectedDateRange].numDays;
+    DateTime now = DateTime.now();
+    DateTime lastWeek = now.subtract(Duration(days: daysToCollect));
+    int nowTimeWindow = timeWindowForDate(now);
+    int lastWeekTimeWindow = timeWindowForDate(lastWeek);
+
+    var dateRangeEarningsSnapshot = await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_REFERRAL_DAILY_EARNINGS)
+        .where(ReferralDailyEarnings.FIELD_USER_ID,
+            isEqualTo: PrefUtil.getCurrentUserID())
+        .orderBy(ReferralDailyEarnings.FIELD_TIME_WINDOW, descending: false)
+        .startAt([lastWeekTimeWindow]).endAt([nowTimeWindow]).get();
+
+    int index = 0;
+    dateRangeEarningsSnapshot.docs.forEach((snapshot) {
+      ReferralDailyEarnings earning =
+          ReferralDailyEarnings.fromSnapshot(snapshot);
+      earning.array_index = index++;
+      _dailyEarnings.add(earning);
+    });
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double vHeight = MediaQuery.of(context).size.height;
@@ -284,13 +311,13 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                   children: [
                     GestureDetector(
                       onTap: () {
-                        showTree = false;
+                        graphMode = false;
                         setState(() {});
                       },
                       child: Container(
                         width: hWidth * 0.25,
                         height: vHeight * 0.045,
-                        decoration: !showTree
+                        decoration: !graphMode
                             ? BoxDecoration(
                                 color: Color.fromRGBO(255, 255, 255, 1),
                                 borderRadius: BorderRadius.circular(40),
@@ -299,7 +326,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                         child: Center(
                             child: Text(
                           'Earning',
-                          style: !showTree
+                          style: !graphMode
                               ? selectedTextFieldStyle()
                               : unSelectedTextFieldStyle(),
                         )),
@@ -308,14 +335,14 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                     SizedBox(width: hWidth * 0.01),
                     GestureDetector(
                       onTap: () {
-                        showTree = true;
+                        graphMode = true;
                         setState(() {});
                       },
                       child: Container(
                         padding: EdgeInsets.only(left: 5, right: 5.0),
                         width: hWidth * 0.31,
                         height: vHeight * 0.045,
-                        decoration: showTree
+                        decoration: graphMode
                             ? BoxDecoration(
                                 color: Color.fromRGBO(255, 255, 255, 1),
                                 borderRadius: BorderRadius.circular(40),
@@ -324,7 +351,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                         child: Center(
                             child: Text(
                           'Your Network',
-                          style: showTree
+                          style: graphMode
                               ? selectedTextFieldStyle()
                               : unSelectedTextFieldStyle(),
                         )),
@@ -334,7 +361,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                 ),
               ),
             ),
-            if (!showTree) ...[
+            if (!graphMode) ...[
               Container(
                 height: vHeight * 0.14,
                 child: Column(
@@ -506,17 +533,17 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Time Window Selector
+                    // Date Window Selector
                     Container(
                       height: vHeight * 0.06,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
-                        itemCount: Dates.length,
+                        itemCount: DATE_RANGES.length,
                         itemBuilder: (context, index) {
-                          bool is_selected_index = selectedDateRange == index;
+                          bool isSelectedDateRange = selectedDateRange == index;
 
                           Decoration decoration;
-                          if (is_selected_index) {
+                          if (isSelectedDateRange) {
                             decoration = BoxDecoration(
                               color: Color(0xff39383d),
                               borderRadius: BorderRadius.circular(8),
@@ -527,9 +554,10 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                           }
                           return GestureDetector(
                             behavior: HitTestBehavior.opaque,
-                            onTap: () {
+                            onTap: () async {
                               selectedDateRange = index;
                               setState(() {});
+                              loadReferralEarningsForDateRange();
                             },
                             child: Container(
                               margin: EdgeInsets.only(left: hWidth * 0.04),
@@ -537,7 +565,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                               decoration: decoration,
                               child: Center(
                                 child: Text(
-                                  Dates[index].date,
+                                  DATE_RANGES[index].windowStr,
                                   style: TextStyle(
                                     //color: Color(0xfffbfbfb),
                                     color: Colors.grey.shade100,
@@ -552,6 +580,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                       ),
                     ),
 
+                    // Earnings Graph
                     Container(
                       padding: EdgeInsets.only(
                           left: hWidth * 0.03, right: hWidth * 0.04),
@@ -561,8 +590,8 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                         enableAxisAnimation: true,
                         tooltipBehavior: TooltipBehavior(enable: true),
                         series: <ChartSeries>[
-                          SplineAreaSeries<_SalesData, String>(
-                              dataSource: data,
+                          SplineAreaSeries<ReferralDailyEarnings, int>(
+                              dataSource: _dailyEarnings,
                               splineType: SplineType.cardinal,
                               cardinalSplineTension: 0.5,
                               borderColor: Color.fromRGBO(0, 255, 0, 1),
@@ -577,14 +606,17 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                                   0.9
                                 ]);
                               },
-                              xValueMapper: (_SalesData sales, _) =>
-                              sales.year,
-                              yValueMapper: (_SalesData sales, _) =>
-                              sales.sales,
+                              xValueMapper:
+                                  (ReferralDailyEarnings earnings, _) =>
+                                      (_dailyEarnings.length -
+                                          (earnings.array_index ?? 0)),
+                              yValueMapper:
+                                  (ReferralDailyEarnings earnings, _) =>
+                                      earnings.earning_amount,
                               name: ' Earning ',
                               borderWidth: 3,
                               dataLabelSettings:
-                              const DataLabelSettings(isVisible: false))
+                                  const DataLabelSettings(isVisible: false))
                         ],
                       ),
                     ),
@@ -594,7 +626,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
             ],
           ],
         ),
-        if (showTree && graphLoadFinished) ...[
+        if (graphMode && graphLoadFinished) ...[
           Expanded(
             child: InteractiveViewer(
                 constrained: false,
@@ -790,39 +822,9 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
   }
 }
 
-class _SalesData {
-  _SalesData(this.year, this.sales);
+class DateWindow {
+  DateWindow(this.windowStr, this.numDays);
 
-  final String year;
-  final double sales;
-}
-
-class DateOfEarning {
-  DateOfEarning(this.date);
-
-  final String date;
-}
-
-class CustomTotalPriceClipPath extends CustomClipper<Path> {
-  var radius = 100.0;
-
-  @override
-  Path getClip(Size size) {
-    Path path0 = Path();
-    path0.moveTo(size.width * 0.001, size.height * 0.200);
-    path0.lineTo(size.width * 0.448, size.height * 0.204);
-    path0.lineTo(size.width * 0.500, size.height * 0.002);
-    path0.lineTo(size.width * 0.55075, size.height * 0.19892);
-    path0.lineTo(size.width * 0.999, size.height * 0.200);
-    path0.lineTo(size.width * 0.997, size.height * 0.994);
-    path0.lineTo(size.width * 0.001, size.height * 0.996);
-    path0.lineTo(size.width * 0.001, size.height * 0.200);
-    path0.close();
-
-    return path0;
-    throw UnimplementedError();
-  }
-
-  @override
-  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
+  final String windowStr;
+  final int numDays;
 }

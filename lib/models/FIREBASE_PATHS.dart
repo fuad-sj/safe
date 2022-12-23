@@ -27,6 +27,9 @@ class FIRESTORE_PATHS {
   static final COL_OTP_REQUESTS = "otp_requests";
 
   static final COL_REFERRAL_TRAVERSED_TREE = "referral_traversed_tree";
+  static final COL_REFERRAL_DAILY_EARNINGS = "referral_daily_earnings";
+  static final COL_REFERRAL_CURRENT_BALANCE = "referral_current_balance";
+  static final COL_REFERRAL_TRANSACTION_LOG = "referral_transaction_log";
 }
 
 class FCM_MESSAGING_TOPICS {
