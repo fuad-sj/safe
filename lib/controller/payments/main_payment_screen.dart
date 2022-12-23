@@ -363,7 +363,6 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
             ),
             if (!graphMode) ...[
               Container(
-                height: vHeight * 0.14,
                 child: Column(
                   children: [
                     SizedBox(height: vHeight * 0.015),
@@ -524,7 +523,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                         color: Color(0xff3b3b3d),
                       ),
                     ),
-                    //SizedBox(height: vHeight * 0.015),
+                    SizedBox(height: vHeight * 0.015),
                   ],
                 ),
               ),
@@ -579,44 +578,42 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                         },
                       ),
                     ),
+                    SizedBox(height: vHeight * 0.008),
 
                     // Earnings Graph
                     Container(
                       padding: EdgeInsets.only(
                           left: hWidth * 0.03, right: hWidth * 0.04),
                       child: SfCartesianChart(
-                        primaryXAxis: CategoryAxis(opposedPosition: false),
-                        legend: Legend(isVisible: false),
                         enableAxisAnimation: true,
                         tooltipBehavior: TooltipBehavior(enable: true),
-                        series: <ChartSeries>[
+                        series: [
                           SplineAreaSeries<ReferralDailyEarnings, int>(
-                              dataSource: _dailyEarnings,
-                              splineType: SplineType.cardinal,
-                              cardinalSplineTension: 0.5,
-                              borderColor: Color.fromRGBO(0, 255, 0, 1),
-                              onCreateShader: (ShaderDetails details) {
-                                return ui.Gradient.linear(
-                                    details.rect.topCenter,
-                                    details.rect.bottomCenter, <Color>[
-                                  Color.fromRGBO(0, 255, 0, 0.7),
-                                  Color.fromRGBO(60, 60, 60, 0.4)
-                                ], <double>[
-                                  0.1,
-                                  0.9
-                                ]);
-                              },
-                              xValueMapper:
-                                  (ReferralDailyEarnings earnings, _) =>
-                                      (_dailyEarnings.length -
-                                          (earnings.array_index ?? 0)),
-                              yValueMapper:
-                                  (ReferralDailyEarnings earnings, _) =>
-                                      earnings.earning_amount,
-                              name: ' Earning ',
-                              borderWidth: 3,
-                              dataLabelSettings:
-                                  const DataLabelSettings(isVisible: false))
+                            dataSource: _dailyEarnings,
+                            splineType: SplineType.cardinal,
+                            cardinalSplineTension: 0.5,
+                            borderColor: Color.fromRGBO(0, 255, 0, 1),
+                            onCreateShader: (ShaderDetails details) {
+                              return ui.Gradient.linear(details.rect.topCenter,
+                                  details.rect.bottomCenter, <Color>[
+                                Color.fromRGBO(0, 255, 0, 0.7),
+                                Color.fromRGBO(60, 60, 60, 0.4)
+                              ], <double>[
+                                0.1,
+                                0.9
+                              ]);
+                            },
+                            xValueMapper: (ReferralDailyEarnings earnings, _) =>
+                                (earnings.array_index!),
+                            yValueMapper: (ReferralDailyEarnings earnings, _) =>
+                                earnings.earning_amount,
+                            name: 'Earning',
+                            borderWidth: selectedDateRange <= 1
+                                ? 2
+                                : selectedDateRange <= 3
+                                    ? 1.5
+                                    : 1,
+                          ),
                         ],
                       ),
                     ),
