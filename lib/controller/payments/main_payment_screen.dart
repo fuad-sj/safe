@@ -48,6 +48,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
   Map<String, NodePair> _removedNodes = Map();
   List<ReferralDailyEarnings> _dailyEarnings = [];
 
+  bool isIncomeIncreasing = true; // if it decreases, use a red line
   int selectedDateRange = 0; // default is 1 Week
   final DATE_RANGES = [
     DateWindow('1 W', 7),
@@ -283,6 +284,14 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
       earning.array_index = index++;
       _dailyEarnings.add(earning);
     });
+
+    if (_dailyEarnings.length > 0) {
+      isIncomeIncreasing =
+          (_dailyEarnings[_dailyEarnings.length - 1].earning_amount ?? 0) >=
+              (_dailyEarnings[0].earning_amount ?? 0);
+    } else {
+      isIncomeIncreasing = true;
+    }
 
     if (mounted) {
       setState(() {});
@@ -592,11 +601,16 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                             dataSource: _dailyEarnings,
                             splineType: SplineType.cardinal,
                             cardinalSplineTension: 0.5,
-                            borderColor: Color.fromRGBO(0, 255, 0, 1),
+                            borderColor: Color.fromRGBO(
+                                isIncomeIncreasing ? 0 : 255,
+                                isIncomeIncreasing ? 255 : 0,
+                                0,
+                                1),
                             onCreateShader: (ShaderDetails details) {
                               return ui.Gradient.linear(details.rect.topCenter,
                                   details.rect.bottomCenter, <Color>[
-                                Color.fromRGBO(0, 255, 0, 0.7),
+                                Color.fromRGBO(isIncomeIncreasing ? 0 : 255,
+                                    isIncomeIncreasing ? 255 : 0, 0, 0.7),
                                 Color.fromRGBO(60, 60, 60, 0.4)
                               ], <double>[
                                 0.1,
