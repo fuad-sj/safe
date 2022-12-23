@@ -266,16 +266,16 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
 
     int daysToCollect = DATE_RANGES[selectedDateRange].numDays;
     DateTime now = DateTime.now();
-    DateTime lastWeek = now.subtract(Duration(days: daysToCollect));
+    DateTime prevDate = now.subtract(Duration(days: daysToCollect));
     int nowTimeWindow = timeWindowForDate(now);
-    int lastWeekTimeWindow = timeWindowForDate(lastWeek);
+    int prevDateTimeWindow = timeWindowForDate(prevDate);
 
     var dateRangeEarningsSnapshot = await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_REFERRAL_DAILY_EARNINGS)
         .where(ReferralDailyEarnings.FIELD_USER_ID,
             isEqualTo: PrefUtil.getCurrentUserID())
         .orderBy(ReferralDailyEarnings.FIELD_TIME_WINDOW, descending: false)
-        .startAt([lastWeekTimeWindow]).endAt([nowTimeWindow]).get();
+        .startAt([prevDateTimeWindow]).endAt([nowTimeWindow]).get();
 
     int index = 0;
     dateRangeEarningsSnapshot.docs.forEach((snapshot) {
