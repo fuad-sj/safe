@@ -9,6 +9,7 @@ part of 'referral_daily_earnings.dart';
 ReferralDailyEarnings _$ReferralDailyEarningsFromJson(
         Map<String, dynamic> json) =>
     ReferralDailyEarnings()
+      ..array_index = json['array_index'] as int?
       ..user_id = json['user_id'] as String?
       ..user_name = json['user_name'] as String?
       ..user_phone = json['user_phone'] as String?
@@ -20,6 +21,7 @@ ReferralDailyEarnings _$ReferralDailyEarningsFromJson(
 Map<String, dynamic> _$ReferralDailyEarningsToJson(
         ReferralDailyEarnings instance) =>
     <String, dynamic>{
+      'array_index': instance.array_index,
       'user_id': instance.user_id,
       'user_name': instance.user_name,
       'user_phone': instance.user_phone,

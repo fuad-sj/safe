@@ -77,7 +77,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       ),
       body: paymentPages[bottomIndex],
       bottomNavigationBar: Container(
-        height: MediaQuery.of(context).size.height * 0.05,
+        height: MediaQuery.of(context).size.height * 0.08,
         child: BubbleBottomBar(
           backgroundColor: Color(is_dark_mode ? 0xff1c1c1e : 0xffffffff),
           opacity: 1.0,
@@ -90,7 +90,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               backgroundColor: Color(0xffDE0000),
               icon: Icon(
                 Icons.home,
-                color: Color(is_dark_mode ? 0xff1c1c1e : 0xffffffff),
+                color: Color(!is_dark_mode ? 0xff1c1c1e : 0xffffffff),
               ),
               activeIcon: Icon(
                 Icons.home,

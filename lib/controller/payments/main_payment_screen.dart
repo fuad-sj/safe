@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:safe/controller/graphview/GraphView.dart';
+import 'package:safe/models/referral_current_balance.dart';
 import 'package:safe/models/referral_daily_earnings.dart';
+import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -48,6 +51,14 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
   Map<String, NodePair> _removedNodes = Map();
   List<ReferralDailyEarnings> _dailyEarnings = [];
 
+  StreamSubscription? _liveCurrentBalanceStream;
+  StreamSubscription? _liveTotalChildrenStream;
+  StreamSubscription? _liveDateRangeEarningsStream;
+
+  ReferralCurrentBalance? _currentBalance;
+  Customer? _currentCustomerInfo;
+  double _dateRangeTotal = 0;
+
   bool isIncomeIncreasing = true; // if it decreases, use a red line
   int selectedDateRange = 0; // default is 1 Week
   final DATE_RANGES = [
@@ -70,6 +81,90 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
 
     loadTraversedTreeCache();
     loadReferralEarningsForDateRange();
+
+    setupLivePriceStreams();
+  }
+
+  @override
+  void didUpdateWidget(MainPaymentScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    setupLivePriceStreams();
+  }
+
+  void setupLivePriceStreams() async {
+    _liveCurrentBalanceStream?.cancel();
+    _liveTotalChildrenStream?.cancel();
+
+    _liveCurrentBalanceStream = FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_REFERRAL_CURRENT_BALANCE)
+        .doc(PrefUtil.getCurrentUserID())
+        .snapshots()
+        .listen((snapshot) {
+      _currentBalance = ReferralCurrentBalance.fromSnapshot(snapshot);
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    _liveTotalChildrenStream = FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+        .doc(PrefUtil.getCurrentUserID())
+        .snapshots()
+        .listen((snapshot) {
+      _currentCustomerInfo = Customer.fromSnapshot(snapshot);
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    loadReferralEarningsForDateRange();
+  }
+
+  Future<void> loadReferralEarningsForDateRange() async {
+    int daysToCollect = DATE_RANGES[selectedDateRange].numDays;
+    DateTime now = DateTime.now();
+    DateTime prevDate = now.subtract(Duration(days: daysToCollect));
+    int nowTimeWindow = timeWindowForDate(now);
+    int prevDateTimeWindow = timeWindowForDate(prevDate);
+
+    _liveDateRangeEarningsStream?.cancel();
+    _liveDateRangeEarningsStream = FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_REFERRAL_DAILY_EARNINGS)
+        .where(ReferralDailyEarnings.FIELD_USER_ID,
+            isEqualTo: PrefUtil.getCurrentUserID())
+        .orderBy(ReferralDailyEarnings.FIELD_TIME_WINDOW, descending: false)
+        .startAt([prevDateTimeWindow])
+        .endAt([nowTimeWindow])
+        .snapshots()
+        .listen(
+          (snapshots) {
+            _dailyEarnings.clear();
+            _dateRangeTotal = 0;
+
+            int index = 0;
+            snapshots.docs.forEach((snapshot) {
+              ReferralDailyEarnings earning =
+                  ReferralDailyEarnings.fromSnapshot(snapshot);
+              earning.array_index = index++;
+              _dailyEarnings.add(earning);
+              _dateRangeTotal += earning.earning_amount!;
+            });
+
+            if (_dailyEarnings.length > 0) {
+              isIncomeIncreasing =
+                  (_dailyEarnings[_dailyEarnings.length - 1].earning_amount ??
+                          0) >=
+                      (_dailyEarnings[0].earning_amount ?? 0);
+            } else {
+              isIncomeIncreasing = true;
+            }
+
+            if (mounted) {
+              setState(() {});
+            }
+          },
+        );
   }
 
   Future<void> loadTraversedTreeCache() async {
@@ -210,6 +305,11 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
     Future.delayed(Duration.zero, () async {
       await saveTraversedTreeInfo();
     });
+
+    _liveCurrentBalanceStream?.cancel();
+    _liveTotalChildrenStream?.cancel();
+    _liveDateRangeEarningsStream?.cancel();
+
     super.dispose();
   }
 
@@ -261,41 +361,8 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
     return year * 10000 + month * 100 + day;
   }
 
-  void loadReferralEarningsForDateRange() async {
-    _dailyEarnings.clear();
-
-    int daysToCollect = DATE_RANGES[selectedDateRange].numDays;
-    DateTime now = DateTime.now();
-    DateTime prevDate = now.subtract(Duration(days: daysToCollect));
-    int nowTimeWindow = timeWindowForDate(now);
-    int prevDateTimeWindow = timeWindowForDate(prevDate);
-
-    var dateRangeEarningsSnapshot = await FirebaseFirestore.instance
-        .collection(FIRESTORE_PATHS.COL_REFERRAL_DAILY_EARNINGS)
-        .where(ReferralDailyEarnings.FIELD_USER_ID,
-            isEqualTo: PrefUtil.getCurrentUserID())
-        .orderBy(ReferralDailyEarnings.FIELD_TIME_WINDOW, descending: false)
-        .startAt([prevDateTimeWindow]).endAt([nowTimeWindow]).get();
-
-    int index = 0;
-    dateRangeEarningsSnapshot.docs.forEach((snapshot) {
-      ReferralDailyEarnings earning =
-          ReferralDailyEarnings.fromSnapshot(snapshot);
-      earning.array_index = index++;
-      _dailyEarnings.add(earning);
-    });
-
-    if (_dailyEarnings.length > 0) {
-      isIncomeIncreasing =
-          (_dailyEarnings[_dailyEarnings.length - 1].earning_amount ?? 0) >=
-              (_dailyEarnings[0].earning_amount ?? 0);
-    } else {
-      isIncomeIncreasing = true;
-    }
-
-    if (mounted) {
-      setState(() {});
-    }
+  String _formatDouble(double? d, {int digits = 2}) {
+    return AlphaNumericUtil.formatDouble(d ?? 0, digits);
   }
 
   @override
@@ -387,6 +454,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                       height: vHeight * 0.069,
                       padding: EdgeInsets.only(left: hWidth * 0.05),
                       child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Container(
                             child: Column(
@@ -396,7 +464,9 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      '170.00',
+                                      _formatDouble(
+                                          _currentBalance?.current_balance ??
+                                              0),
                                       style: TextStyle(
                                           color: Color(0xfff0f0f0),
                                           fontWeight: FontWeight.bold,
@@ -406,7 +476,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      '+70.00',
+                                      '+--',
                                       style: TextStyle(
                                           color: Colors.green,
                                           fontWeight: FontWeight.w700,
@@ -419,7 +489,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      '70 new',
+                                      '${_currentCustomerInfo?.num_total_children! ?? 0}',
                                       style: TextStyle(
                                           color: Colors.grey,
                                           fontWeight: FontWeight.w700,
@@ -429,7 +499,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                                     ),
                                     SizedBox(width: 4.0),
                                     Text(
-                                      '+2',
+                                      '+--',
                                       style: TextStyle(
                                           color: Colors.green,
                                           fontWeight: FontWeight.w700,
@@ -440,10 +510,10 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                                   ],
                                 ),
                                 Text(
-                                  'Last Week',
+                                  'Live Info',
                                   style: TextStyle(
                                       color: Colors.grey,
-                                      fontWeight: FontWeight.w700,
+                                      fontWeight: FontWeight.bold,
                                       fontFamily: 'Lato',
                                       fontSize: 13.0,
                                       letterSpacing: 2),
@@ -466,7 +536,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                                 Row(
                                   children: [
                                     Text(
-                                      '170.00',
+                                      _formatDouble(_dateRangeTotal),
                                       style: TextStyle(
                                           color: Color(0xfff0f0f0),
                                           fontWeight: FontWeight.bold,
@@ -510,7 +580,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                                   ],
                                 ),
                                 Text(
-                                  'Today',
+                                  'Range Total',
                                   style: TextStyle(
                                       color: Colors.grey,
                                       fontWeight: FontWeight.w700,
