@@ -17,6 +17,9 @@ Driver _$DriverFromJson(Map<String, dynamic> json) => Driver()
   ..version_number = json['version_number'] as String?
   ..num_direct_children = json['num_direct_children'] as int?
   ..num_total_children = json['num_total_children'] as int?
+  ..last_read_current_balance =
+      FirebaseDocument.DoubleFromJson(json['last_read_current_balance'])
+  ..last_read_total_children = json['last_read_total_children'] as int?
   ..datetime_version_date =
       FirebaseDocument.DateTimeFromJson(json['datetime_version_date'])
   ..last_checked_version_number = json['last_checked_version_number'] as String?
@@ -77,6 +80,8 @@ Map<String, dynamic> _$DriverToJson(Driver instance) => <String, dynamic>{
       'version_number': instance.version_number,
       'num_direct_children': instance.num_direct_children,
       'num_total_children': instance.num_total_children,
+      'last_read_current_balance': instance.last_read_current_balance,
+      'last_read_total_children': instance.last_read_total_children,
       'datetime_version_date':
           FirebaseDocument.DateTimeToJson(instance.datetime_version_date),
       'last_checked_version_number': instance.last_checked_version_number,

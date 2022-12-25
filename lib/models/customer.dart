@@ -23,6 +23,9 @@ class Customer extends FirebaseDocument {
   static const FIELD_NUM_DIRECT_CHILDREN = 'num_direct_children';
   static const FIELD_NUM_TOTAL_CHILDREN = 'num_total_children';
 
+  static const FIELD_LAST_READ_CURRENT_BALANCE = "last_read_current_balance";
+  static const FIELD_LAST_READ_TOTAL_CHILDREN = "last_read_total_children";
+
   static const FIELD_NUM_CHILDREN_UNDER_NODE = 'num_children_under_node';
 
   static const FIELD_DATETIME_VERSION_DATE = 'datetime_version_date';
@@ -63,6 +66,10 @@ class Customer extends FirebaseDocument {
 
   int? num_direct_children;
   int? num_total_children;
+
+  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
+  double? last_read_current_balance;
+  int? last_read_total_children;
 
   @JsonKey(
       fromJson: FirebaseDocument.DateTimeFromJson,

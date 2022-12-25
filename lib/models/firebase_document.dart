@@ -28,6 +28,16 @@ abstract class FirebaseDocument {
     return number + 0.0;
   }
 
+  static Map<int, double>? mapIntDoubleFromJson(dynamic json) {
+    if (json == null) return null;
+
+    Map<int, double> resultMap = Map();
+    (json as Map).forEach((key, value) {
+      resultMap[key] = value + 0.0;
+    });
+    return resultMap;
+  }
+
   static LatLng? LatLngFromJson(dynamic json) {
     return LatLng.fromJson(json);
   }

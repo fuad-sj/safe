@@ -57,7 +57,11 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
 
   ReferralCurrentBalance? _currentBalance;
   Customer? _currentCustomerInfo;
-  double _dateRangeTotal = 0;
+  double _dateRangeTotalEarnings = 0;
+  double _prevDateRangeTotalEarnings = 0;
+
+  double? _lastReadCurrentBalance;
+  int? _lastReadTotalChildren;
 
   bool isIncomeIncreasing = true; // if it decreases, use a red line
   int selectedDateRange = 0; // default is 1 Week
@@ -81,6 +85,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
 
     loadTraversedTreeCache();
     loadReferralEarningsForDateRange();
+    loadLastReadKPIFigures();
 
     setupLivePriceStreams();
   }
@@ -90,6 +95,21 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
     super.didUpdateWidget(oldWidget);
 
     setupLivePriceStreams();
+  }
+
+  Future<void> loadLastReadKPIFigures() async {
+    Customer customer = Customer.fromSnapshot(await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+        .doc(PrefUtil.getCurrentUserID())
+        .get());
+    if (!customer.documentExists()) return;
+
+    _lastReadCurrentBalance = customer.last_read_current_balance ?? 0;
+    _lastReadTotalChildren = customer.last_read_total_children ?? 0;
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void setupLivePriceStreams() async {
@@ -125,8 +145,23 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
     int daysToCollect = DATE_RANGES[selectedDateRange].numDays;
     DateTime now = DateTime.now();
     DateTime prevDate = now.subtract(Duration(days: daysToCollect));
+    DateTime prevPrevDate = prevDate.subtract(Duration(days: daysToCollect));
     int nowTimeWindow = timeWindowForDate(now);
     int prevDateTimeWindow = timeWindowForDate(prevDate);
+    int prevPrevDateTimeWindow = timeWindowForDate(prevPrevDate);
+
+    _prevDateRangeTotalEarnings = 0;
+
+    var prevSnapshots = await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_REFERRAL_DAILY_EARNINGS)
+        .where(ReferralDailyEarnings.FIELD_USER_ID,
+            isEqualTo: PrefUtil.getCurrentUserID())
+        .orderBy(ReferralDailyEarnings.FIELD_TIME_WINDOW, descending: false)
+        .startAt([prevPrevDateTimeWindow]).endAt([prevDateTimeWindow]).get();
+    prevSnapshots.docs.forEach((doc) {
+      ReferralDailyEarnings earnings = ReferralDailyEarnings.fromSnapshot(doc);
+      _prevDateRangeTotalEarnings += earnings.earning_amount!;
+    });
 
     _liveDateRangeEarningsStream?.cancel();
     _liveDateRangeEarningsStream = FirebaseFirestore.instance
@@ -140,7 +175,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
         .listen(
           (snapshots) {
             _dailyEarnings.clear();
-            _dateRangeTotal = 0;
+            _dateRangeTotalEarnings = 0;
 
             int index = 0;
             snapshots.docs.forEach((snapshot) {
@@ -148,7 +183,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                   ReferralDailyEarnings.fromSnapshot(snapshot);
               earning.array_index = index++;
               _dailyEarnings.add(earning);
-              _dateRangeTotal += earning.earning_amount!;
+              _dateRangeTotalEarnings += earning.earning_amount!;
             });
 
             if (_dailyEarnings.length > 0) {
@@ -300,15 +335,30 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
         .set(_traversedTree!.toJson(), SetOptions(merge: true));
   }
 
+  Future<void> saveLastReadFigures() async {
+    Map<String, dynamic> updateFields = new Map();
+
+    updateFields[Customer.FIELD_LAST_READ_CURRENT_BALANCE] =
+        _currentBalance?.current_balance ?? 0;
+    updateFields[Customer.FIELD_LAST_READ_TOTAL_CHILDREN] =
+        _currentCustomerInfo?.num_total_children ?? 0;
+
+    await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+        .doc(PrefUtil.getCurrentUserID())
+        .set(updateFields, SetOptions(merge: true));
+  }
+
   @override
   void dispose() {
-    Future.delayed(Duration.zero, () async {
-      await saveTraversedTreeInfo();
-    });
-
     _liveCurrentBalanceStream?.cancel();
     _liveTotalChildrenStream?.cancel();
     _liveDateRangeEarningsStream?.cancel();
+
+    Future.delayed(Duration.zero, () async {
+      await saveTraversedTreeInfo();
+      await saveLastReadFigures();
+    });
 
     super.dispose();
   }
@@ -363,6 +413,63 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
 
   String _formatDouble(double? d, {int digits = 2}) {
     return AlphaNumericUtil.formatDouble(d ?? 0, digits);
+  }
+
+  static const FIELD_TYPE_CURRENT_BALANCE = 1;
+  static const FIELD_TYPE_TOTAL_CHILDREN = 2;
+  static const FIELD_TYPE_DATE_WINDOW = 3;
+
+  Widget _textWidgetForPercentageChange(int fieldType) {
+    bool dataMissing = false;
+    double prevValue = 0, currentValue = 0;
+
+    switch (fieldType) {
+      case FIELD_TYPE_CURRENT_BALANCE:
+        if (_currentBalance?.current_balance == null ||
+            _lastReadCurrentBalance == null) {
+          dataMissing = true;
+        } else {
+          prevValue = _lastReadCurrentBalance!;
+          currentValue = _currentBalance!.current_balance!;
+        }
+        break;
+      case FIELD_TYPE_TOTAL_CHILDREN:
+        if (_currentCustomerInfo?.num_total_children == null ||
+            _lastReadTotalChildren == null) {
+          dataMissing = true;
+        } else {
+          prevValue = _lastReadTotalChildren! + 0.0;
+          currentValue = _currentCustomerInfo!.num_total_children! + 0.0;
+        }
+        break;
+      case FIELD_TYPE_DATE_WINDOW:
+        prevValue = _prevDateRangeTotalEarnings;
+        currentValue = _dateRangeTotalEarnings;
+        break;
+    }
+
+    bool isPositive = true;
+    String percentStr = "";
+    if (!dataMissing) {
+      if (prevValue != 0) {
+        double delta = currentValue - prevValue;
+        double deltaPercent = delta / prevValue;
+
+        isPositive = deltaPercent >= 0;
+        percentStr =
+            '${deltaPercent > 0 ? '+' : ''}${AlphaNumericUtil.formatDouble(deltaPercent * 100.0, 1)}%';
+      }
+    }
+
+    return Text(
+      dataMissing ? '' : percentStr,
+      style: TextStyle(
+          color: dataMissing || isPositive ? Colors.green : Colors.red,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Lato',
+          fontSize: 12.0,
+          letterSpacing: 2),
+    );
   }
 
   @override
@@ -461,53 +568,45 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      _formatDouble(
-                                          _currentBalance?.current_balance ??
-                                              0),
-                                      style: TextStyle(
-                                          color: Color(0xfff0f0f0),
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Lato',
-                                          fontSize: 15.0,
-                                          letterSpacing: 2),
-                                    ),
-                                    SizedBox(width: 4.0),
-                                    Text(
-                                      '+--',
-                                      style: TextStyle(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: 'Lato',
-                                          fontSize: 10.0,
-                                          letterSpacing: 2),
-                                    ),
-                                  ],
+                                Container(
+                                  width: hWidth * 0.269,
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        _formatDouble(
+                                            _currentBalance?.current_balance ??
+                                                0),
+                                        style: TextStyle(
+                                            color: Color(0xfff0f0f0),
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'Lato',
+                                            fontSize: 15.0,
+                                            letterSpacing: 2),
+                                      ),
+                                      Expanded(child: Container()),
+                                      _textWidgetForPercentageChange(
+                                          FIELD_TYPE_CURRENT_BALANCE),
+                                    ],
+                                  ),
                                 ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '${_currentCustomerInfo?.num_total_children! ?? 0}',
-                                      style: TextStyle(
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: 'Lato',
-                                          fontSize: 12.0,
-                                          letterSpacing: 2),
-                                    ),
-                                    SizedBox(width: 4.0),
-                                    Text(
-                                      '+--',
-                                      style: TextStyle(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: 'Lato',
-                                          fontSize: 12.0,
-                                          letterSpacing: 2),
-                                    ),
-                                  ],
+                                Container(
+                                  width: hWidth * 0.269,
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        '${_currentCustomerInfo?.num_total_children! ?? 0}',
+                                        style: TextStyle(
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.w700,
+                                            fontFamily: 'Lato',
+                                            fontSize: 12.0,
+                                            letterSpacing: 2),
+                                      ),
+                                      Expanded(child: Container()),
+                                      _textWidgetForPercentageChange(
+                                          FIELD_TYPE_TOTAL_CHILDREN),
+                                    ],
+                                  ),
                                 ),
                                 Text(
                                   'Live Info',
@@ -533,51 +632,24 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      _formatDouble(_dateRangeTotal),
-                                      style: TextStyle(
-                                          color: Color(0xfff0f0f0),
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Lato',
-                                          fontSize: 15.0,
-                                          letterSpacing: 2),
-                                    ),
-                                    SizedBox(width: 4.0),
-                                    Text(
-                                      '+70.00',
-                                      style: TextStyle(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: 'Lato',
-                                          fontSize: 10.0,
-                                          letterSpacing: 2),
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      '70 new',
-                                      style: TextStyle(
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: 'Lato',
-                                          fontSize: 12.0,
-                                          letterSpacing: 2),
-                                    ),
-                                    SizedBox(width: 4.0),
-                                    Text(
-                                      '+2',
-                                      style: TextStyle(
-                                          color: Colors.green,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: 'Lato',
-                                          fontSize: 12.0,
-                                          letterSpacing: 2),
-                                    ),
-                                  ],
+                                Container(
+                                  width: hWidth * 0.269,
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        _formatDouble(_dateRangeTotalEarnings),
+                                        style: TextStyle(
+                                            color: Color(0xfff0f0f0),
+                                            fontWeight: FontWeight.bold,
+                                            fontFamily: 'Lato',
+                                            fontSize: 15.0,
+                                            letterSpacing: 2),
+                                      ),
+                                      Expanded(child: Container()),
+                                      _textWidgetForPercentageChange(
+                                          FIELD_TYPE_DATE_WINDOW),
+                                    ],
+                                  ),
                                 ),
                                 Text(
                                   'Range Total',
