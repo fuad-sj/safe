@@ -43,7 +43,6 @@ class _LoginPageState extends State<LoginPage> {
 
   String? _appVersionNumber;
 
-  bool _languageDialogShown = false;
   bool _isVerifyTrue = false;
 
   late String _instNo;
@@ -233,7 +232,8 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         ],
                       ),
-                    )),
+                    ),
+                ),
                 Visibility(
                     visible: _isVerifyTrue,
                     child: Padding(

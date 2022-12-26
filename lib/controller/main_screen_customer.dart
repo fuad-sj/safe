@@ -660,7 +660,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         Color(0xffDD0000),
       ),
       _MenuListItem(
-        Icons.wallet_outlined,
+        Icons.account_balance_wallet,
         SafeLocalizations.of(context)!.nav_option_payment,
         MenuOption.MENU_OPTION_PAYMENT,
         Color(0xffDD0000),
