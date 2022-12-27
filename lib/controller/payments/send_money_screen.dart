@@ -151,6 +151,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                     ),
                   ),
                 ),
+                /*
                 Padding(
                   padding:
                       EdgeInsets.only(left: hWidth * 0.1, right: hWidth * 0.1),
@@ -185,6 +186,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                     ),
                   ),
                 ),
+                */
               ],
             ),
           )
