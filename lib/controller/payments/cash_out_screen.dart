@@ -4,11 +4,13 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:safe/controller/dialogs/cash_out_dialog.dart';
 import 'package:safe/controller/dialogs/send_money_dialog.dart';
 import 'package:safe/controller/graphview/GraphView.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/referral_current_balance.dart';
+import 'package:safe/models/sys_config.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:safe/utils/pref_util.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
@@ -26,23 +28,26 @@ class CashOutScreen extends StatefulWidget {
 
 class _CashOutScreenState extends State<CashOutScreen> {
   StreamSubscription? _liveCurrentBalanceStream;
+  StreamSubscription? _liveSysConfigStream;
   ReferralCurrentBalance? _currentBalance;
 
   late Image _teleIcon;
+  SysConfig? _sysConfig;
 
   @override
   void initState() {
     super.initState();
 
-    _teleIcon = Image(image: AssetImage('images/telelogo.png'));
+    _teleIcon =
+        Image(image: AssetImage('images/telelogo.png'), color: Colors.white);
 
     setupLivePriceStreams();
   }
 
-
   @override
   void dispose() {
     _liveCurrentBalanceStream?.cancel();
+    _liveSysConfigStream?.cancel();
     super.dispose();
   }
 
@@ -55,6 +60,22 @@ class _CashOutScreenState extends State<CashOutScreen> {
         .snapshots()
         .listen((snapshot) {
       _currentBalance = ReferralCurrentBalance.fromSnapshot(snapshot);
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    _liveSysConfigStream = FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_CONFIG)
+        .doc(FIRESTORE_PATHS.DOC_CONFIG)
+        .snapshots()
+        .listen((snapshot) {
+      if (!snapshot.exists) {
+        _sysConfig = null;
+      } else {
+        _sysConfig = SysConfig.fromSnapshot(snapshot);
+      }
+
       if (mounted) {
         setState(() {});
       }
@@ -101,6 +122,12 @@ class _CashOutScreenState extends State<CashOutScreen> {
     );
   }
 
+  bool hasSufficientCashoutBalance() {
+    if (_sysConfig == null || _currentBalance == null) return false;
+    return _currentBalance!.current_balance! >=
+        _sysConfig!.customer_cashout_min_balance!;
+  }
+
   @override
   Widget build(BuildContext context) {
     double vHeight = MediaQuery.of(context).size.height;
@@ -145,7 +172,9 @@ class _CashOutScreenState extends State<CashOutScreen> {
                           fontFamily: 'Lato',
                           letterSpacing: 2)),
                   Text(
-                    _currentBalance != null ? '${AlphaNumericUtil.formatDouble(_currentBalance!.current_balance!, 2)} ETB' : '-',
+                    _currentBalance != null
+                        ? '${AlphaNumericUtil.formatDouble(_currentBalance!.current_balance!, 2)} ETB'
+                        : '-',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 60.0,
@@ -159,19 +188,47 @@ class _CashOutScreenState extends State<CashOutScreen> {
           ),
           SizedBox(height: vHeight * 0.06),
           Container(
-            height: vHeight * 0.16,
+            //height: vHeight * 0.16,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () async {
-                    await showDialog(
-                      context: context,
-                      builder: (_) => cashOutDialog(),
-                    );
+                    if (!hasSufficientCashoutBalance()) {
+                      Fluttertoast.showToast(
+                        msg: "Your balance is insufficient to cash out",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.grey.shade700,
+                        textColor: Colors.white,
+                        fontSize: 16.0,
+                      );
+                    } else {
+                      await showDialog(
+                        context: context,
+                        builder: (_) => cashOutDialog(),
+                      );
+                    }
                   },
                   child: Container(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 50.0, vertical: 20.0),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(30),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: hasSufficientCashoutBalance()
+                                ? Colors.green
+                                : Colors.grey,
+                            spreadRadius: 1,
+                            blurRadius: 1,
+                            offset: Offset(2, 8),
+                          ),
+                        ]),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -179,7 +236,9 @@ class _CashOutScreenState extends State<CashOutScreen> {
                         SizedBox(height: 15.0),
                         Text(
                           'Cash Out',
-                          style: TextStyle(color: Colors.black),
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),

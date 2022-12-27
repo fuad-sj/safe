@@ -27,6 +27,9 @@ class SysConfig extends FirebaseDocument {
   @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? search_radius;
 
+  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
+  double? customer_cashout_min_balance;
+
   SysConfig();
 
 
