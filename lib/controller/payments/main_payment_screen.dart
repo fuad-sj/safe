@@ -455,9 +455,13 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
         double delta = currentValue - prevValue;
         double deltaPercent = delta / prevValue;
 
-        isPositive = deltaPercent >= 0;
-        percentStr =
-            '${deltaPercent > 0 ? '+' : ''}${AlphaNumericUtil.formatDouble(deltaPercent * 100.0, 1)}%';
+        if (delta == 0) {
+          dataMissing = true;
+        } else {
+          isPositive = deltaPercent >= 0;
+          percentStr =
+              '${deltaPercent > 0 ? '+' : ''}${AlphaNumericUtil.formatDouble(deltaPercent * 100.0, 1)}%';
+        }
       }
     }
 
