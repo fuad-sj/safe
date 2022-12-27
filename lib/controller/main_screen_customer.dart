@@ -1644,9 +1644,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _geofireLocationStream = Geofire.queryAtLocation(
             _currentPosition!.latitude,
             _currentPosition!.longitude,
-            _sysConfig == null
-                ? DEFAULT_SEARCH_RADIUS
-                : _sysConfig!.search_radius!)
+            0.2)
         ?.listen(
       (map) async {
         if (map == null || _ignoreGeofireUpdates) {
@@ -1671,7 +1669,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
           case Geofire.onKeyExited:
             String driver_ID = map[FIELD_KEY];
-            _nearbyDriverLocations.remove(driver_ID);
+            if (_nearbyDriverLocations.containsKey(driver_ID)) {
+              _nearbyDriverLocations.remove(driver_ID);
+            }
             updateAvailableDriversOnMap();
             break;
 
@@ -1714,6 +1714,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void setDriverLocationAndBearing(DriverLocation driverLoc) {
+    if (_nearbyDriverLocations.length > 10) return;
+
     if (_nearbyDriverLocations.containsKey(driverLoc.driverID)) {
       DriverLocation prevLocation = _nearbyDriverLocations[driverLoc.driverID]!;
 
