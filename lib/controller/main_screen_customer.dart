@@ -122,6 +122,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   late ImageProvider _defaultProfileImage;
   late ImageProvider _networkProfileImage;
+  late Image _teleIcon;
   bool _networkProfileLoaded = false;
 
   static const double SIZE_CURRENT_PIN_IMAGE = 45.0;
@@ -215,6 +216,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     super.initState();
 
     _defaultProfileImage = AssetImage('images/mask2.png');
+    _teleIcon = Image(image: AssetImage('images/telelogo.png'));
 
     Future.delayed(Duration.zero, () async {
       initConnectivity();
@@ -553,6 +555,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       double verticalPadding,
       double betweenSpace,
       void Function(MenuOption) callback) {
+    bool isWalletOption = item.navOption == MenuOption.MENU_OPTION_PAYMENT;
+    Color txtIconColor =
+        isWalletOption ? Colors.blue.shade700 : Colors.grey.shade700;
     return Center(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -565,9 +570,15 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               left: leftPadding, top: verticalPadding, bottom: verticalPadding),
           child: Row(
             children: [
-              Icon(item.icon, color: item.iconColor),
+              Icon(item.icon,
+                  color: isWalletOption ? txtIconColor : item.iconColor),
               SizedBox(width: betweenSpace),
               Text(item.title),
+              if (isWalletOption) ...[
+                Expanded(flex: 3, child: Container()),
+                Container(width: 30.0, child: _teleIcon),
+                Expanded(child: Container()),
+              ],
             ],
           ),
         ),
@@ -597,17 +608,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         break;
 
       case MenuOption.MENU_OPTION_CONTACT_US:
-         showDialog(
-            context: context,
-            builder: (_) => ContactUsDialog(),
-
-        /*
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DriverNotFoundDialog()),
-
-         */
-
+        showDialog(
+          context: context,
+          builder: (_) => ContactUsDialog(),
         );
         break;
 
@@ -791,7 +794,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => CustomerProfileScreenNew()),
+                                builder: (context) =>
+                                    CustomerProfileScreenNew()),
                           );
                           _currentCustomer = Customer.fromSnapshot(
                             await FirebaseFirestore.instance
@@ -1294,7 +1298,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         double? bottomSheetHeightPercent;
 
         if (isDriverPicked) {
-           pathColor = Color(0xffDE0000);
+          pathColor = Color(0xffDE0000);
           encodedPathRoute =
               _currentRideRequest!.driver_to_pickup_encoded_points!;
           lineWidth = 3;
@@ -1642,9 +1646,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _isNearbyDriverLoadingComplete = false;
 
     _geofireLocationStream = Geofire.queryAtLocation(
-            _currentPosition!.latitude,
-            _currentPosition!.longitude,
-            0.2)
+            _currentPosition!.latitude, _currentPosition!.longitude, 0.2)
         ?.listen(
       (map) async {
         if (map == null || _ignoreGeofireUpdates) {

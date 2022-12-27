@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:safe/controller/payments/recent_transaction_screen.dart';
-import 'package:safe/controller/payments/send_money_screen.dart';
+import 'package:safe/controller/payments/cash_out_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:ui' as ui;
@@ -28,14 +28,18 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   late var paymentPages;
+  late ImageIcon _teleImageIcon;
 
   @override
   void initState() {
     super.initState();
 
+    _teleImageIcon = ImageIcon(AssetImage('images/telelogo.png'),
+        color: Colors.blue, size: 24.0);
+
     paymentPages = [
       MainPaymentScreen(),
-      SendMoneyScreen(),
+      CashOutScreen(),
       RecentTransactionsScreen(),
     ];
 
@@ -102,16 +106,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
             BubbleBottomBarItem(
-              showBadge: true,
-              badge: Text("5"),
-              badgeColor: Colors.green,
+              badgeColor: Colors.blue,
               backgroundColor: Color(0xffDE0000),
-              icon: Icon(Icons.monetization_on,
-                  color: Color(is_dark_mode ? 0xffffffff : 0xff1c1c1e)),
-              activeIcon: Icon(
-                Icons.monetization_on_outlined,
-                color: Colors.white,
-              ),
+              icon: _teleImageIcon,
+              activeIcon: _teleImageIcon,
               title: Text(
                 "Cash out",
                 style: TextStyle(color: Colors.white),

@@ -66,8 +66,8 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
   bool isIncomeIncreasing = true; // if it decreases, use a red line
   int selectedDateRange = 0; // default is 1 Week
   final DATE_RANGES = [
-    DateWindow('1 W', 7),
-    DateWindow('2 W', 14),
+    DateWindow('1 W', 8),
+    DateWindow('2 W', 15),
     DateWindow('1 M', 30),
     DateWindow('3 M', 90),
     DateWindow('6 M', 180),
@@ -157,7 +157,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
         .where(ReferralDailyEarnings.FIELD_USER_ID,
             isEqualTo: PrefUtil.getCurrentUserID())
         .orderBy(ReferralDailyEarnings.FIELD_TIME_WINDOW, descending: false)
-        .startAt([prevPrevDateTimeWindow]).endAt([prevDateTimeWindow]).get();
+        .startAt([prevPrevDateTimeWindow]).endBefore([prevDateTimeWindow]).get();
     prevSnapshots.docs.forEach((doc) {
       ReferralDailyEarnings earnings = ReferralDailyEarnings.fromSnapshot(doc);
       _prevDateRangeTotalEarnings += earnings.earning_amount!;
@@ -169,7 +169,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
         .where(ReferralDailyEarnings.FIELD_USER_ID,
             isEqualTo: PrefUtil.getCurrentUserID())
         .orderBy(ReferralDailyEarnings.FIELD_TIME_WINDOW, descending: false)
-        .startAt([prevDateTimeWindow])
+        .startAfter([prevDateTimeWindow])
         .endAt([nowTimeWindow])
         .snapshots()
         .listen(

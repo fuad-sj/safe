@@ -1,27 +1,64 @@
+import 'dart:async';
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:safe/controller/dialogs/cash_out_dialog.dart';
 import 'package:safe/controller/dialogs/send_money_dialog.dart';
 import 'package:safe/controller/graphview/GraphView.dart';
+import 'package:safe/models/FIREBASE_PATHS.dart';
+import 'package:safe/models/referral_current_balance.dart';
+import 'package:safe/utils/alpha_numeric_utils.dart';
+import 'package:safe/utils/pref_util.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import 'dart:ui' as ui;
 
 import '../dialogs/driver_not_found_dialog.dart';
 import '../dialogs/ride_cancellation_dialog.dart';
 
-class SendMoneyScreen extends StatefulWidget {
-  const SendMoneyScreen({Key? key}) : super(key: key);
+class CashOutScreen extends StatefulWidget {
+  const CashOutScreen({Key? key}) : super(key: key);
 
   @override
-  _SendMoneyScreenState createState() => _SendMoneyScreenState();
+  _CashOutScreenState createState() => _CashOutScreenState();
 }
 
-class _SendMoneyScreenState extends State<SendMoneyScreen> {
+class _CashOutScreenState extends State<CashOutScreen> {
+  StreamSubscription? _liveCurrentBalanceStream;
+  ReferralCurrentBalance? _currentBalance;
+
+  late Image _teleIcon;
+
   @override
   void initState() {
     super.initState();
+
+    _teleIcon = Image(image: AssetImage('images/telelogo.png'));
+
+    setupLivePriceStreams();
+  }
+
+
+  @override
+  void dispose() {
+    _liveCurrentBalanceStream?.cancel();
+    super.dispose();
+  }
+
+  void setupLivePriceStreams() async {
+    _liveCurrentBalanceStream?.cancel();
+
+    _liveCurrentBalanceStream = FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_REFERRAL_CURRENT_BALANCE)
+        .doc(PrefUtil.getCurrentUserID())
+        .snapshots()
+        .listen((snapshot) {
+      _currentBalance = ReferralCurrentBalance.fromSnapshot(snapshot);
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   TextStyle unSelectedTextFieldStyle() {
@@ -108,7 +145,7 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                           fontFamily: 'Lato',
                           letterSpacing: 2)),
                   Text(
-                    '190 ETB',
+                    _currentBalance != null ? '${AlphaNumericUtil.formatDouble(_currentBalance!.current_balance!, 2)} ETB' : '-',
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 60.0,
@@ -138,13 +175,10 @@ class _SendMoneyScreenState extends State<SendMoneyScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.currency_exchange,
-                          color: Colors.black,
-                        ),
+                        Container(width: 30.0, child: _teleIcon),
                         SizedBox(height: 15.0),
                         Text(
-                          'cash out',
+                          'Cash Out',
                           style: TextStyle(color: Colors.black),
                         ),
                       ],

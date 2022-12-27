@@ -96,6 +96,7 @@ flutter:
     - images/safe_gray.png
     - images/white_logo_1.png
     - images/pin_map_locator.png
+    - images/telelogo.png
 
 
   fonts:
