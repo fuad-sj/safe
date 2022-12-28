@@ -555,7 +555,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       double verticalPadding,
       double betweenSpace,
       void Function(MenuOption) callback) {
-    bool isWalletOption = item.navOption == MenuOption.MENU_OPTION_PAYMENT;
+    bool isWalletOption = item.navOption == MenuOption.MENU_OPTION_BALANCE;
     Color txtIconColor =
         isWalletOption ? Colors.blue.shade700 : Colors.grey.shade700;
     return Center(
@@ -600,7 +600,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           MaterialPageRoute(builder: (context) => CustomerOrderHistory()),
         );
         break;
-      case MenuOption.MENU_OPTION_PAYMENT:
+      case MenuOption.MENU_OPTION_BALANCE:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => PaymentScreen()),
@@ -665,7 +665,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _MenuListItem(
         Icons.wallet_outlined,
         SafeLocalizations.of(context)!.nav_option_payment,
-        MenuOption.MENU_OPTION_PAYMENT,
+        MenuOption.MENU_OPTION_BALANCE,
         Color(0xffDD0000),
       ),
     ];
@@ -1750,7 +1750,7 @@ class _MenuListItem {
 enum MenuOption {
   MENU_OPTION_PROFILE,
   MENU_OPTION_MY_TRIPS,
-  MENU_OPTION_PAYMENT,
+  MENU_OPTION_BALANCE,
   MENU_OPTION_CONTACT_US,
   MENU_OPTION_SIGNOUT,
 }
