@@ -30,6 +30,8 @@ class FIRESTORE_PATHS {
   static final COL_REFERRAL_DAILY_EARNINGS = "referral_daily_earnings";
   static final COL_REFERRAL_CURRENT_BALANCE = "referral_current_balance";
   static final COL_REFERRAL_TRANSACTION_LOG = "referral_transaction_log";
+
+  static final COL_REFERRAL_PAYMENT_REQUESTS = "referral_payment_requests";
 }
 
 class FCM_MESSAGING_TOPICS {

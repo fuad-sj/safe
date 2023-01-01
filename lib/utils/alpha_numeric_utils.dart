@@ -42,7 +42,8 @@ class AlphaNumericUtil {
 
   static double parseDouble(String val) {
     try {
-      return double.parse(val);
+      String clean = val.replaceAll(',', '');
+      return double.parse(clean);
     } catch (e) {
       return 0;
     }

@@ -1,30 +1,81 @@
-import 'package:country_code_picker/country_code_picker.dart';
+import 'dart:math';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:future_progress_dialog/future_progress_dialog.dart';
+import 'package:safe/controller/dialogs/cash_out_dialog.dart';
+import 'package:safe/controller/dialogs/send_money_dialog.dart';
+import 'package:safe/controller/graphview/GraphView.dart';
+import 'package:safe/models/FIREBASE_PATHS.dart';
+import 'package:safe/models/customer.dart';
+import 'package:safe/models/referral_current_balance.dart';
+import 'package:safe/models/referral_payment_request.dart';
+import 'package:safe/models/sys_config.dart';
+import 'package:safe/utils/alpha_numeric_utils.dart';
+import 'package:safe/utils/pref_util.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'dart:ui' as ui;
 
-class cashOutDialog extends StatefulWidget {
-  const cashOutDialog({Key? key}) : super(key: key);
+class CashOutDialog extends StatefulWidget {
+  late Customer currentCustomer;
+  late ReferralCurrentBalance currentBalance;
+
+  CashOutDialog(
+      {Key? key, required this.currentCustomer, required this.currentBalance})
+      : super(key: key);
 
   @override
-  _cashOutDialogState createState() => _cashOutDialogState();
+  _CashOutDialogState createState() => _CashOutDialogState();
 }
 
-class _cashOutDialogState extends State<cashOutDialog> {
+class _CashOutDialogState extends State<CashOutDialog> {
+  TextEditingController amountController = TextEditingController();
+
+  late Image _teleIcon;
+  double _cashoutAmount = -1;
+
   @override
   void initState() {
     super.initState();
+
+    _teleIcon =
+        Image(image: AssetImage('images/telelogo.png'), color: Colors.white);
+
+    amountController.addListener(() {
+      double amount = AlphaNumericUtil.parseDouble(amountController.text);
+
+      setCashoutAmount(amount);
+    });
   }
 
-  List<AmountToCashOut> amounts = [
-    AmountToCashOut('100'),
-    AmountToCashOut('150'),
-    AmountToCashOut('200'),
-    AmountToCashOut('250'),
-    AmountToCashOut('300'),
-    AmountToCashOut('500'),
-    AmountToCashOut('1000'),
-    AmountToCashOut('1500'),
+  List<double> possibleCashoutAmounts = [
+    100,
+    150,
+    200,
+    250,
+    300,
+    500,
+    1000,
+    1500,
   ];
+
+  void setCashoutAmount(double amount) {
+    _cashoutAmount = min(amount, widget.currentBalance.current_balance!);
+
+    String str_amt = AlphaNumericUtil.formatDouble(_cashoutAmount, 2);
+    amountController.value = TextEditingValue(
+      text: str_amt,
+      selection: TextSelection.collapsed(offset: str_amt.length),
+    );
+    setState(() {});
+  }
+
+  bool disableCashoutBtn() {
+    return _cashoutAmount <= 0;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,9 +114,8 @@ class _cashOutDialogState extends State<cashOutDialog> {
               children: [
                 Container(
                   padding: EdgeInsets.only(left: screenWidth * 0.044),
-
                   child: GestureDetector(
-                    onTap:() {
+                    onTap: () {
                       Navigator.pop(context, true);
                     },
                     child: Icon(
@@ -124,20 +174,20 @@ class _cashOutDialogState extends State<cashOutDialog> {
                           SizedBox(width: screenWidth * 0.025),
                           Expanded(
                             child: TextField(
+                              controller: amountController,
                               expands: true,
                               maxLines: null,
                               minLines: null,
-                              style: TextStyle(color: Colors.black, fontSize: 12),
+                              style:
+                                  TextStyle(color: Colors.black, fontSize: 12),
                               keyboardType: TextInputType.phone,
                               decoration: InputDecoration(
                                 border: InputBorder.none,
                                 hintText: '200',
                                 hintStyle: TextStyle(color: Colors.grey),
                                 fillColor: Colors.black,
-                                contentPadding: const  EdgeInsets.symmetric(
-                                    horizontal: 5.0,
-                                    vertical: 10.0
-                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 5.0, vertical: 10.0),
                               ),
                             ),
                           ),
@@ -154,9 +204,10 @@ class _cashOutDialogState extends State<cashOutDialog> {
             height: screenHeight * 0.040,
             child: ListView(
               scrollDirection: Axis.horizontal,
-              children: amounts.map((amountCount) {
+              children: possibleCashoutAmounts.map((cashoutAmount) {
                 return InkWell(
                   onTap: () {
+                    setCashoutAmount(cashoutAmount);
                     setState(() {});
                   },
                   child: Padding(
@@ -176,7 +227,7 @@ class _cashOutDialogState extends State<cashOutDialog> {
                       ),
                       child: Center(
                         child: Text(
-                          amountCount.amount,
+                          '${AlphaNumericUtil.formatDouble(cashoutAmount, 2)}',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -195,30 +246,67 @@ class _cashOutDialogState extends State<cashOutDialog> {
           SizedBox(height: screenHeight * 0.040),
 
           Center(
-            child: Container(
-              height: screenHeight * 0.04 ,
-              width: screenWidth * 0.36,
-              padding: EdgeInsets.symmetric(horizontal: 30.0),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20.0),
-                gradient: LinearGradient(
-                  begin: Alignment.bottomLeft,
-                  end: Alignment.topRight,
-                  colors: [
-                    Color(0xffDE0000),
-                    Color(0xff990000),
-                  ],
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () async {
+                if (disableCashoutBtn()) {
+                  return;
+                }
+                showDialog(
+                    barrierDismissible: false,
+                    context: context,
+                    builder: (context) {
+                      return FutureProgressDialog(
+                        Future(() async {
+                          await createCashoutRequest();
+                          await Future.delayed(Duration(seconds: 2));
+
+                          if (mounted) {
+                            Navigator.pop(
+                                context); // pop-off this page to go back to wallet overview
+                          }
+                        }),
+                        message: Text("Cash-out, Please Wait..."),
+                      );
+                    });
+              },
+              child: Container(
+                width: screenWidth * 0.46,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20.0),
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomLeft,
+                    end: Alignment.topRight,
+                    colors: [
+                      disableCashoutBtn()
+                          ? Colors.grey.shade500
+                          : Color(0xffDE0000),
+                      disableCashoutBtn()
+                          ? Colors.grey.shade500
+                          : Color(0xff990000),
+                    ],
+                  ),
                 ),
-              ),
-              child: Center(
-                child: Text(
-                 'Confirm',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    fontFamily: 'Lato',
-                    letterSpacing: 1
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(width: 25.0, child: _teleIcon),
+                      SizedBox(width: 15.0),
+                      Container(
+                        padding: EdgeInsets.symmetric(vertical: 12.0),
+                        child: Text(
+                          'Confirm',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              fontFamily: 'Lato',
+                              letterSpacing: 1),
+                        ),
+                      )
+                    ],
                   ),
                 ),
               ),
@@ -230,10 +318,29 @@ class _cashOutDialogState extends State<cashOutDialog> {
       ),
     );
   }
-}
 
-class AmountToCashOut {
-  AmountToCashOut(this.amount);
+  Future<void> createCashoutRequest() async {
+    if (disableCashoutBtn()) return;
 
-  final String amount;
+    Map<String, dynamic> requestFields = new Map();
+
+    requestFields[ReferralPaymentRequest.FIELD_CLIENT_TRIGGERED_EVENT] = true;
+    requestFields[ReferralPaymentRequest.FIELD_REQUEST_STATUS] =
+        ReferralPaymentRequest.REQUEST_STATUS_CREATED;
+    requestFields[ReferralPaymentRequest.FIELD_REQUEST_TYPE] =
+        ReferralPaymentRequest.PAYMENT_REQUEST_TYPE_CASH_OUT;
+    requestFields[ReferralPaymentRequest.FIELD_PAYMENT_AMOUNT] = _cashoutAmount;
+    requestFields[ReferralPaymentRequest.FIELD_REQUESTER_ID] =
+        PrefUtil.getCurrentUserID();
+    requestFields[ReferralPaymentRequest.FIELD_REQUESTER_NAME] =
+        widget.currentCustomer.user_name;
+    requestFields[ReferralPaymentRequest.FIELD_REQUESTER_PHONE] =
+        await PrefUtil.getCurrentUserPhone();
+    requestFields[ReferralPaymentRequest.FIELD_REQUESTED_TIME] =
+        FieldValue.serverTimestamp();
+
+    await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_REFERRAL_PAYMENT_REQUESTS)
+        .add(requestFields);
+  }
 }

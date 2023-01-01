@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -9,7 +10,9 @@ import 'package:safe/controller/dialogs/cash_out_dialog.dart';
 import 'package:safe/controller/dialogs/send_money_dialog.dart';
 import 'package:safe/controller/graphview/GraphView.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
+import 'package:safe/models/customer.dart';
 import 'package:safe/models/referral_current_balance.dart';
+import 'package:safe/models/referral_payment_request.dart';
 import 'package:safe/models/sys_config.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:safe/utils/pref_util.dart';
@@ -33,6 +36,7 @@ class _CashOutScreenState extends State<CashOutScreen> {
 
   late Image _teleIcon;
   SysConfig? _sysConfig;
+  Customer? _currentCustomer;
 
   @override
   void initState() {
@@ -42,6 +46,16 @@ class _CashOutScreenState extends State<CashOutScreen> {
         Image(image: AssetImage('images/telelogo.png'), color: Colors.white);
 
     setupLivePriceStreams();
+
+    Future.delayed(Duration.zero, () async {
+      _currentCustomer = Customer.fromSnapshot(await FirebaseFirestore.instance
+          .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .get());
+      if (!(_currentCustomer?.documentExists() ?? false)) {
+        _currentCustomer = null;
+      }
+    });
   }
 
   @override
@@ -123,7 +137,9 @@ class _CashOutScreenState extends State<CashOutScreen> {
   }
 
   bool hasSufficientCashoutBalance() {
-    if (_sysConfig == null || _currentBalance == null) return false;
+    if (_currentCustomer == null ||
+        _sysConfig == null ||
+        _currentBalance == null) return false;
     return _currentBalance!.current_balance! >=
         _sysConfig!.customer_cashout_min_balance!;
   }
@@ -132,6 +148,22 @@ class _CashOutScreenState extends State<CashOutScreen> {
   Widget build(BuildContext context) {
     double vHeight = MediaQuery.of(context).size.height;
     double hWidth = MediaQuery.of(context).size.width;
+
+    String str_current_balance = "";
+    double fontSize = 50.0;
+    if (_currentBalance != null) {
+      str_current_balance =
+          AlphaNumericUtil.formatDouble(_currentBalance!.current_balance!, 2);
+
+      double log10(num x) => log(x) / ln10;
+
+      int numDigits = _currentBalance!.current_balance! <= 0
+          ? 1
+          : log10(_currentBalance!.current_balance!).floor() + 1;
+
+      if (numDigits >= 4) fontSize = 40.0;
+    }
+
     return Container(
       height: vHeight * 0.75,
       width: hWidth,
@@ -172,12 +204,10 @@ class _CashOutScreenState extends State<CashOutScreen> {
                           fontFamily: 'Lato',
                           letterSpacing: 2)),
                   Text(
-                    _currentBalance != null
-                        ? '${AlphaNumericUtil.formatDouble(_currentBalance!.current_balance!, 2)} ETB'
-                        : '-',
+                    _currentBalance != null ? '$str_current_balance ETB' : '-',
                     style: TextStyle(
                         color: Colors.white,
-                        fontSize: 60.0,
+                        fontSize: fontSize,
                         fontWeight: FontWeight.bold,
                         fontFamily: 'Lato',
                         letterSpacing: 1),
@@ -208,7 +238,9 @@ class _CashOutScreenState extends State<CashOutScreen> {
                     } else {
                       await showDialog(
                         context: context,
-                        builder: (_) => cashOutDialog(),
+                        builder: (_) => CashOutDialog(
+                            currentCustomer: _currentCustomer!,
+                            currentBalance: _currentBalance!),
                       );
                     }
                   },
@@ -237,8 +269,7 @@ class _CashOutScreenState extends State<CashOutScreen> {
                         Text(
                           'Cash Out',
                           style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
+                              color: Colors.white, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
