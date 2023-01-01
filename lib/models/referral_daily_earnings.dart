@@ -34,6 +34,26 @@ class ReferralDailyEarnings extends FirebaseDocument {
 
   ReferralDailyEarnings();
 
+  ReferralDailyEarnings.withArgs(
+      this.user_id,
+      this.user_name,
+      this.user_phone,
+      this.earning_amount,
+      this.reference_counter,
+      this.last_update,
+      this.time_window);
+
+  // quick way to clone
+  ReferralDailyEarnings.clone(ReferralDailyEarnings other)
+      : this.withArgs(
+            other.user_id,
+            other.user_name,
+            other.user_phone,
+            other.earning_amount,
+            other.reference_counter,
+            other.last_update,
+            other.time_window);
+
   factory ReferralDailyEarnings.fromSnapshot(
       DocumentSnapshot<Map<String, dynamic>> snapshot) {
     ReferralDailyEarnings earnings = ReferralDailyEarnings();

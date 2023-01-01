@@ -157,7 +157,8 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
         .where(ReferralDailyEarnings.FIELD_USER_ID,
             isEqualTo: PrefUtil.getCurrentUserID())
         .orderBy(ReferralDailyEarnings.FIELD_TIME_WINDOW, descending: false)
-        .startAt([prevPrevDateTimeWindow]).endBefore([prevDateTimeWindow]).get();
+        .startAt([prevPrevDateTimeWindow]).endBefore(
+            [prevDateTimeWindow]).get();
     prevSnapshots.docs.forEach((doc) {
       ReferralDailyEarnings earnings = ReferralDailyEarnings.fromSnapshot(doc);
       _prevDateRangeTotalEarnings += earnings.earning_amount!;
@@ -193,6 +194,20 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                       (_dailyEarnings[0].earning_amount ?? 0);
             } else {
               isIncomeIncreasing = true;
+            }
+
+            // the graphing library can't handle below 3 numbers.
+            while (_dailyEarnings.length < 3) {
+              ReferralDailyEarnings dummy0Earnings;
+              if (_dailyEarnings.length > 0) {
+                dummy0Earnings = ReferralDailyEarnings.clone(_dailyEarnings[0]);
+                dummy0Earnings.earning_amount = 0;
+              } else {
+                dummy0Earnings = new ReferralDailyEarnings.withArgs(
+                    "", "", "", 0, 0, null, null);
+              }
+              dummy0Earnings.array_index = index++;
+              _dailyEarnings.add(dummy0Earnings);
             }
 
             if (mounted) {
@@ -764,7 +779,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                               ]);
                             },
                             xValueMapper: (ReferralDailyEarnings earnings, _) =>
-                                (earnings.array_index!),
+                                earnings.array_index,
                             yValueMapper: (ReferralDailyEarnings earnings, _) =>
                                 earnings.earning_amount,
                             name: 'Earning',
