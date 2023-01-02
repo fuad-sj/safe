@@ -97,7 +97,7 @@ flutter:
     - images/white_logo_1.png
     - images/pin_map_locator.png
     - images/telelogo.png
-
+    - images/logo.png
 
   fonts:
     - family: Signatra

@@ -6,6 +6,7 @@ import 'package:safe/controller/login_page.dart';
 import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/registration_screen.dart';
 import 'package:safe/controller/customer_profile_screen.dart';
+import 'package:safe/controller/welcome_screen.dart';
 import 'package:safe/current_locale.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/pref_util.dart';
@@ -47,10 +48,9 @@ class MainApp extends StatelessWidget {
             primarySwatch: Colors.blue,
             visualDensity: VisualDensity.adaptivePlatformDensity,
           ),
-          initialRoute: FirebaseAuth.instance.currentUser == null
-              ? LoginPage.idScreen
-              : MainScreenCustomer.idScreen,
+          initialRoute: WelcomeScreen.idScreen,
           routes: {
+            WelcomeScreen.idScreen: (_) => WelcomeScreen(),
             RegistrationScreen.idScreen: (_) => RegistrationScreen(),
             LoginPage.idScreen: (_) => LoginPage(),
             MainScreenCustomer.idScreen: (_) => MainScreenCustomer(),
