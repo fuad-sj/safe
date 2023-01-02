@@ -1,23 +1,116 @@
 {
   "images" : [
     {
-      "idiom" : "universal",
-      "filename" : "LaunchImage.png",
+      "filename" : "ipad_splash.png",
+      "idiom" : "iphone",
       "scale" : "1x"
     },
     {
-      "idiom" : "universal",
-      "filename" : "LaunchImage@2x.png",
+      "filename" : "iphoneplus_splash.png",
+      "idiom" : "iphone",
       "scale" : "2x"
     },
     {
-      "idiom" : "universal",
-      "filename" : "LaunchImage@3x.png",
+      "filename" : "iphonexsmax_splash.png",
+      "idiom" : "iphone",
       "scale" : "3x"
+    },
+    {
+      "filename" : "ipadpro1_splash.png",
+      "idiom" : "ipad",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "ipadpro2_splash.png",
+      "idiom" : "ipad",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "Safe Car-1024.png",
+      "idiom" : "ios-marketing",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "Safe Car-29@2x.png",
+      "idiom" : "iphone",
+      "scale" : "2x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-40@2x.png",
+      "idiom" : "iphone",
+      "scale" : "2x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-60@2x.png",
+      "idiom" : "iphone",
+      "scale" : "2x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-29@3x.png",
+      "idiom" : "iphone",
+      "scale" : "3x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-40@3x.png",
+      "idiom" : "iphone",
+      "scale" : "3x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-60@3x.png",
+      "idiom" : "iphone",
+      "scale" : "3x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-29.png",
+      "idiom" : "ipad",
+      "scale" : "1x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-40.png",
+      "idiom" : "ipad",
+      "scale" : "1x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-76.png",
+      "idiom" : "ipad",
+      "scale" : "1x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-29@2x.png",
+      "idiom" : "ipad",
+      "scale" : "2x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-40@2x.png",
+      "idiom" : "ipad",
+      "scale" : "2x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-76@2x.png",
+      "idiom" : "ipad",
+      "scale" : "2x",
+      "unassigned" : true
+    },
+    {
+      "filename" : "Safe Car-83.5@2x.png",
+      "idiom" : "ipad",
+      "scale" : "2x",
+      "unassigned" : true
     }
   ],
   "info" : {
-    "version" : 1,
-    "author" : "xcode"
+    "author" : "xcode",
+    "version" : 1
   }
 }
