@@ -229,7 +229,7 @@ class _VerifyOTPState extends State<VerifyOTP> {
 
       Navigator.pushNamedAndRemoveUntil(
           context,
-          customer.documentExists()
+          customer.documentExists() && customer.accountFullyCreated()
               ? MainScreenCustomer.idScreen
               : RegistrationScreen.idScreen,
           (route) => false);

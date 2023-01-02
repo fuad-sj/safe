@@ -113,6 +113,12 @@ class Customer extends FirebaseDocument {
     return '${FIREBASE_STORAGE_PATH_CUSTOMER_FILES}/${customerID}_${fieldName}${fileExtension}';
   }
 
+  bool accountFullyCreated() {
+    return phone_number != null &&
+        phone_number!.trim() != "" &&
+        user_name != null;
+  }
+
   factory Customer.fromSnapshot(
       DocumentSnapshot<Map<String, dynamic>> snapshot) {
     Customer customer = Customer();
