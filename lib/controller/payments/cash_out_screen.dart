@@ -140,7 +140,7 @@ class _CashOutScreenState extends State<CashOutScreen> {
     if (_currentCustomer == null ||
         _sysConfig == null ||
         _currentBalance == null) return false;
-    return _currentBalance!.current_balance! >=
+    return (_currentBalance!.current_balance ?? 0) >=
         _sysConfig!.customer_cashout_min_balance!;
   }
 
@@ -151,15 +151,15 @@ class _CashOutScreenState extends State<CashOutScreen> {
 
     String str_current_balance = "";
     double fontSize = 50.0;
-    if (_currentBalance != null) {
+    if (_currentBalance != null  ) {
       str_current_balance =
-          AlphaNumericUtil.formatDouble(_currentBalance!.current_balance!, 2);
+          AlphaNumericUtil.formatDouble(_currentBalance!.current_balance ?? 0, 2);
 
       double log10(num x) => log(x) / ln10;
 
-      int numDigits = _currentBalance!.current_balance! <= 0
+      int numDigits = (_currentBalance!.current_balance ?? 0) <= 0
           ? 1
-          : log10(_currentBalance!.current_balance!).floor() + 1;
+          : log10(_currentBalance!.current_balance ?? 0).floor() + 1;
 
       if (numDigits >= 4) fontSize = 40.0;
     }

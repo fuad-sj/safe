@@ -70,10 +70,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   void updateEnableBtnState() {
-    _enableRegisterBtn = _nameController.text.isNotEmpty &&
-        _lastNameController.text.isNotEmpty &&
-        isValidEmail(_emailController.text.trim()) &&
-        (_profileFile != null && _profileImage != null);
+    _enableRegisterBtn = _nameController.text.trim().isNotEmpty &&
+        _lastNameController.text.trim().isNotEmpty;
   }
 
   final Shader linearGradient = LinearGradient(
@@ -156,7 +154,19 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             height: MediaQuery.of(context).size.height * 0.03,
                             width: MediaQuery.of(context).size.width * 0.064,
                           ),
-                        )
+                        ),
+                        Positioned(
+                          top: MediaQuery.of(context).size.height * 0.33,
+                          left: MediaQuery.of(context).size.width * 0.11,
+                          child: Text(
+                            'Profile Picture',
+                            style: TextStyle(
+                              fontFamily: 'Lato',
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -236,6 +246,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: <Widget>[
                                 Expanded(
+                                    child: RadioListTile<Gender>(
+                                  title: const Text('Male',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w400)),
+                                  value: Gender.male,
+                                  activeColor: Color(0xffDE0000),
+                                  groupValue: _character,
+                                  onChanged: (Gender? value) {
+                                    setState(() {
+                                      _character = value!;
+                                    });
+                                  },
+                                )),
+                                Expanded(
                                   child: RadioListTile<Gender>(
                                     title: const Text('Female',
                                         style: TextStyle(
@@ -254,21 +279,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     },
                                   ),
                                 ),
-                                Expanded(
-                                    child: RadioListTile<Gender>(
-                                  title: const Text('Male',
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w400)),
-                                  value: Gender.male,
-                                  activeColor: Color(0xffDE0000),
-                                  groupValue: _character,
-                                  onChanged: (Gender? value) {
-                                    setState(() {
-                                      _character = value!;
-                                    });
-                                  },
-                                )),
                               ],
                             ),
                           ),
@@ -306,29 +316,36 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                         0.35,
                                     height: MediaQuery.of(context).size.height *
                                         0.042,
-                                    child: IgnorePointer(
-                                      ignoring: !_enableRegisterBtn,
-                                      child: RoundedLoadingButton(
-                                        child: Text('Sign Up',
-                                            style:
-                                                TextStyle(color: Colors.white)),
-                                        controller:
-                                            _CustomerLoadingBtnController,
-                                        onPressed: () {
-                                          if (_enableRegisterBtn) {
-                                            registerNewUser(context);
-                                          } else if (_profileImage == null ||
-                                              _profileFile == null) {
-                                            displayToastMessage(
-                                                SafeLocalizations.of(context)!
-                                                    .registration_customer_profile_image_needed,
-                                                context);
-                                          }
-                                        },
-                                        color: _enableRegisterBtn
-                                            ? Color(0xffDD0000)
-                                            : Color(0xff990000),
-                                      ),
+                                    child: ElevatedButton(
+                                      child: Text('Sign Up',
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                      onPressed: () {
+                                        if (_enableRegisterBtn) {
+                                          registerNewUser(context);
+                                        } else if (_nameController.text
+                                            .trim()
+                                            .isEmpty) {
+                                          displayToastMessage(
+                                              'Please fill your first Name',
+                                              context);
+                                        } else if (_lastNameController.text
+                                            .trim()
+                                            .isEmpty) {
+                                          displayToastMessage(
+                                              'Please fill your Last Name',
+                                              context);
+                                        }
+                                      },
+                                      style: ButtonStyle(
+                                          backgroundColor: MaterialStateProperty.all(
+                                              _enableRegisterBtn
+                                                  ? Color(0xffDE0000)
+                                                  : Colors.grey.shade700),
+                                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                                              RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(15.0),
+                                              ))),
                                     ),
                                   ),
                                 ),
@@ -356,24 +373,6 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ('images/whiteSafeLogo.png'),
                 height: MediaQuery.of(context).size.height * 0.09,
               )),
-          Positioned(
-              top: MediaQuery.of(context).size.height * 0.92,
-              right: MediaQuery.of(context).size.width * 0.1,
-              child: GestureDetector(
-                onTap: () async {
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, MainScreenCustomer.idScreen, (route) => false);
-                },
-                child: Text(
-                  'Skip',
-                  style: TextStyle(
-                    fontFamily: 'Lato',
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-              ))
         ],
       ),
     ));
@@ -392,22 +391,25 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       final User? firebaseUser = FirebaseAuth.instance.currentUser;
 
       if (firebaseUser != null) {
-        String fileName = basename(_profileFile!.path);
-        String fileExtension =
-            AlphaNumericUtil.extractFileExtensionFromName(fileName);
+        String? profileURL;
+        if (_profileFile != null) {
+          String fileName = basename(_profileFile!.path);
+          String fileExtension =
+              AlphaNumericUtil.extractFileExtensionFromName(fileName);
 
-        String convertedFilePath = Customer.convertStoragePathToCustomerPath(
-            firebaseUser.uid, Customer.FIELD_LINK_IMG_PROFILE, fileExtension);
+          String convertedFilePath = Customer.convertStoragePathToCustomerPath(
+              firebaseUser.uid, Customer.FIELD_LINK_IMG_PROFILE, fileExtension);
 
-        firebase_storage.Reference firebaseStorageRef = firebase_storage
-            .FirebaseStorage.instance
-            .ref()
-            .child(convertedFilePath);
-        firebase_storage.UploadTask uploadTask =
-            firebaseStorageRef.putFile(_profileFile!);
-        firebase_storage.TaskSnapshot taskSnapshot =
-            await uploadTask.whenComplete(() => null);
-        String profileURL = await taskSnapshot.ref.getDownloadURL();
+          firebase_storage.Reference firebaseStorageRef = firebase_storage
+              .FirebaseStorage.instance
+              .ref()
+              .child(convertedFilePath);
+          firebase_storage.UploadTask uploadTask =
+              firebaseStorageRef.putFile(_profileFile!);
+          firebase_storage.TaskSnapshot taskSnapshot =
+              await uploadTask.whenComplete(() => null);
+          profileURL = await taskSnapshot.ref.getDownloadURL();
+        }
 
         Map<String, dynamic> customerFields = new Map();
 
@@ -420,8 +422,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         customerFields[Customer.FIELD_EMAIL] = _emailController.text.trim();
         customerFields[Customer.FIELD_PHONE_NUMBER] =
             await PrefUtil.getCurrentUserPhone();
-        customerFields[Customer.FIELD_LINK_IMG_PROFILE] = profileURL;
-        customerFields[Customer.FIELD_IS_ACTIVE] = false;
+        if (profileURL != null ) {
+          customerFields[Customer.FIELD_LINK_IMG_PROFILE] = profileURL;
+        }
+        customerFields[Customer.FIELD_IS_ACTIVE] = true;
         customerFields[Customer.FIELD_IS_LOGGED_IN] = true;
         customerFields[Customer.FIELD_DATE_CREATED] =
             FieldValue.serverTimestamp();

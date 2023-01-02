@@ -83,6 +83,8 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
       ..levelSeparation = (40)
       ..orientation = SugiyamaConfiguration.ORIENTATION_TOP_BOTTOM;
 
+    appendDummyDataForMissingEarnings();
+
     loadTraversedTreeCache();
     loadReferralEarningsForDateRange();
     loadLastReadKPIFigures();
@@ -93,6 +95,8 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
   @override
   void didUpdateWidget(MainPaymentScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    appendDummyDataForMissingEarnings();
 
     setupLivePriceStreams();
   }
@@ -196,25 +200,29 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
               isIncomeIncreasing = true;
             }
 
-            // the graphing library can't handle below 3 numbers.
-            while (_dailyEarnings.length < 3) {
-              ReferralDailyEarnings dummy0Earnings;
-              if (_dailyEarnings.length > 0) {
-                dummy0Earnings = ReferralDailyEarnings.clone(_dailyEarnings[0]);
-                dummy0Earnings.earning_amount = 0;
-              } else {
-                dummy0Earnings = new ReferralDailyEarnings.withArgs(
-                    "", "", "", 0, 0, null, null);
-              }
-              dummy0Earnings.array_index = index++;
-              _dailyEarnings.add(dummy0Earnings);
-            }
+            appendDummyDataForMissingEarnings();
 
             if (mounted) {
               setState(() {});
             }
           },
         );
+  }
+
+  void appendDummyDataForMissingEarnings() {
+    // the graphing library can't handle below 3 numbers.
+    while (_dailyEarnings.length < 3) {
+      ReferralDailyEarnings dummy0Earnings;
+      if (_dailyEarnings.length > 0) {
+        dummy0Earnings = ReferralDailyEarnings.clone(_dailyEarnings[0]);
+        dummy0Earnings.earning_amount = 0;
+      } else {
+        dummy0Earnings =
+            new ReferralDailyEarnings.withArgs("", "", "", 0, 0, null, null);
+      }
+      dummy0Earnings.array_index = _dailyEarnings.length;
+      _dailyEarnings.add(dummy0Earnings);
+    }
   }
 
   Future<void> loadTraversedTreeCache() async {
@@ -613,7 +621,7 @@ class _MainPaymentScreenState extends State<MainPaymentScreen> {
                                   child: Row(
                                     children: [
                                       Text(
-                                        '${_currentCustomerInfo?.num_total_children! ?? 0}',
+                                        '${_currentCustomerInfo?.num_total_children ?? 0}',
                                         style: TextStyle(
                                             color: Colors.grey,
                                             fontWeight: FontWeight.w700,
