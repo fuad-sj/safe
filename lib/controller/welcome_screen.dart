@@ -77,7 +77,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
         Customer currentCustomer = Customer.fromSnapshot(
           await FirebaseFirestore.instance
-              .collection(FIRESTORE_PATHS.COL_DRIVERS)
+              .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
               .doc(FirebaseAuth.instance.currentUser!.uid)
               .get(),
         );
