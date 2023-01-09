@@ -121,18 +121,18 @@ class GoogleApiUtils {
       RouteDetails directionDetails,  SysConfig? sysConfig) {
 
     double base_fare =
-    (sysConfig == null) ? 90.0 : sysConfig.rate_normal_base_fare!;
+    (sysConfig == null) ? 85.0 : sysConfig.rate_normal_base_fare!;
     double per_km =
-    (sysConfig == null) ? 10.0 : sysConfig.rate_normal_per_km_charge!;
+    (sysConfig == null) ? 10.0 : sysConfig.rate_normal_fair_per_km_charge!;
     double per_minute =
-    (sysConfig == null) ? 1.0 : sysConfig.rate_normal_per_minute_charge!;
+    (sysConfig == null) ? 1.0 : sysConfig.rate_normal_fair_per_minute_charge!;
 
 
     double timeTraveledFare =
         ((directionDetails.durationValue + 0.0) / 60.0) * per_minute;
     double distanceTraveledFare =
         ((directionDetails.distanceValue + 0.0) / 1000) * per_km;
-    double totalPrice = timeTraveledFare + distanceTraveledFare + base_fare;
+    double totalPrice = timeTraveledFare * 0.5 + distanceTraveledFare + base_fare;
 
     return totalPrice;
   }

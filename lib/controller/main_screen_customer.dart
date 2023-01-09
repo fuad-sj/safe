@@ -755,8 +755,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                           fit: BoxFit.fill),
                       child: Image.asset(
                         'images/mask2.png',
-                        width: MediaQuery.of(context).size.width * 0.15,
-                        height: MediaQuery.of(context).size.height * 0.22,
+                        width: MediaQuery.of(context).size.width * 0.20,
+                        height: MediaQuery.of(context).size.height * 0.10,
                       ),
                     ),
                     SizedBox(width: 20.0),

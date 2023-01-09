@@ -12,7 +12,7 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 class ConfirmRideDetailsBottomSheet extends BaseBottomSheet {
   static const String KEY = 'ConfirmRideDetailsBottomSheet';
 
-  static const double HEIGHT_RIDE_DETAILS_PERCENT = 0.43;
+  static const double HEIGHT_RIDE_DETAILS_PERCENT = 0.45;
   static const double TOP_CORNER_BORDER_RADIUS = 14.0;
 
   RouteDetails? routeDetails;
@@ -52,8 +52,11 @@ class _ConfirmRideDetailsBottomSheetState
     extends State<ConfirmRideDetailsBottomSheet>
     implements BottomSheetWidgetBuilder {
   static const int CAR_TYPE_ANY = 1;
-  static const int CAR_TYPE_MINIVAN = 2;
-  static const int CAR_TYPE_MINIBUS = 3;
+  static const int CAR_TYPE_LADY = 2;
+  static const int CAR_TYPE_LADA = 3;
+  static const int CAR_TYPE_MINIVAN = 4;
+  static const int CAR_TYPE_MOTOR = 5;
+  static const int CAR_TYPE_MINIBUS = 6;
 
   int _selectedCarType = CAR_TYPE_ANY;
 
@@ -88,15 +91,22 @@ class _ConfirmRideDetailsBottomSheetState
       String carImage, typeDescription;
 
       switch (carType) {
+        case CAR_TYPE_LADY:
+          carImage = 'images/lady.png';
+          typeDescription = 'Signore (FEMALE)';
+          break;
+        case CAR_TYPE_LADA:
+          carImage = 'images/lada.png';
+          typeDescription = 'LADA';
+          break;
         case CAR_TYPE_MINIVAN:
           carImage = 'images/minivan_safe.png';
           typeDescription = SafeLocalizations.of(context)!
               .bottom_sheet_confirm_ride_details_minivan;
           break;
-        case CAR_TYPE_MINIBUS:
-          carImage = 'images/minbus_safe.png';
-          typeDescription = SafeLocalizations.of(context)!
-              .bottom_sheet_confirm_ride_details_minibus;
+        case CAR_TYPE_MOTOR:
+          carImage = 'images/motor.png';
+          typeDescription = 'FAST';
           break;
         case CAR_TYPE_ANY:
         default:
@@ -134,7 +144,8 @@ class _ConfirmRideDetailsBottomSheetState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(typeDescription,
-                      style: TextStyle( fontSize: 18.0,
+                      style: TextStyle(
+                          fontSize: 18.0,
                           fontFamily: 'Brand-Bold',
                           fontWeight: (isSelected
                               ? FontWeight.bold
@@ -151,9 +162,12 @@ class _ConfirmRideDetailsBottomSheetState
                 '~ ' +
                     AlphaNumericUtil.formatDouble(
                         widget.routeDetails!.estimatedFarePrice *
-                            (carType == CAR_TYPE_MINIVAN
-                                ? 1.1
-                                : (carType == CAR_TYPE_MINIBUS ? 1.03 : 1)),
+                            (carType == CAR_TYPE_MINIVAN ? 1.03
+                                : (carType == CAR_TYPE_LADA ? 0.72
+                                : (carType == CAR_TYPE_LADY ? 1.06
+                                : (carType == CAR_TYPE_MOTOR ? 0.93
+                                : 1
+                            )))),
                         0) +
                     ' ' +
                     SafeLocalizations.of(context)!
@@ -185,7 +199,7 @@ class _ConfirmRideDetailsBottomSheetState
             ),
           ),
           SizedBox(height: VSpace(0.02)),
-          ...[CAR_TYPE_ANY, CAR_TYPE_MINIVAN, CAR_TYPE_MINIBUS]
+          ...[CAR_TYPE_ANY, CAR_TYPE_LADY, CAR_TYPE_LADA, CAR_TYPE_MINIVAN,  CAR_TYPE_MOTOR]
               .map((e) => _getCarTypeWidget(e)),
           SizedBox(height: VSpace(0.02)),
           Row(

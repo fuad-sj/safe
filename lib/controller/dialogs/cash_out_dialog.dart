@@ -65,7 +65,7 @@ class _CashOutDialogState extends State<CashOutDialog> {
   void setCashoutAmount(double amount) {
     _cashoutAmount = min(amount, widget.currentBalance.current_balance!);
 
-    String str_amt = AlphaNumericUtil.formatDouble(_cashoutAmount, 2);
+    String str_amt = AlphaNumericUtil.formatDouble(_cashoutAmount, 0);
     amountController.value = TextEditingValue(
       text: str_amt,
       selection: TextSelection.collapsed(offset: str_amt.length),
@@ -180,7 +180,7 @@ class _CashOutDialogState extends State<CashOutDialog> {
                               minLines: null,
                               style:
                                   TextStyle(color: Colors.black, fontSize: 12),
-                              keyboardType: TextInputType.phone,
+                              keyboardType: TextInputType.numberWithOptions(signed:false , decimal: true),
                               decoration: InputDecoration(
                                 border: InputBorder.none,
                                 hintText: '200',

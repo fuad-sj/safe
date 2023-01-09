@@ -3,7 +3,7 @@ description: Safe Passenger Application
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 2.0.2+13
+version: 2.0.4+15
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -98,6 +98,9 @@ flutter:
     - images/pin_map_locator.png
     - images/telelogo.png
     - images/logo.png
+    - images/lada.png
+    - images/lady.png
+    - images/motor.png
 
   fonts:
     - family: Signatra
