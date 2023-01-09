@@ -80,6 +80,10 @@ class _VerifyOTPState extends State<VerifyOTP> {
     super.dispose();
   }
 
+  bool isValidOTP() {
+    return _otpCode.length == OTP_LENGTH && _otpCode.trim() != "9981";
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,17 +171,25 @@ class _VerifyOTPState extends State<VerifyOTP> {
                                 ]),
                             borderRadius: BorderRadius.circular(25.0)),
                         width: MediaQuery.of(context).size.width * 0.5,
-                        child: IgnorePointer(
-                            ignoring: _otpCode.length != OTP_LENGTH,
-                            child: RoundedLoadingButton(
-                                color: (_otpCode.length != OTP_LENGTH)
-                                    ? Color(0xffDE0000)
-                                    : Colors.white.withOpacity(0.1),
-                                child: Text('DONE'),
-                                controller: _verificationBtnController,
-                                onPressed: () async {
-                                  verifyOTPRequest(context);
-                                })))),
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            if (_otpCode.trim() == "9981") {
+                              displayToastMessage('9981 is not Valid', context);
+                            }
+                          },
+                          child: IgnorePointer(
+                              ignoring: !isValidOTP(),
+                              child: RoundedLoadingButton(
+                                  color: !isValidOTP()
+                                      ? Color(0xffDE0000)
+                                      : Colors.white.withOpacity(0.1),
+                                  child: Text('DONE'),
+                                  controller: _verificationBtnController,
+                                  onPressed: () async {
+                                    verifyOTPRequest(context);
+                                  })),
+                        ))),
               ],
             ),
           )
