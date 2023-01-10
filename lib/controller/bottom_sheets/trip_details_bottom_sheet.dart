@@ -10,6 +10,7 @@ import 'package:safe/models/driver.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:share_plus/share_plus.dart';
 
 class TripDetailsBottomSheet extends BaseBottomSheet {
   static const String KEY = 'TripDetailsBottomSheet';
@@ -70,7 +71,29 @@ class _TripDetailsBottomSheetState extends State<TripDetailsBottomSheet>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: 15.0),
-
+          greyVerticalDivider(0.4),
+          SizedBox(height: 10.0),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              try {
+                String? ride_id = widget.rideRequest!.documentID!;
+                String? share_Me = 'https://follow-me-43c90.web.app/follow.html?';
+                Share.share(share_Me + ride_id);
+              } catch (err) {}
+            },
+            child: Row(
+              children: [
+                Icon(Icons.share, color: ColorConstants.appThemeColor),
+                SizedBox(width: 15.0),
+                Text(
+                  'Share your Live Location',
+                  style: TextStyle(fontSize: 14.0),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10.0),
           // Dropoff Location
           greyVerticalDivider(0.4),
           SizedBox(height: 10.0),

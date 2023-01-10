@@ -7,6 +7,7 @@ import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/models/color_constants.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:share_plus/share_plus.dart';
 
 class WhereToBottomSheet extends BaseBottomSheet {
   static const String KEY = 'WhereToBottomSheet';
@@ -25,7 +26,7 @@ class WhereToBottomSheet extends BaseBottomSheet {
     required TickerProvider tickerProvider,
     required bool showBottomSheet,
     required VoidCallback actionCallback,
-    required  callBackDestination,
+    required callBackDestination,
     required this.enableButtonSelection,
     required this.onDisabledCallback,
     required this.enabledBottomToggle,
@@ -69,7 +70,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.07)),
-      height: VSpace(0.40) ,
+      height: VSpace(0.40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -78,10 +79,9 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () {
-                if(widget.enabledBottomToggle){
+                if (widget.enabledBottomToggle) {
                   widget.onActionCallback();
-                }
-                else {
+                } else {
                   widget.onDisabledCallback();
                 }
               },
@@ -201,15 +201,69 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               padding: EdgeInsets.symmetric(horizontal: HSpace(0.03)),
               child: Column(
                 children: <Widget>[
-                  Text(
-                      (widget.referralCode != null
-                          ? ' ${widget.referralCode!}'
-                          : ''),
-                      style: TextStyle(
-                          fontSize: 16.0,
-                          fontFamily: 'Lato',
-                          color: Color.fromRGBO(221, 0, 0, 1))),
-                  SizedBox(height: VSpace(0.001)),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                     GestureDetector(
+                       behavior: HitTestBehavior.opaque,
+                       onTap: () async {
+                         await Clipboard.setData(
+                             ClipboardData(text: widget.referralCode!));
+
+                         Fluttertoast.showToast(
+                           msg: "Referral Copied\n${widget.referralCode!}",
+                           toastLength: Toast.LENGTH_SHORT,
+                           gravity: ToastGravity.BOTTOM,
+                           timeInSecForIosWeb: 1,
+                           backgroundColor: Colors.grey.shade700,
+                           textColor: Colors.white,
+                           fontSize: 18.0,
+                         );
+                       },
+                       child: Container(
+                         padding: EdgeInsets.symmetric(
+                             vertical: HSpace(0.015),
+                             horizontal: HSpace(0.02)),
+                         child: Icon(Icons.copy, color: Color(0xFFDE0000)),
+                       ),
+                     ),
+
+
+                      Text(
+                          (widget.referralCode != null
+                              ? ' ${widget.referralCode!}'
+                              : ''),
+                          style: TextStyle(
+                              fontSize: 16.0,
+                              fontFamily: 'Lato',
+                              color: Color.fromRGBO(221, 0, 0, 1))),
+
+                      //referal code copy
+                      Container(
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () async {
+                            try {
+                              String? headerText = 'HI\n';
+                              String? textBody = 'Safe , you can enjoy a 5% cash back bonus whenever you make an order.\n'
+                                  'Plus, you can also share the app with your friends and family so they can enjoy the same benefits - and for every person that signs up through your referral code, you’ll get an additional 2% from every trip They make!\n '
+                                  'Now It’s easy to get paid. Just download the Safe app:- https://onelink.to/s9kbx2\n' ;
+                              String? referralCode = 'Use This referral Code :- ${widget.referralCode!} ';
+
+                              Share.share(headerText + textBody + referralCode );
+                            } catch (err) {}
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: HSpace(0.015),
+                                horizontal: HSpace(0.02)),
+                            child: Icon(Icons.share, color: Color(0xFFDE0000)),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                  SizedBox(height: VSpace(0.002)),
                   Text(
                     'Invite your friends with this referral code and make money.',
                     style: TextStyle(
