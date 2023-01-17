@@ -372,6 +372,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       PackageInfo info = await PackageInfo.fromPlatform();
 
       updatedFields[Customer.FIELD_VERSION_NUMBER] = info.version;
+      updatedFields[Customer.FIELD_VERSION_BUILD_NUMBER] =
+          AlphaNumericUtil.parseInt(info.buildNumber, -1);
 
       if (updatedFields.isNotEmpty) {
         await FirebaseFirestore.instance
