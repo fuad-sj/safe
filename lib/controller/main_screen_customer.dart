@@ -9,8 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
-//import 'package:launch_review/launch_review.dart';
+import 'package:launch_review/launch_review.dart';
 import 'package:package_info/package_info.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:safe/controller/bottom_sheets/activate_referral_code_bottom_sheet.dart';
@@ -179,6 +178,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   bool forcefulUpdateAvailable = false;
   bool showUpdateDialog = false;
   String? availableUpdateVersionNumber;
+  int? availableUpdateBuildNumber;
 
   bool get _isCustomerActive {
     return _currentCustomer?.is_active ?? false;
@@ -388,57 +388,40 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       return;
     }
 
-    var currentVersionSnapshot = await FirebaseFirestore.instance
-        .collection(FIRESTORE_PATHS.COL_UPDATE_VERSIONS)
-        .doc(FIRESTORE_PATHS.DOC_UPDATE_VERSIONS_CUSTOMERS)
-        .collection(FIRESTORE_PATHS.SUB_COL_UPDATE_VERSION_CUSTOMERS)
-        .where(UpdateVersion.FIELD_VERSION_NUMBER,
-            isEqualTo: _currentCustomer!.version_number!)
-        .get();
-
-    if (currentVersionSnapshot.docs.isEmpty) {
-      // TODO: handle not finding the version number
-      return;
-    }
+    PackageInfo info = await PackageInfo.fromPlatform();
 
     Map<String, dynamic> customerUpdateFields = Map();
     bool shouldUpdateCurrentCustomer = false;
 
-    UpdateVersion currentVersionInfo =
-        UpdateVersion.fromSnapshot(currentVersionSnapshot.docs.first);
-
-    if (_currentCustomer!.datetime_version_date == null) {
-      shouldUpdateCurrentCustomer = true;
-      customerUpdateFields[Customer.FIELD_DATETIME_VERSION_DATE] =
-          currentVersionInfo.date_version_created!;
-    }
-
-    DateTime installedVersionDate = _currentCustomer!.datetime_version_date ??
-        currentVersionInfo.date_version_created!;
-    DateTime lastCheckedVersionDate =
-        _currentCustomer!.last_checked_version_datetime ??
-            currentVersionInfo.date_version_created!;
+    int installedBuildNumber = AlphaNumericUtil.parseInt(info.buildNumber, -1);
+    int lastCheckedBuildNumber =
+        _currentCustomer!.last_checked_build_number ?? installedBuildNumber;
 
     var laterVersionSnapshots = await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_UPDATE_VERSIONS)
         .doc(FIRESTORE_PATHS.DOC_UPDATE_VERSIONS_CUSTOMERS)
         .collection(FIRESTORE_PATHS.SUB_COL_UPDATE_VERSION_CUSTOMERS)
-        .where(UpdateVersion.FIELD_DATE_VERSION_CREATED,
-            isGreaterThan: lastCheckedVersionDate)
-        .orderBy(UpdateVersion.FIELD_DATE_VERSION_CREATED, descending: true)
+        .where(UpdateVersion.FIELD_BUILD_NUMBER,
+            isGreaterThan: lastCheckedBuildNumber)
+        .orderBy(UpdateVersion.FIELD_BUILD_NUMBER, descending: true)
         .get();
+
+    updateAvailable = laterVersionSnapshots.docs.isNotEmpty;
 
     // If update available, update the customer's last seen update number, so won't bother again with same version
     if (laterVersionSnapshots.docs.isNotEmpty) {
-      updateAvailable = laterVersionSnapshots.docs.isNotEmpty;
       UpdateVersion versionInfo =
           UpdateVersion.fromSnapshot(laterVersionSnapshots.docs.first);
 
       customerUpdateFields[Customer.FIELD_LAST_CHECKED_VERSION_NUMBER] =
           versionInfo.version_number;
+      customerUpdateFields[Customer.FIELD_LAST_CHECKED_BUILD_NUMBER] =
+          versionInfo.build_number;
       customerUpdateFields[Customer.FIELD_LAST_CHECKED_VERSION_DATETIME] =
           versionInfo.date_version_created;
+
       availableUpdateVersionNumber = versionInfo.version_number;
+      availableUpdateBuildNumber = versionInfo.build_number;
 
       shouldUpdateCurrentCustomer = true;
     }
@@ -455,12 +438,16 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         .doc(FIRESTORE_PATHS.DOC_UPDATE_VERSIONS_CUSTOMERS)
         .collection(FIRESTORE_PATHS.SUB_COL_UPDATE_VERSION_CUSTOMERS)
         .where(UpdateVersion.FIELD_IS_FORCEFUL_UPDATE, isEqualTo: true)
-        .where(UpdateVersion.FIELD_DATE_VERSION_CREATED,
-            isGreaterThan: installedVersionDate)
+        .where(UpdateVersion.FIELD_BUILD_NUMBER,
+            isGreaterThan: installedBuildNumber)
         .get();
 
     forcefulUpdateAvailable = forcefulUpdateVersions.docs.isNotEmpty;
     showUpdateDialog = true;
+
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> loadNetworkProfileImage() async {
@@ -882,7 +869,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     );
   }
 
-/*
   Future<void> startUpdater() async {
     Fluttertoast.showToast(
       msg: "Safe Update",
@@ -899,8 +885,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         showToast: false);
   }
 
- */
-
   @override
   Widget build(BuildContext context) {
     const double TOP_MAP_PADDING = 40;
@@ -916,9 +900,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             builder: (_) {
               return UpdateAvailableDialog(
                 isUpdateForceful: forcefulUpdateAvailable,
-                updateVersionNumber: availableUpdateVersionNumber ?? '',
+                //updateVersionNumber: availableUpdateVersionNumber ?? '',
                 updateBtnClicked: () {
-                  //startUpdater();
+                  startUpdater();
                   //setState(() {});
                 },
               );

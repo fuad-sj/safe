@@ -49,6 +49,14 @@ class AlphaNumericUtil {
     }
   }
 
+  static int parseInt(String val, int defaultVal) {
+    try {
+      return int.tryParse(val) ?? defaultVal;
+    } catch (e) {
+      return 0;
+    }
+  }
+
   static String formatDuration(Duration duration) {
     return duration.toString().split('.').first.padLeft(8, "0");
   }

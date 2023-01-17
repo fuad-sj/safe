@@ -19,6 +19,7 @@ class Customer extends FirebaseDocument {
   static const FIELD_EMAIL = 'email';
 
   static const FIELD_VERSION_NUMBER = 'version_number';
+  static const FIELD_VERSION_BUILD_NUMBER = 'version_build_number';
 
   static const FIELD_NUM_DIRECT_CHILDREN = 'num_direct_children';
   static const FIELD_NUM_TOTAL_CHILDREN = 'num_total_children';
@@ -34,6 +35,7 @@ class Customer extends FirebaseDocument {
       'last_checked_version_number';
   static const FIELD_LAST_CHECKED_VERSION_DATETIME =
       'last_checked_version_datetime';
+  static const FIELD_LAST_CHECKED_BUILD_NUMBER = 'last_checked_build_number';
 
   static const FIELD_HAS_DEV_ACCESS = 'has_dev_access';
 
@@ -63,6 +65,7 @@ class Customer extends FirebaseDocument {
   String? email;
 
   String? version_number;
+  int? version_build_number;
 
   int? num_direct_children;
   int? num_total_children;
@@ -81,6 +84,7 @@ class Customer extends FirebaseDocument {
       fromJson: FirebaseDocument.DateTimeFromJson,
       toJson: FirebaseDocument.DateTimeToJson)
   DateTime? last_checked_version_datetime;
+  int? last_checked_build_number;
 
   bool? has_dev_access;
   bool? is_available_active; // for FTA purposes

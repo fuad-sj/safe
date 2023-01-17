@@ -7,6 +7,7 @@ part 'update_version.g.dart';
 @JsonSerializable()
 class UpdateVersion extends FirebaseDocument {
   static const FIELD_VERSION_NUMBER = "version_number";
+  static const FIELD_BUILD_NUMBER = "build_number";
   static const FIELD_IS_CUSTOMER_APP = "is_customer_app";
   static const FIELD_IS_FORCEFUL_UPDATE = "is_forceful_update";
   static const FIELD_DATE_VERSION_CREATED = "date_version_created";
@@ -14,6 +15,7 @@ class UpdateVersion extends FirebaseDocument {
   // END field name declarations
 
   String? version_number;
+  int? build_number;
   bool? is_customer_app;
   bool? is_forceful_update;
 
@@ -26,15 +28,15 @@ class UpdateVersion extends FirebaseDocument {
 
   factory UpdateVersion.fromSnapshot(
       DocumentSnapshot<Map<String, dynamic>> snapshot) {
-    UpdateVersion customer = UpdateVersion();
+    UpdateVersion version = UpdateVersion();
 
     var json = snapshot.data();
     if (json != null) {
-      customer = _$UpdateVersionFromJson(json);
-      customer.documentID = snapshot.id;
+      version = _$UpdateVersionFromJson(json);
+      version.documentID = snapshot.id;
     }
 
-    return customer;
+    return version;
   }
 
   Map<String, dynamic> toJson() => _$UpdateVersionToJson(this);

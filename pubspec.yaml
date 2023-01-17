@@ -56,6 +56,8 @@ dependencies:
   bubble_bottom_bar: ^2.0.0
   syncfusion_flutter_charts: ^20.3.59
   share_plus: ^4.0.10+1
+  launch_review:
+    path: ./launch_review
 
 dev_dependencies:
   flutter_test:

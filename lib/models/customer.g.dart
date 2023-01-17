@@ -15,6 +15,7 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
   ..gender = json['gender'] as int?
   ..email = json['email'] as String?
   ..version_number = json['version_number'] as String?
+  ..version_build_number = json['version_build_number'] as int?
   ..num_direct_children = json['num_direct_children'] as int?
   ..num_total_children = json['num_total_children'] as int?
   ..last_read_current_balance =
@@ -25,6 +26,7 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
   ..last_checked_version_number = json['last_checked_version_number'] as String?
   ..last_checked_version_datetime =
       FirebaseDocument.DateTimeFromJson(json['last_checked_version_datetime'])
+  ..last_checked_build_number = json['last_checked_build_number'] as int?
   ..has_dev_access = json['has_dev_access'] as bool?
   ..is_available_active = json['is_available_active'] as bool?
   ..date_created = FirebaseDocument.DateTimeFromJson(json['date_created'])
@@ -48,6 +50,7 @@ Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'gender': instance.gender,
       'email': instance.email,
       'version_number': instance.version_number,
+      'version_build_number': instance.version_build_number,
       'num_direct_children': instance.num_direct_children,
       'num_total_children': instance.num_total_children,
       'last_read_current_balance': instance.last_read_current_balance,
@@ -57,6 +60,7 @@ Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'last_checked_version_number': instance.last_checked_version_number,
       'last_checked_version_datetime': FirebaseDocument.DateTimeToJson(
           instance.last_checked_version_datetime),
+      'last_checked_build_number': instance.last_checked_build_number,
       'has_dev_access': instance.has_dev_access,
       'is_available_active': instance.is_available_active,
       'date_created': FirebaseDocument.DateTimeToJson(instance.date_created),

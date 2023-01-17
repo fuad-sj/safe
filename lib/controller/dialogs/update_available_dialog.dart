@@ -6,13 +6,14 @@ class UpdateAvailableDialog extends StatefulWidget {
       "dialog_result_cancel_pressed";
 
   bool isUpdateForceful;
-  String updateVersionNumber;
+
+  //String updateVersionNumber;
   VoidCallback updateBtnClicked;
 
   UpdateAvailableDialog(
       {Key? key,
       required this.isUpdateForceful,
-        required this.updateVersionNumber,
+      //required this.updateVersionNumber,
       required this.updateBtnClicked})
       : super(key: key);
 
@@ -57,8 +58,7 @@ class _UpdateAvailableDialogState extends State<UpdateAvailableDialog> {
           SizedBox(height: 10.0),
           Container(
             padding: EdgeInsets.symmetric(horizontal: 15.0),
-            child: Text(
-                "Please update as a new version ${widget.updateVersionNumber} is available"),
+            child: Text("Please update as a new version is available"),
           ),
           SizedBox(height: 20.0),
 
