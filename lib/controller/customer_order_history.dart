@@ -85,8 +85,6 @@ class _CustomerOrderHistoryState extends State<CustomerOrderHistory> {
               Icons.arrow_back_ios_new,
               color: Color(0xffDD0000),
             ),
-            color: Color(0xffffffff),
-            shape: CircleBorder(),
           ),
         ),
         centerTitle: true,
@@ -341,7 +339,7 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
                         Container(
                           width: hWidth * 0.61,
                           child: Text(
-                            widget.request.pickup_address_name,
+                            widget.request.pickup_address_name as String,
                             style: mainTextFieldStyle(),
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.left,
@@ -350,8 +348,9 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
                         SizedBox(height: vHeight * 0.040),
                         Container(
                           width: hWidth * 0.61,
-                          child: Text(
-                            widget.request.dropoff_address_name,
+                          child:
+                          Text(
+                            widget.request.dropoff_address_name.toString(),
                             style: mainTextFieldStyle(),
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.left,

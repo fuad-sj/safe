@@ -25,6 +25,8 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
   TextEditingController _commentController = TextEditingController();
 
   double _driverRating = 5.0;
+  late String _dropOffLocation;
+  late String _startLocation;
 
   bool get hasStudentDiscount {
     return (widget.rideRequest.has_student_discount ?? false) == true;
@@ -37,6 +39,22 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
   }
 
   Widget _getTripSummaryWidget(BuildContext context) {
+
+    if (widget.rideRequest.pickup_location != null ) {
+      _startLocation= widget.rideRequest.pickup_location as String;
+    }
+    else {
+      _startLocation = "";
+    }
+
+
+    if (widget.rideRequest.dropoff_location != null ) {
+      _dropOffLocation = widget.rideRequest.dropoff_location as String;
+    }
+    else {
+      _dropOffLocation = "";
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -75,7 +93,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             Icon(Icons.location_on, color: ColorConstants.appThemeColor),
             SizedBox(width: 15.0),
             Text(
-              widget.rideRequest.pickup_address_name,
+              _startLocation,
               style: TextStyle(fontSize: 14.0),
             ),
           ],
@@ -90,7 +108,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             Icon(Icons.location_on, color: ColorConstants.appThemeColor),
             SizedBox(width: 15.0),
             Text(
-              widget.rideRequest.dropoff_address_name,
+              _dropOffLocation,
               style: TextStyle(fontSize: 14.0),
             ),
           ],

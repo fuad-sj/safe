@@ -102,7 +102,7 @@ class _TripDetailsBottomSheetState extends State<TripDetailsBottomSheet>
               Icon(Icons.location_on, color: ColorConstants.appThemeColor),
               SizedBox(width: 15.0),
               Text(
-                widget.rideRequest!.dropoff_address_name,
+                widget.rideRequest?.dropoff_address_name as String,
                 style: TextStyle(fontSize: 14.0),
               ),
             ],

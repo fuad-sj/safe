@@ -160,7 +160,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                                   fontFamily: 'Lato',
                                   color: Color.fromRGBO(221, 0, 0, 1))),
                           SizedBox(height: VSpace(0.001)),
-                          Text('your home location',
+                          Text('Your home location',
                               style: TextStyle(
                                   fontSize: 9.0,
                                   fontFamily: 'Lato',
@@ -183,7 +183,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                                   fontFamily: 'Lato',
                                   color: Color.fromRGBO(221, 0, 0, 1))),
                           SizedBox(height: VSpace(0.001)),
-                          Text('your Work location',
+                          Text('Your work location',
                               style: TextStyle(
                                   fontSize: 9.0,
                                   fontFamily: 'Lato',
@@ -217,7 +217,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                            timeInSecForIosWeb: 1,
                            backgroundColor: Colors.grey.shade700,
                            textColor: Colors.white,
-                           fontSize: 18.0,
+                           fontSize: 16.0,
                          );
                        },
                        child: Container(
@@ -234,8 +234,9 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                               ? ' ${widget.referralCode!}'
                               : ''),
                           style: TextStyle(
-                              fontSize: 16.0,
+                              fontSize: 25.0,
                               fontFamily: 'Lato',
+                              fontWeight: FontWeight.w900,
                               color: Color.fromRGBO(221, 0, 0, 1))),
 
                       //referal code copy

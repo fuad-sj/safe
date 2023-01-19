@@ -40,7 +40,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     paymentPages = [
       MainPaymentScreen(),
       CashOutScreen(),
-      RecentTransactionsScreen(),
+      TransactionsHistoryScreen(),
     ];
 
     bottomIndex = 0;

@@ -102,13 +102,13 @@ class _DestinationPickerBottomSheetState
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(height: 20.0),
-          Text('Your Safe Journey',
+          Text(
+            'Your Safe Journey',
             style: TextStyle(
-              color:Colors.black,
-              fontWeight: FontWeight.bold,
-              fontSize: 20.0,
-              fontFamily: 'Lato'
-            ),
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+                fontSize: 20.0,
+                fontFamily: 'Lato'),
           ),
           SizedBox(height: 20.0),
           Container(
@@ -121,6 +121,7 @@ class _DestinationPickerBottomSheetState
                 Expanded(
                   child: Column(
                     children: [
+                      /*
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 15.0),
                         child: Row(
@@ -132,7 +133,83 @@ class _DestinationPickerBottomSheetState
                                   borderRadius: BorderRadius.circular(15.0),
                                 ),
                                 child: Padding(
-                                  padding: EdgeInsets.all(3.0),
+                                  padding: EdgeInsets.all(4.0),
+                                    child: TextFormField(
+                                      controller: _pickupTextController,
+
+                                     onChanged: (newStartVal) {
+                                       _searchPlace = newStartVal.trim();
+                                        _autoCompleteTimer?.cancel();
+                                        if (_searchPlace.isEmpty) {
+                                          _placePredictionList = null;
+                                          setState(() {
+
+                                          });
+                                          return;
+                                        }
+                                        _autoCompleteTimer = new Timer(
+                                          Duration(milliseconds: 400),
+                                              () async {
+                                            try {
+                                              _placePredictionList =
+                                              await GoogleApiUtils
+                                                  .autoCompletePlaceName(
+                                                  _searchPlace,
+                                                  _sessionId);
+                                            } catch (err) {
+                                              _placePredictionList = null;
+                                            }
+                                            setState(() {});
+                                          },
+                                        );
+                                     },
+
+                                      decoration: InputDecoration(
+                                        hintText: SafeLocalizations.of(context)!
+                                            .bottom_sheet_destination_picker_pickup_location,
+                                        fillColor: Color.fromRGBO(0, 0, 0, 0.1),
+                                        filled: true,
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        suffixIcon: Icon(
+                                          Icons.menu,
+                                          color: Colors.black,
+                                        ),
+                                        contentPadding: EdgeInsets.only(
+                                            left: 11.0, top: 15.0, bottom: 8.0),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                          BorderRadius.circular(8),
+                                          borderSide: const BorderSide(
+                                              color: Colors.white, width: 0.0),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderSide: const BorderSide(
+                                              color: Colors.black, width: 2.0),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                      //start point change
+*/
+
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 15.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(4.0),
                                   child: IgnorePointer(
                                     ignoring: true,
                                     child: TextFormField(
@@ -169,6 +246,10 @@ class _DestinationPickerBottomSheetState
                           ],
                         ),
                       ),
+
+                      //start point change end here
+
+                      // destination search start point
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 15.0),
                         child: Row(
@@ -240,6 +321,8 @@ class _DestinationPickerBottomSheetState
                           ],
                         ),
                       ),
+
+                      // destination search end point
                     ],
                   ),
                 ),
@@ -250,8 +333,7 @@ class _DestinationPickerBottomSheetState
           Container(
               margin: EdgeInsets.symmetric(horizontal: 20.0),
               height: 2.0,
-              color: ColorConstants.appThemeSecondaryColor
-          ),
+              color: ColorConstants.appThemeSecondaryColor),
 
           if (_placePredictionList != null) ...[
             //     greyVerticalDivider(0.5),

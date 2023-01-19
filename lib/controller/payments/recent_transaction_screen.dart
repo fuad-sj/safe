@@ -2,25 +2,26 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
-import 'package:safe/models/ride_request.dart';
+import 'package:safe/models/referral_transaction_log.dart';
+//import 'package:safe/models/ride_request.dart';
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
-
+import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import '../../utils/alpha_numeric_utils.dart';
 
-class RecentTransactionsScreen extends StatefulWidget {
-  const RecentTransactionsScreen({Key? key}) : super(key: key);
+class TransactionsHistoryScreen extends StatefulWidget {
+  const TransactionsHistoryScreen({Key? key}) : super(key: key);
 
   @override
-  _RecentTransactionsScreenState createState() =>
-      _RecentTransactionsScreenState();
+  _TransactionsHistoryScreenState createState() =>
+      _TransactionsHistoryScreenState();
 }
 
-class _RecentTransactionsScreenState extends State<RecentTransactionsScreen> {
-  StreamController<List<RideRequest>> _rideRequestsStreamController =
-  StreamController<List<RideRequest>>.broadcast();
+class _TransactionsHistoryScreenState extends State<TransactionsHistoryScreen> {
+  StreamController<List<ReferralTransactionLog>> _transactionStreamController =
+  StreamController<List<ReferralTransactionLog>>.broadcast();
 
-  List<RideRequest> _requests = [];
+  List<ReferralTransactionLog> _transactions = [];
 
   @override
   void initState() {
@@ -29,7 +30,7 @@ class _RecentTransactionsScreenState extends State<RecentTransactionsScreen> {
   }
 
   @override
-  void didUpdateWidget(covariant RecentTransactionsScreen oldWidget) {
+  void didUpdateWidget(covariant TransactionsHistoryScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     _setupRequestStream();
@@ -37,25 +38,24 @@ class _RecentTransactionsScreenState extends State<RecentTransactionsScreen> {
 
   void _setupRequestStream() async {
     FirebaseFirestore.instance
-        .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
-        .doc(FirebaseAuth.instance.currentUser!.uid)
-        .collection(FIRESTORE_PATHS.SUB_COL_CUSTOMERS_RIDE_HISTORY)
-        .orderBy(RideRequest.FIELD_DATE_RIDE_CREATED, descending: true)
+        .collection(FIRESTORE_PATHS.COL_REFERRAL_TRANSACTION_LOG)
+        .where(ReferralTransactionLog.TRANS_USER_ID, isEqualTo:FirebaseAuth.instance.currentUser!.uid)
+        .orderBy(ReferralTransactionLog.TRANS_TIME_STAMP, descending: true)
         .snapshots()
         .listen((requestSnapshots) {
       if (requestSnapshots.docs.isNotEmpty) {
-        var requests = requestSnapshots.docs
-            .map((snapshot) => RideRequest.fromSnapshot(snapshot))
+        var requestTrans = requestSnapshots.docs
+            .map((snapshot) => ReferralTransactionLog.fromSnapshot(snapshot))
             .toList();
-        _rideRequestsStreamController.add(requests);
+        _transactionStreamController.add(requestTrans);
       }
     });
 
-    _rideRequestsStreamController.stream
-        .listen((List<RideRequest> fetchedRides) {
+    _transactionStreamController.stream
+        .listen((List<ReferralTransactionLog> fetchedTransaction) {
       if (mounted) {
         setState(() {
-          _requests = fetchedRides;
+          _transactions = fetchedTransaction;
         });
       }
     });
@@ -66,28 +66,24 @@ class _RecentTransactionsScreenState extends State<RecentTransactionsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: ListView.builder(
-        itemCount: _requests.length,
+        itemCount: _transactions.length,
         itemBuilder: (context, index) {
-          RideRequest request = _requests[index];
+          ReferralTransactionLog requestTrans = _transactions[index];
           return _TransactionHistoryListItem(
-            request: request,
+            requestTrans:  requestTrans,
           );
         },
       ),
     );
   }
 }
-class _StatusTextTheme {
-  Color colorTxt;
-  _StatusTextTheme({required this.colorTxt});
-}
 
 class _TransactionHistoryListItem extends StatefulWidget {
-  final RideRequest request;
+  final ReferralTransactionLog  requestTrans;
 
   const _TransactionHistoryListItem(
       {Key? key,
-        required this.request,
+        required this.requestTrans,
       })
       : super(key: key);
 
@@ -97,11 +93,61 @@ class _TransactionHistoryListItem extends StatefulWidget {
 
 class _TransactionHistoryListItemState
     extends State<_TransactionHistoryListItem> {
-  late String _driverName;
-  late String _carType;
+
+    late String _transactionType;
+    late Icon _cashInOut;
+
+    Icon cashIn() {
+      return const Icon(
+        Icons.call_received,
+        color: Colors.green,
+      );
+    }
+    Icon cashOut() {
+      return const Icon(
+        Icons.call_made_outlined,
+        color: Colors.redAccent,
+      );
+    }
+
   @override
   void initState() {
     super.initState();
+
+    if (widget.requestTrans.trans_type != null ) {
+        if (widget.requestTrans.trans_type == 1 ) {
+              _transactionType = '5% Cash Back';
+              _cashInOut = cashIn();
+        }
+        else if (widget.requestTrans.trans_type == 2  ) {
+          _transactionType = 'Commission Earn';
+          _cashInOut = cashIn();
+        }
+        else if ( widget.requestTrans.trans_type == 3  ) {
+          _transactionType = 'Cash Out';
+          _cashInOut = cashOut();
+        }
+        else if ( widget.requestTrans.trans_type == 4  ) {
+          _cashInOut = cashOut();
+          _transactionType = 'Transfer ';
+        }
+        else if ( widget.requestTrans.trans_type == 5  ) {
+          _cashInOut =  cashIn();
+          _transactionType = ' On Rollback Process';
+        }
+        else if ( widget.requestTrans.trans_type == 6  ) {
+          _cashInOut =  cashIn();
+          _transactionType = ' Cash Rollback';
+        }
+        else {
+          return;
+        }
+
+    }
+    else {
+        return;
+    }
+
   }
 
   @override
@@ -111,20 +157,6 @@ class _TransactionHistoryListItemState
     double vHeight = MediaQuery.of(context).size.height;
     double hWidth = MediaQuery.of(context).size.width;
 
-    _StatusTextTheme getStatusTextTheme(int requestStatus) {
-      Color txtColor;
-
-      if (requestStatus == RideRequest.STATUS_TRIP_COMPLETED) {
-        txtColor = Colors.blue.shade900;
-      } else if (RideRequest.isRideRequestCancelled(requestStatus)) {
-
-        txtColor = Colors.blue.shade900;
-      } else {
-        txtColor = Colors.blue.shade900;
-      }
-
-      return _StatusTextTheme(colorTxt: txtColor);
-    }
 
     TextStyle mainTextFieldStyle() {
       return const TextStyle(
@@ -144,15 +176,10 @@ class _TransactionHistoryListItemState
       );
     }
 
-    _StatusTextTheme statusTheme =
-    getStatusTextTheme(widget.request.ride_status);
+   // _StatusTextTheme statusTheme = getStatusTextTheme(widget.request.ride_status);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () {
-        if (widget.request.ride_status == RideRequest.STATUS_TRIP_COMPLETED) {
-        }
-      },
       child: Padding(
         padding: EdgeInsets.only(
             top: 5.0,
@@ -184,17 +211,16 @@ class _TransactionHistoryListItemState
                   children: [
                     SizedBox(width: hWidth * 0.018),
                     Container(
-                      child: Icon(
-                        Icons.outbond,
-                        color: Colors.redAccent,
-                      ),
+                      child: _cashInOut
                     ),
                     SizedBox(width: hWidth * 0.012),
                     Container(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '150 ETB',
+                            '${AlphaNumericUtil.formatDouble(widget.requestTrans.trans_amount!, 2)} ' +
+                                SafeLocalizations.of(context)!.dialog_trip_summary_birr,
                             style: TextStyle(
                                 fontFamily: 'Lato',
                                 fontWeight: FontWeight.w700,
@@ -203,7 +229,7 @@ class _TransactionHistoryListItemState
                             ),
                           ),
                           Text(
-                              'Cashed Out', style: mainTextFieldStyle()
+                             _transactionType, style: mainTextFieldStyle()
                           )
                         ],
                       ),
@@ -216,12 +242,12 @@ class _TransactionHistoryListItemState
                         children: [
                           Text(
                             AlphaNumericUtil.formatDate(
-                                widget.request.date_ride_created),
+                                widget.requestTrans.trans_timestamp),
                             style: mainTextFieldStyle(),
                           ),
                           Text(
                             AlphaNumericUtil.formatTimeVersion(
-                                widget.request.date_ride_created),
+                                widget.requestTrans.trans_timestamp),
                             style: secondTextFieldStyle(),
                           )
                         ],

@@ -23,9 +23,9 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) => RideRequest()
   ..customer_device_token = json['customer_device_token'] as String?
   ..customer_email = json['customer_email'] as String?
   ..pickup_location = FirebaseDocument.LatLngFromJson(json['pickup_location'])
-  ..pickup_address_name = json['pickup_address_name'] as String
+  ..pickup_address_name = json['pickup_address_name'] as String?
   ..dropoff_location = FirebaseDocument.LatLngFromJson(json['dropoff_location'])
-  ..dropoff_address_name = json['dropoff_address_name'] as String
+  ..dropoff_address_name = json['dropoff_address_name'] as String?
   ..date_ride_created =
       FirebaseDocument.DateTimeFromJson(json['date_ride_created'])
   ..is_student = json['is_student'] as bool?

@@ -153,13 +153,13 @@ class RideRequest extends FirebaseDocument {
       fromJson: FirebaseDocument.LatLngFromJson,
       toJson: FirebaseDocument.LatLngToJson)
   LatLng? pickup_location;
-  late String pickup_address_name;
+  String? pickup_address_name;
 
   @JsonKey(
       fromJson: FirebaseDocument.LatLngFromJson,
       toJson: FirebaseDocument.LatLngToJson)
   LatLng? dropoff_location;
-  late String dropoff_address_name;
+  String? dropoff_address_name;
 
   @JsonKey(
       fromJson: FirebaseDocument.DateTimeFromJson,
