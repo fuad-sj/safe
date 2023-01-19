@@ -170,7 +170,7 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
     }
 
     if (widget.request.actual_trip_fare != null) {
-      _actualPrice = widget.request.actual_trip_fare.toString() + '  ETB';
+      _actualPrice = '${AlphaNumericUtil.formatDouble(widget.request.actual_trip_fare!, 2)}'  + '  ETB';
     } else {
       _actualPrice = 'Cancelled Trip';
     }
@@ -240,9 +240,12 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
+        /*
         if (widget.request.ride_status == RideRequest.STATUS_TRIP_COMPLETED) {
           widget.onRequestSelected(widget.request);
         }
+
+         */
       },
       child: Padding(
         padding: EdgeInsets.only(
@@ -370,6 +373,7 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
               SizedBox(height: vHeight * 0.021),
               Container(
                 child: Text(
+
                   _actualPrice,
                   style: TextStyle(
                       fontFamily: 'Lato',
