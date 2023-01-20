@@ -1447,7 +1447,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _currentPosition = position;
 
       CameraPosition cameraPosition = CameraPosition(
-          target: LatLng(position.latitude, position.longitude), zoom: 14.0);
+          target: LatLng(position.latitude, position.longitude), zoom: 17.0);
 
       _mapController!
           .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
@@ -1644,6 +1644,15 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
         var callBack = map[FIELD_CALLBACK];
 
+        if (callBack != Geofire.onGeoQueryReady) {
+          var driver_id = map[FIELD_KEY];
+
+          if (!_nearbyDriverLocations.containsKey(driver_id)) {
+            if (random.nextDouble() > 0.2)
+              return;
+          }
+        }
+
         switch (callBack) {
           case Geofire.onKeyEntered:
             setDriverLocationAndBearing(
@@ -1704,8 +1713,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         .toSet();
   }
 
+  Random random = Random();
+
   void setDriverLocationAndBearing(DriverLocation driverLoc) {
     if (_nearbyDriverLocations.length > 10) return;
+
 
     if (_nearbyDriverLocations.containsKey(driverLoc.driverID)) {
       DriverLocation prevLocation = _nearbyDriverLocations[driverLoc.driverID]!;
