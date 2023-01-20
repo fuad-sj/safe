@@ -6,6 +6,7 @@ class PickUpAndDropOffLocations extends ChangeNotifier {
   Address? dropOffLocation;
   Duration? scheduledDuration;
   bool? isStudent;
+  bool resetPickupLocation = false;
 
   void updatePickupLocationAddress(Address? address) {
     pickUpLocation = address;
@@ -24,6 +25,11 @@ class PickUpAndDropOffLocations extends ChangeNotifier {
 
   void setIsStudent(bool is_student) {
     isStudent = is_student;
+    notifyListeners();
+  }
+
+  void setResetPickupLocation(bool reset) {
+    resetPickupLocation = reset;
     notifyListeners();
   }
 }

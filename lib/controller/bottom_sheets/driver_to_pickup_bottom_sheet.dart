@@ -63,12 +63,14 @@ class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
     });
   }
 
+  /*
   @override
   void didUpdateWidget(covariant DriverToPickupBottomSheet oldWidget) {
     super.didUpdateWidget(oldWidget);
 
     loadDriverProfile();
   }
+  */
 
   Future<void> loadDriverProfile() async {
     if (widget.pickedDriver?.link_img_common_profile == null) {

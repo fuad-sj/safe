@@ -508,8 +508,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       _ignoreGeofireUpdates = false;
 
-      zoomCameraToCurrentPosition();
-
       _selectedDriver = null;
       _selectedDriverLocationStream?.cancel();
       _selectedDriverLocationStream = null;
@@ -532,6 +530,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           .updateDropOffLocationAddress(null);
       Provider.of<PickUpAndDropOffLocations>(context, listen: false)
           .updateScheduledDuration(null);
+
+      zoomCameraToCurrentPosition();
 
       updateAvailableDriversOnMap();
     });
@@ -1013,6 +1013,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 referralCode: _currentCustomer?.referral_code,
                 enabledBottomToggle: _isBottomToggleOn,
                 actionCallback: () {
+                  Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+                      .setResetPickupLocation(true);
+
                   _UIState = UI_STATE_WHERE_TO_SELECTED;
                   setBottomMapPadding(screenHeight *
                       DestinationPickerBottomSheet

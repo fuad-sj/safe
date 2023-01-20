@@ -68,10 +68,17 @@ class _DestinationPickerBottomSheetState
 
   List<GooglePlaceDescription>? _placePredictionList;
 
+  bool _isSearchForPickup = false;
+
+  bool _hasLoadedPickupText = false;
+  String _initialPickupText = "";
+  bool _hasPreviousChangedPickup = false;
+
   Timer? _autoCompleteTimer;
 
   late String _sessionId;
-  String _searchPlace = '';
+  String _pickupPlaceName = '';
+  String _dropoffPlaceName = '';
 
   @override
   void initState() {
@@ -89,12 +96,23 @@ class _DestinationPickerBottomSheetState
 
   @override
   Widget buildContent(BuildContext context) {
-    String placeAddress = Provider.of<PickUpAndDropOffLocations>(context)
-            .pickUpLocation
-            ?.placeName ??
-        '';
+    if (!_hasLoadedPickupText ||
+        Provider.of<PickUpAndDropOffLocations>(context).resetPickupLocation) {
+      _hasLoadedPickupText = true;
 
-    _pickupTextController.text = placeAddress;
+      Future.delayed(Duration.zero, () {
+        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+            .setResetPickupLocation(false);
+      });
+
+      String placeName = Provider.of<PickUpAndDropOffLocations>(context)
+              .pickUpLocation
+              ?.placeName ??
+          '';
+      if (placeName.trim() == "") placeName = _initialPickupText;
+      _initialPickupText = placeName;
+      _pickupTextController.text = _initialPickupText;
+    }
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.80,
@@ -121,7 +139,7 @@ class _DestinationPickerBottomSheetState
                 Expanded(
                   child: Column(
                     children: [
-                      /*
+                      // pickup
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 15.0),
                         child: Row(
@@ -134,86 +152,48 @@ class _DestinationPickerBottomSheetState
                                 ),
                                 child: Padding(
                                   padding: EdgeInsets.all(4.0),
+                                  child: Focus(
+                                    onFocusChange: (_) {
+                                      if (!_hasPreviousChangedPickup) {
+                                        _hasPreviousChangedPickup = true;
+                                        _pickupTextController.value =
+                                            TextEditingValue(
+                                          text: _initialPickupText,
+                                          selection: TextSelection.collapsed(
+                                              offset:
+                                                  _initialPickupText.length),
+                                        );
+                                      }
+                                    },
                                     child: TextFormField(
                                       controller: _pickupTextController,
+                                      onChanged: (newVal) {
+                                        _isSearchForPickup = true;
 
-                                     onChanged: (newStartVal) {
-                                       _searchPlace = newStartVal.trim();
+                                        _pickupPlaceName = newVal.trim();
                                         _autoCompleteTimer?.cancel();
-                                        if (_searchPlace.isEmpty) {
+                                        if (_pickupPlaceName.isEmpty) {
                                           _placePredictionList = null;
-                                          setState(() {
-
-                                          });
+                                          setState(() {});
                                           return;
                                         }
+
                                         _autoCompleteTimer = new Timer(
-                                          Duration(milliseconds: 400),
-                                              () async {
+                                          Duration(milliseconds: 300),
+                                          () async {
                                             try {
                                               _placePredictionList =
-                                              await GoogleApiUtils
-                                                  .autoCompletePlaceName(
-                                                  _searchPlace,
-                                                  _sessionId);
+                                                  await GoogleApiUtils
+                                                      .autoCompletePlaceName(
+                                                          _pickupPlaceName,
+                                                          _sessionId);
                                             } catch (err) {
                                               _placePredictionList = null;
                                             }
                                             setState(() {});
                                           },
                                         );
-                                     },
-
-                                      decoration: InputDecoration(
-                                        hintText: SafeLocalizations.of(context)!
-                                            .bottom_sheet_destination_picker_pickup_location,
-                                        fillColor: Color.fromRGBO(0, 0, 0, 0.1),
-                                        filled: true,
-                                        border: InputBorder.none,
-                                        isDense: true,
-                                        suffixIcon: Icon(
-                                          Icons.menu,
-                                          color: Colors.black,
-                                        ),
-                                        contentPadding: EdgeInsets.only(
-                                            left: 11.0, top: 15.0, bottom: 8.0),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                          BorderRadius.circular(8),
-                                          borderSide: const BorderSide(
-                                              color: Colors.white, width: 0.0),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderSide: const BorderSide(
-                                              color: Colors.black, width: 2.0),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      //start point change
-*/
-
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 15.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(15.0),
-                                ),
-                                child: Padding(
-                                  padding: EdgeInsets.all(4.0),
-                                  child: IgnorePointer(
-                                    ignoring: true,
-                                    child: TextFormField(
-                                      controller: _pickupTextController,
+                                      },
                                       decoration: InputDecoration(
                                         hintText: SafeLocalizations.of(context)!
                                             .bottom_sheet_destination_picker_pickup_location,
@@ -247,9 +227,7 @@ class _DestinationPickerBottomSheetState
                         ),
                       ),
 
-                      //start point change end here
-
-                      // destination search start point
+                      // dropoff
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 15.0),
                         child: Row(
@@ -266,22 +244,24 @@ class _DestinationPickerBottomSheetState
                                     controller: _dropOffTextController,
                                     autofocus: true,
                                     onChanged: (newVal) {
-                                      _searchPlace = newVal.trim();
+                                      _isSearchForPickup = false;
+
+                                      _dropoffPlaceName = newVal.trim();
                                       _autoCompleteTimer?.cancel();
-                                      if (_searchPlace.isEmpty) {
+                                      if (_dropoffPlaceName.isEmpty) {
                                         _placePredictionList = null;
                                         setState(() {});
                                         return;
                                       }
 
                                       _autoCompleteTimer = new Timer(
-                                        Duration(milliseconds: 400),
+                                        Duration(milliseconds: 300),
                                         () async {
                                           try {
                                             _placePredictionList =
                                                 await GoogleApiUtils
                                                     .autoCompletePlaceName(
-                                                        _searchPlace,
+                                                        _dropoffPlaceName,
                                                         _sessionId);
                                           } catch (err) {
                                             _placePredictionList = null;
@@ -335,10 +315,6 @@ class _DestinationPickerBottomSheetState
               height: 2.0,
               color: ColorConstants.appThemeSecondaryColor),
 
-          if (_placePredictionList != null) ...[
-            //     greyVerticalDivider(0.5),
-          ],
-
           // Pin your location on the map
           if (_placePredictionList == null ||
               _placePredictionList?.length == 0) ...[
@@ -381,46 +357,49 @@ class _DestinationPickerBottomSheetState
             //   lightGreyVerticalDivider(6),
           ],
 
+          SizedBox(height: 10.0),
+
           // Search Results
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 15.0),
-            child: ListView.separated(
-              shrinkWrap: true,
-              physics: ClampingScrollPhysics(),
-              separatorBuilder: (_, __) => darkGreyVerticalDivider(0.0),
-              itemCount: _placePredictionList?.length ?? 0,
-              itemBuilder: (_, index) {
-                return _SearchedPlaceTile(
-                  clickCallback: (place) async {
-                    showDialog(
-                        context: context,
-                        builder: (_) => CustomProgressDialog(
-                            message: SafeLocalizations.of(context)!
-                                .bottom_sheet_destination_picker_progress_dialog_waiting));
-                    try {
-                      Address address =
-                          await GoogleApiUtils.getPlaceAddressDetails(
-                              place.place_id, _sessionId);
+          ...(_placePredictionList ?? []).map((place) {
+            return _SearchedPlaceTile(
+              clickCallback: (place) async {
+                showDialog(
+                    context: context,
+                    builder: (_) => CustomProgressDialog(
+                        message: _isSearchForPickup
+                            ? "Updating Pickup"
+                            : "Updating Dropoff"));
+                try {
+                  Address address = await GoogleApiUtils.getPlaceAddressDetails(
+                      place.place_id, _sessionId);
 
-                      Navigator.pop(context);
+                  Navigator.pop(context);
 
-                      Provider.of<PickUpAndDropOffLocations>(context,
-                              listen: false)
-                          .updateDropOffLocationAddress(address);
-                      _placePredictionList?.clear();
+                  _placePredictionList?.clear();
 
-                      widget.onActionCallback();
-                    } catch (err) {
-                      Navigator.pop(context);
+                  if (_isSearchForPickup) {
+                    Provider.of<PickUpAndDropOffLocations>(context,
+                            listen: false)
+                        .updatePickupLocationAddress(address);
+                    Provider.of<PickUpAndDropOffLocations>(context,
+                            listen: false)
+                        .setResetPickupLocation(true);
+                  } else {
+                    Provider.of<PickUpAndDropOffLocations>(context,
+                            listen: false)
+                        .updateDropOffLocationAddress(address);
 
-                      displayToastMessage(err.toString(), context);
-                    }
-                  },
-                  place: _placePredictionList![index],
-                );
+                    widget.onActionCallback();
+                  }
+                } catch (err) {
+                  Navigator.pop(context);
+
+                  displayToastMessage(err.toString(), context);
+                }
               },
-            ),
-          ),
+              place: place,
+            );
+          }),
         ],
       ),
     );
@@ -443,36 +422,42 @@ class _SearchedPlaceTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => clickCallback(place),
-      behavior: HitTestBehavior.opaque,
-      child: Row(
-        children: [
-          Icon(Icons.add_location),
-          SizedBox(width: 16.0),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 8.0),
-                Text(
-                  place.main_name,
-                  // prevent overflow
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
-                ),
-                SizedBox(height: 2.0),
-                Text(
-                  place.detailed_name,
-                  // prevent overflow
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 14.0, color: Colors.grey.shade300),
-                ),
-                SizedBox(height: 8.0),
-              ],
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 15.0),
+      child: GestureDetector(
+        onTap: () => clickCallback(place),
+        behavior: HitTestBehavior.opaque,
+        child: Row(
+          children: [
+            Icon(Icons.location_on_rounded,
+                color: Color.fromRGBO(221, 0, 0, 1)),
+            SizedBox(width: 16.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 8.0),
+                  Text(
+                    place.main_name,
+                    // prevent overflow
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        TextStyle(fontSize: 18.0, color: Colors.grey.shade800),
+                  ),
+                  SizedBox(height: 2.0),
+                  Text(
+                    place.detailed_name,
+                    // prevent overflow
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        TextStyle(fontSize: 14.0, color: Colors.grey.shade300),
+                  ),
+                  SizedBox(height: 8.0),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
