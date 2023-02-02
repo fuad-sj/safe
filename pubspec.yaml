@@ -3,7 +3,7 @@ description: Safe Passenger Application
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 2.0.11+22
+version: 2.0.12+23
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -22,9 +22,9 @@ dependencies:
   firebase_analytics: ^9.1.2
   firebase_storage: ^10.2.9
   firebase_remote_config: ^2.0.0
+  cloud_firestore: ^3.1.10
   firebase_database: ^9.0.8
   firebase: ^9.0.3
-  cloud_firestore: ^3.1.10
   fluttertoast: ^8.0.8
   google_maps_flutter: ^2.1.1
   geolocator: ^7.1.0
