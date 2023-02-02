@@ -43,6 +43,8 @@ class _LoginPageState extends State<LoginPage> {
 
   String? _appVersionNumber;
 
+  bool _isOnPingRequest = false;
+
   bool _isVerifyTrue = false;
 
   late String _instNo;
@@ -172,67 +174,64 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     )),
                 Padding(
-                    padding: EdgeInsets.only(
-                      top: MediaQuery.of(context).size.height * 0.02,
-                      left: MediaQuery.of(context).size.width * 0.1,
-                      right: MediaQuery.of(context).size.width * 0.1,
-                    ),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(
-                            color: Color(0xffDD0000),
-                            width: 3.0,
-                          ),
-                          borderRadius: BorderRadius.circular(20.0)),
-                      child: Row(
-                        children: [
-                          CountryCodePicker(
-                            onChanged: (newCode) {
-                              _countryCode = newCode.dialCode ?? '+251';
-                            },
-                            initialSelection: 'ET',
-                            favorite: ['+251', 'ET'],
-                            showFlagDialog: true,
-                            enabled: true,
-                            textStyle: TextStyle(color: Colors.black),
-                          ),
-                          Container(
-                            height: MediaQuery.of(context).size.height * 0.04,
-                            width: 1.0,
-                            decoration: BoxDecoration(color: Color(0xff0f0f0f)),
-                          ),
-                          Expanded(
-                            child: Container(
-                              width: MediaQuery.of(context).size.width,
-                              padding: EdgeInsets.only(right: 30.0),
-                              child: FocusScope(
-                                child: Focus(
-                                  onFocusChange: (focus) =>
-                                      _isVerifyTrue = !_isVerifyTrue,
-                                  child: TextField(
-                                    style: TextStyle(
-                                        color: Colors.black, fontSize: 20),
-                                    keyboardType: TextInputType.phone,
-                                    controller: _phoneController,
-                                    decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                                horizontal: 10.0,
-                                                vertical: 10.0
-                                            ),
-                                        hintText: '912345678',
-                                        hintStyle:
-                                            TextStyle(color: Colors.grey),
-                                        fillColor: Colors.black),
-                                  ),
+                  padding: EdgeInsets.only(
+                    top: MediaQuery.of(context).size.height * 0.02,
+                    left: MediaQuery.of(context).size.width * 0.1,
+                    right: MediaQuery.of(context).size.width * 0.1,
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(
+                          color: Color(0xffDD0000),
+                          width: 3.0,
+                        ),
+                        borderRadius: BorderRadius.circular(20.0)),
+                    child: Row(
+                      children: [
+                        CountryCodePicker(
+                          onChanged: (newCode) {
+                            _countryCode = newCode.dialCode ?? '+251';
+                          },
+                          initialSelection: 'ET',
+                          favorite: ['+251', 'ET'],
+                          showFlagDialog: true,
+                          enabled: true,
+                          textStyle: TextStyle(color: Colors.black),
+                        ),
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.04,
+                          width: 1.0,
+                          decoration: BoxDecoration(color: Color(0xff0f0f0f)),
+                        ),
+                        Expanded(
+                          child: Container(
+                            width: MediaQuery.of(context).size.width,
+                            padding: EdgeInsets.only(right: 30.0),
+                            child: FocusScope(
+                              child: Focus(
+                                onFocusChange: (focus) =>
+                                    _isVerifyTrue = !_isVerifyTrue,
+                                child: TextField(
+                                  style: TextStyle(
+                                      color: Colors.black, fontSize: 20),
+                                  keyboardType: TextInputType.phone,
+                                  controller: _phoneController,
+                                  decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              horizontal: 10.0, vertical: 10.0),
+                                      hintText: '912345678',
+                                      hintStyle: TextStyle(color: Colors.grey),
+                                      fillColor: Colors.black),
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
                 ),
                 Visibility(
                     visible: _isVerifyTrue,
@@ -300,16 +299,40 @@ class _LoginPageState extends State<LoginPage> {
 
       String OTP_ID = response["otp_id"];
 
-      _otpSubscription?.cancel();
-      _otpSubscription = FirebaseFirestore.instance
-          .collection(FIRESTORE_PATHS.COL_OTP_REQUESTS)
-          .doc(OTP_ID)
-          .snapshots()
-          .listen((snapshot) {
-        SafeOTPRequest otpRequest = SafeOTPRequest.fromSnapshot(snapshot);
+      new Timer.periodic(
+        Duration(seconds: 2),
+        (timer) async {
+          // don't wanna be sending multiple pings if previous ping has stalled
+          if (_isOnPingRequest) {
+            return;
+          }
 
-        switch (otpRequest.otp_status) {
-          case SafeOTPRequest.SAFE_OTP_STATUS_OTP_SENT:
+          _isOnPingRequest = true;
+          var statusResponse = await HttpUtil.getHttpsRequest(
+              "us-central1-safetransports-et.cloudfunctions.net",
+              "/OTPEndpoint${_instNo}/api/v1/otp_status", {
+            "otp_id": OTP_ID,
+          });
+          _isOnPingRequest = false;
+
+          bool success = statusResponse["success"];
+          bool sent = statusResponse["sent"];
+          bool expired = statusResponse["expired"];
+
+          if (!success) {
+            if (mounted) {
+              timer.cancel();
+              _loginBtnController.reset();
+            }
+            displayToastMessage('Error, please try again', context);
+            return;
+          }
+
+          if (sent || expired) {
+            timer.cancel();
+          }
+
+          if (sent) {
             _loginBtnController
                 .reset(); // if we pop-back to this page, reset to allow re-submitting
 
@@ -319,14 +342,15 @@ class _LoginPageState extends State<LoginPage> {
                   builder: (context) =>
                       VerifyOTP(otpID: OTP_ID, instNo: _instNo)),
             );
-            break;
-          case SafeOTPRequest.SAFE_OTP_STATUS_OTP_EXPIRED:
+          }
+
+          if (expired) {
             _loginBtnController
                 .reset(); // if we pop-back to this page, reset to allow re-submitting
             displayToastMessage('OTP Expired, Please Try Again', context);
-            break;
-        }
-      });
+          }
+        },
+      );
     } catch (err) {
       _loginBtnController.reset();
       displayToastMessage('Error, please try again', context);

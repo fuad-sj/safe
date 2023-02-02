@@ -32,14 +32,15 @@ class VerifyOTP extends StatefulWidget {
 }
 
 class _VerifyOTPState extends State<VerifyOTP> {
-  StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>? _otpSubscription;
-
   static const int OTP_LENGTH = 4;
 
   String _otpCode = "";
 
   final RoundedLoadingButtonController _verificationBtnController =
       RoundedLoadingButtonController();
+
+  Timer? _otpStatusTimer;
+  bool _isOnPingRequest = false;
 
   @override
   void initState() {
@@ -56,27 +57,36 @@ class _VerifyOTPState extends State<VerifyOTP> {
   }
 
   void _subscribeToOTPStateChange() async {
-    _otpSubscription?.cancel();
-    _otpSubscription?.cancel();
-    _otpSubscription = FirebaseFirestore.instance
-        .collection(FIRESTORE_PATHS.COL_OTP_REQUESTS)
-        .doc(widget.otpID)
-        .snapshots()
-        .listen((snapshot) {
-      SafeOTPRequest otpRequest = SafeOTPRequest.fromSnapshot(snapshot);
+    _otpStatusTimer?.cancel();
+    _otpStatusTimer = new Timer.periodic(
+      Duration(seconds: 2),
+      (timer) async {
+        if (_isOnPingRequest) {
+          return;
+        }
 
-      switch (otpRequest.otp_status) {
-        case SafeOTPRequest.SAFE_OTP_STATUS_OTP_EXPIRED:
+        _isOnPingRequest = true;
+        var statusResponse = await HttpUtil.getHttpsRequest(
+            "us-central1-safetransports-et.cloudfunctions.net",
+            "/OTPEndpoint${widget.instNo}/api/v1/otp_status", {
+          "otp_id": widget.otpID,
+        });
+        _isOnPingRequest = false;
+
+        bool expired = statusResponse["expired"];
+
+        if (expired) {
+          _otpStatusTimer?.cancel();
           displayToastMessage('OTP Expired, Please Try Again', context);
           Navigator.pop(context);
-          break;
-      }
-    });
+        }
+      },
+    );
   }
 
   @override
   void dispose() {
-    _otpSubscription?.cancel();
+    _otpStatusTimer?.cancel();
     super.dispose();
   }
 
@@ -217,8 +227,11 @@ class _VerifyOTPState extends State<VerifyOTP> {
           Navigator.pop(context);
         } else {
           displayToastMessage('Wrong OTP Code, Please Try Again', context);
+          _verificationBtnController.reset();
         }
       }
+
+      _otpStatusTimer?.cancel();
 
       String custom_token = response["token"];
 
@@ -227,6 +240,7 @@ class _VerifyOTPState extends State<VerifyOTP> {
       final User? firebaseUser = credential.user;
       if (firebaseUser == null) {
         displayToastMessage('Error Authenticating, Please Try Again', context);
+        _verificationBtnController.reset();
         return;
       }
 
@@ -246,6 +260,7 @@ class _VerifyOTPState extends State<VerifyOTP> {
               : RegistrationScreen.idScreen,
           (route) => false);
     } catch (err) {
+      _verificationBtnController.reset();
       displayToastMessage('Login error, please try again', context);
     }
   }
