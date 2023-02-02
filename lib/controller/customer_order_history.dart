@@ -160,17 +160,23 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
           .addListener(ImageStreamListener(
             (_, __) {
               _ImgLoadComplete = true;
-              setState(() {});
+              if (mounted) {
+                setState(() {});
+              }
             },
             onError: (_, __) {
               _ImgLoadComplete = false;
-              setState(() {});
+              if (mounted) {
+                setState(() {});
+              }
             },
           ));
     }
 
     if (widget.request.actual_trip_fare != null) {
-      _actualPrice = '${AlphaNumericUtil.formatDouble(widget.request.actual_trip_fare!, 2)}'  + '  ETB';
+      _actualPrice =
+          '${AlphaNumericUtil.formatDouble(widget.request.actual_trip_fare!, 2)}' +
+              '  ETB';
     } else {
       _actualPrice = 'Cancelled Trip';
     }
@@ -351,8 +357,7 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
                         SizedBox(height: vHeight * 0.040),
                         Container(
                           width: hWidth * 0.61,
-                          child:
-                          Text(
+                          child: Text(
                             widget.request.dropoff_address_name.toString(),
                             style: mainTextFieldStyle(),
                             overflow: TextOverflow.ellipsis,
@@ -373,7 +378,6 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
               SizedBox(height: vHeight * 0.021),
               Container(
                 child: Text(
-
                   _actualPrice,
                   style: TextStyle(
                       fontFamily: 'Lato',

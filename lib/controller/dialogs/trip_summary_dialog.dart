@@ -26,77 +26,40 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
 
   double _driverRating = 5.0;
 
-  // late String _dropOffLocation;
-  // late String _startLocation;
-
-  bool get hasStudentDiscount {
-    return (widget.rideRequest.has_student_discount ?? false) == true;
-  }
-
-  double get actualPaidAmount {
-    return hasStudentDiscount
-        ? widget.rideRequest.adjusted_trip_fare!
-        : widget.rideRequest.actual_trip_fare!;
-  }
-
   Widget _getTripSummaryWidget(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(height: 10.0),
+
+        // Total fare price
+        Center(
+            child: Text(
+                SafeLocalizations.of(context)!.dialog_trip_summary_total,
+                style: TextStyle(fontSize: 18.0))),
         SizedBox(height: 10.0),
         Center(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              ShaderMask(
-                shaderCallback: (shader) {
-                  return LinearGradient(
-                    colors: [
-                      Color(0xffDE0000),
-                      Color(0xff990000),
-                    ],
-                    tileMode: TileMode.mirror,
-                  ).createShader(shader);
-                },
-                child: Text(
-                  AlphaNumericUtil.formatDouble(actualPaidAmount, 2),
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 36.0,
-                    fontFamily: 'Lato',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              Text(
+                AlphaNumericUtil.formatDouble(
+                    widget.rideRequest.actual_trip_fare!, 2),
+                style: TextStyle(fontSize: 30.0),
               ),
               SizedBox(width: 5.0),
-              ShaderMask(
-                shaderCallback: (shader) {
-                  return LinearGradient(
-                    colors: [
-                      Color(0xff990000),
-                      Color(0xff590202),
-                    ],
-                    tileMode: TileMode.mirror,
-                  ).createShader(shader);
-                },
-                child: Text(
-                  SafeLocalizations.of(context)!.dialog_trip_summary_birr,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 36.0,
-                    fontFamily: 'Lato',
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              Text(
+                SafeLocalizations.of(context)!.dialog_trip_summary_birr,
+                style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
               ),
             ],
           ),
         ),
 
         // Pickup location
-        SizedBox(height: 15.0),
-        redVerticalDivider(4.0),
+        SizedBox(height: 5.0),
+        greyVerticalDivider(0.4),
         SizedBox(height: 10.0),
         Row(
           children: [
@@ -118,8 +81,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             Icon(Icons.location_on, color: ColorConstants.appThemeColor),
             SizedBox(width: 15.0),
             Text(
-              widget.rideRequest.dropoff_address_name!,
-              overflow: TextOverflow.ellipsis,
+              widget.rideRequest.dropoff_address_name ?? '',
               style: TextStyle(fontSize: 14.0),
             ),
           ],
@@ -140,7 +102,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             ),
             Expanded(child: Container()),
             Text(
-              AlphaNumericUtil.formatDouble(widget.rideRequest.base_fare!, 2),
+              '${AlphaNumericUtil.formatDouble(widget.rideRequest.base_fare!, 2)} ETB',
               style: TextStyle(fontSize: 12.0),
             ),
           ],
@@ -189,6 +151,38 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
           ],
         ),
         SizedBox(height: 10.0),
+        greyVerticalDivider(0.4),
+
+        // Total Trip Fare
+        greyVerticalDivider(0.4),
+        SizedBox(height: 10.0),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Icon(Icons.attach_money_outlined,
+                color: ColorConstants.appThemeColor),
+            SizedBox(width: 5.0),
+            Text(
+              SafeLocalizations.of(context)!
+                  .dialog_trip_summary_total_trip_fare,
+              style: TextStyle(fontSize: 12.0),
+            ),
+            Expanded(child: Container()),
+            Text(
+              '${AlphaNumericUtil.formatDouble(widget.rideRequest.actual_trip_fare!, 2)} ' +
+                  SafeLocalizations.of(context)!.dialog_trip_summary_birr,
+              style: TextStyle(fontSize: 12.0),
+            ),
+          ],
+        ),
+        SizedBox(height: 10.0),
+        greyVerticalDivider(0.4),
+
+        SizedBox(height: 10.0),
+        Text(
+          SafeLocalizations.of(context)!.dialog_trip_summary_rate_your_driver,
+          style: TextStyle(fontSize: 12.0),
+        ),
 
         // TODO: populate stars
         SizedBox(height: 10.0),
