@@ -240,12 +240,12 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        /*
+
         if (widget.request.ride_status == RideRequest.STATUS_TRIP_COMPLETED) {
           widget.onRequestSelected(widget.request);
         }
 
-         */
+
       },
       child: Padding(
         padding: EdgeInsets.only(

@@ -57,7 +57,9 @@ class _DriverToPickupBottomSheetState extends State<DriverToPickupBottomSheet>
   void initState() {
     super.initState();
 
-    _defaultDriverProfileImage = AssetImage('images/user_icon.png');
+    _defaultDriverProfileImage = AssetImage(
+      'images/mask2.png',
+    );
     Future.delayed(Duration.zero, () async {
       loadDriverProfile();
     });

@@ -174,21 +174,27 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                     color: Color.fromRGBO(151, 151, 151, 0.3),
                   ),
                   Expanded(
-                    child: Container(
-                      child: Column(
-                        children: <Widget>[
-                          Text('Work',
-                              style: TextStyle(
-                                  fontSize: 16.0,
-                                  fontFamily: 'Lato',
-                                  color: Color.fromRGBO(221, 0, 0, 1))),
-                          SizedBox(height: VSpace(0.001)),
-                          Text('Your work location',
-                              style: TextStyle(
-                                  fontSize: 9.0,
-                                  fontFamily: 'Lato',
-                                  color: Color.fromRGBO(81, 81, 81, 1)))
-                        ],
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () async {
+
+                      },
+                      child: Container(
+                        child: Column(
+                          children: <Widget>[
+                            Text('Work',
+                                style: TextStyle(
+                                    fontSize: 16.0,
+                                    fontFamily: 'Lato',
+                                    color: Color.fromRGBO(221, 0, 0, 1))),
+                            SizedBox(height: VSpace(0.001)),
+                            Text('Your work location',
+                                style: TextStyle(
+                                    fontSize: 9.0,
+                                    fontFamily: 'Lato',
+                                    color: Color.fromRGBO(81, 81, 81, 1)))
+                          ],
+                        ),
                       ),
                     ),
                   )
@@ -204,30 +210,29 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                     GestureDetector(
-                       behavior: HitTestBehavior.opaque,
-                       onTap: () async {
-                         await Clipboard.setData(
-                             ClipboardData(text: widget.referralCode!));
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () async {
+                          await Clipboard.setData(
+                              ClipboardData(text: widget.referralCode!));
 
-                         Fluttertoast.showToast(
-                           msg: "Referral Copied\n${widget.referralCode!}",
-                           toastLength: Toast.LENGTH_SHORT,
-                           gravity: ToastGravity.BOTTOM,
-                           timeInSecForIosWeb: 1,
-                           backgroundColor: Colors.grey.shade700,
-                           textColor: Colors.white,
-                           fontSize: 16.0,
-                         );
-                       },
-                       child: Container(
-                         padding: EdgeInsets.symmetric(
-                             vertical: HSpace(0.015),
-                             horizontal: HSpace(0.02)),
-                         child: Icon(Icons.copy, color: Color(0xFFDE0000)),
-                       ),
-                     ),
-
+                          Fluttertoast.showToast(
+                            msg: "Referral Copied\n${widget.referralCode!}",
+                            toastLength: Toast.LENGTH_SHORT,
+                            gravity: ToastGravity.BOTTOM,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor: Colors.grey.shade700,
+                            textColor: Colors.white,
+                            fontSize: 16.0,
+                          );
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: HSpace(0.015),
+                              horizontal: HSpace(0.02)),
+                          child: Icon(Icons.copy, color: Color(0xFFDE0000)),
+                        ),
+                      ),
 
                       Text(
                           (widget.referralCode != null
@@ -246,12 +251,14 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                           onTap: () async {
                             try {
                               String? headerText = 'HI\n';
-                              String? textBody = 'Safe , you can enjoy a 5% cash back bonus whenever you make an order.\n'
+                              String? textBody =
+                                  'Safe , you can enjoy a 5% cash back bonus whenever you make an order.\n'
                                   'Plus, you can also share the app with your friends and family so they can enjoy the same benefits - and for every person that signs up through your referral code, you’ll get an additional 2% from every trip They make!\n '
-                                  'Now It’s easy to get paid. Just download the Safe app:- https://onelink.to/s9kbx2\n' ;
-                              String? referralCode = 'Use This referral Code :- ${widget.referralCode!} ';
+                                  'Now It’s easy to get paid. Just download the Safe app:- https://onelink.to/s9kbx2\n';
+                              String? referralCode =
+                                  'Use This referral Code :- ${widget.referralCode!} ';
 
-                              Share.share(headerText + textBody + referralCode );
+                              Share.share(headerText + textBody + referralCode);
                             } catch (err) {}
                           },
                           child: Container(

@@ -25,8 +25,9 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
   TextEditingController _commentController = TextEditingController();
 
   double _driverRating = 5.0;
- // late String _dropOffLocation;
- // late String _startLocation;
+
+  // late String _dropOffLocation;
+  // late String _startLocation;
 
   bool get hasStudentDiscount {
     return (widget.rideRequest.has_student_discount ?? false) == true;
@@ -39,46 +40,71 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
   }
 
   Widget _getTripSummaryWidget(BuildContext context) {
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: 10.0),
-
-        // Total fare price
-        Center(
-            child: Text(
-                SafeLocalizations.of(context)!.dialog_trip_summary_total,
-                style: TextStyle(fontSize: 18.0))),
         SizedBox(height: 10.0),
         Center(
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                AlphaNumericUtil.formatDouble(actualPaidAmount, 2),
-                style: TextStyle(fontSize: 30.0),
+              ShaderMask(
+                shaderCallback: (shader) {
+                  return LinearGradient(
+                    colors: [
+                      Color(0xffDE0000),
+                      Color(0xff990000),
+                    ],
+                    tileMode: TileMode.mirror,
+                  ).createShader(shader);
+                },
+                child: Text(
+                  AlphaNumericUtil.formatDouble(actualPaidAmount, 2),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 36.0,
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               SizedBox(width: 5.0),
-              Text(
-                SafeLocalizations.of(context)!.dialog_trip_summary_birr,
-                style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),
+              ShaderMask(
+                shaderCallback: (shader) {
+                  return LinearGradient(
+                    colors: [
+                      Color(0xff990000),
+                      Color(0xff590202),
+                    ],
+                    tileMode: TileMode.mirror,
+                  ).createShader(shader);
+                },
+                child: Text(
+                  SafeLocalizations.of(context)!.dialog_trip_summary_birr,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 36.0,
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ],
           ),
         ),
 
         // Pickup location
-        SizedBox(height: 5.0),
-        greyVerticalDivider(0.4),
+        SizedBox(height: 15.0),
+        redVerticalDivider(4.0),
         SizedBox(height: 10.0),
         Row(
           children: [
             Icon(Icons.location_on, color: ColorConstants.appThemeColor),
             SizedBox(width: 15.0),
             Text(
-              widget.rideRequest.pickup_location as String,
+              widget.rideRequest.pickup_address_name ?? '',
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 14.0),
             ),
           ],
@@ -86,14 +112,14 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         SizedBox(height: 10.0),
 
         // Dropoff location
-        greyVerticalDivider(0.4),
         SizedBox(height: 10.0),
         Row(
           children: [
             Icon(Icons.location_on, color: ColorConstants.appThemeColor),
             SizedBox(width: 15.0),
             Text(
-              widget.rideRequest.dropoff_location as String,
+              widget.rideRequest.dropoff_address_name!,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 14.0),
             ),
           ],
@@ -101,11 +127,13 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         SizedBox(height: 10.0),
 
         // Base Fare
-        greyVerticalDivider(0.4),
+        greyVerticalDivider(0.6),
         SizedBox(height: 10.0),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            Icon(Icons.monetization_on, color: ColorConstants.appThemeColor),
+            SizedBox(width: 15.0),
             Text(
               SafeLocalizations.of(context)!.dialog_trip_summary_base_fare,
               style: TextStyle(fontSize: 12.0),
@@ -125,7 +153,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Icon(Icons.location_on, color: ColorConstants.appThemeColor),
+            Icon(Icons.map_outlined, color: ColorConstants.appThemeColor),
             SizedBox(width: 5.0),
             Text(
               SafeLocalizations.of(context)!
@@ -161,91 +189,8 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
           ],
         ),
         SizedBox(height: 10.0),
-        greyVerticalDivider(0.4),
-
-        // Total Trip Fare
-        greyVerticalDivider(0.4),
-        SizedBox(height: 10.0),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Icon(Icons.attach_money_outlined, color: ColorConstants.appThemeColor),
-            SizedBox(width: 5.0),
-            Text(
-              SafeLocalizations.of(context)!
-                  .dialog_trip_summary_total_trip_fare,
-              style: TextStyle(fontSize: 12.0),
-            ),
-            Expanded(child: Container()),
-            Text(
-              '${AlphaNumericUtil.formatDouble(widget.rideRequest.actual_trip_fare!, 2)} ' +
-                  SafeLocalizations.of(context)!.dialog_trip_summary_birr,
-              style: TextStyle(fontSize: 12.0),
-            ),
-          ],
-        ),
-        SizedBox(height: 10.0),
-        greyVerticalDivider(0.4),
-
-        if (hasStudentDiscount) ...[
-          // Student Discount
-          greyVerticalDivider(0.4),
-          SizedBox(height: 10.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(Icons.attach_money_outlined,
-                  color: ColorConstants.appThemeColor),
-              SizedBox(width: 5.0),
-              Text(
-                SafeLocalizations.of(context)!
-                    .dialog_trip_summary_student_discount,
-                style: TextStyle(fontSize: 12.0),
-              ),
-              Expanded(child: Container()),
-              Text(
-                '${AlphaNumericUtil.formatDouble(widget.rideRequest.student_discount!, 2)} birr',
-                style: TextStyle(fontSize: 12.0),
-              ),
-            ],
-          ),
-          SizedBox(height: 10.0),
-          greyVerticalDivider(0.4),
-
-          // Discounted Price
-          greyVerticalDivider(0.4),
-          SizedBox(height: 10.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(Icons.attach_money_outlined,
-                  color: ColorConstants.appThemeColor),
-              SizedBox(width: 5.0),
-              Text(
-                SafeLocalizations.of(context)!
-                    .dialog_trip_summary_discounted_trip_fare,
-                style: TextStyle(fontSize: 12.0),
-              ),
-              Expanded(child: Container()),
-              Text(
-                '${AlphaNumericUtil.formatDouble(widget.rideRequest.adjusted_trip_fare!, 2)} birr',
-                style: TextStyle(fontSize: 12.0),
-              ),
-            ],
-          ),
-          SizedBox(height: 10.0),
-          greyVerticalDivider(0.4),
-        ],
-
-        greyVerticalDivider(0.4),
-        SizedBox(height: 10.0),
-        Text(
-          SafeLocalizations.of(context)!.dialog_trip_summary_rate_your_driver,
-          style: TextStyle(fontSize: 12.0),
-        ),
 
         // TODO: populate stars
-        greyVerticalDivider(0.4),
         SizedBox(height: 10.0),
         Center(
           child: RatingBar.builder(
@@ -257,7 +202,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             itemPadding: EdgeInsets.symmetric(horizontal: 4.0),
             itemBuilder: (context, _) => Icon(
               Icons.star,
-              color: Colors.amber,
+              color: Color(0xff990000),
             ),
             onRatingUpdate: (double rating) {
               _driverRating = rating;
@@ -265,18 +210,18 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
           ),
         ),
         SizedBox(height: 10.0),
-        greyVerticalDivider(0.4),
 
         // Comment
         greyVerticalDivider(0.4),
         SizedBox(height: 10.0),
         TextField(
           keyboardType: TextInputType.text,
+          maxLength: 50,
           controller: _commentController,
           decoration: InputDecoration(
             border: OutlineInputBorder(
-              borderSide: const BorderSide(color: Colors.white, width: 2.0),
-            ),
+                borderSide: BorderSide.none,
+                borderRadius: BorderRadius.circular(10)),
             contentPadding:
                 const EdgeInsets.symmetric(vertical: 10.0, horizontal: 10.0),
             labelText: SafeLocalizations.of(context)!
@@ -337,19 +282,33 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double edgePadding = screenWidth * 0.10 / 2.0; // 10% of screen width
-
+    double screenHeight = MediaQuery.of(context).size.height;
     double HORIZONTAL_PADDING = 15.0;
 
     return Dialog(
       elevation: 2.0,
-      insetPadding: EdgeInsets.symmetric(horizontal: edgePadding),
+      insetPadding: EdgeInsets.symmetric(horizontal: screenHeight * 0.034),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20.0))),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Dialog Header
           Container(
-            color: Colors.black,
+            height: screenHeight * 0.076,
+            decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomLeft,
+                  end: Alignment.topRight,
+                  colors: [
+                    Color(0xffDE0000),
+                    Color(0xff990000),
+                  ],
+                ),
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(20.0),
+                    topRight: Radius.circular(20.0))),
             padding: EdgeInsets.symmetric(vertical: 16.0),
             child: Center(
               child: Text(
@@ -358,7 +317,8 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
-                  fontSize: 18.0,
+                  fontFamily: 'Lato',
+                  fontSize: 20.0,
                 ),
               ),
             ),
@@ -371,49 +331,62 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
           SizedBox(height: 5.0),
 
           // Done Trip
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: HORIZONTAL_PADDING),
-            child: Row(
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) => CustomProgressDialog(
-                            message: "Please wait..."),
-                      );
+          Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.5,
+              padding: EdgeInsets.symmetric(horizontal: HORIZONTAL_PADDING),
+              child: Row(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) =>
+                              CustomProgressDialog(message: "Please wait..."),
+                        );
 
-                      await updateRatingAndComment();
+                        await updateRatingAndComment();
 
-                      // pop off progress dialog
-                      Navigator.pop(context);
+                        // pop off progress dialog
+                        Navigator.pop(context);
 
-                      // pop off container trip summary dialog
-                      Navigator.pop(context,
-                          TripCompletionDialog.DIALOG_RESULT_OKAY_PRESSED);
-                    },
-                    style: ElevatedButton.styleFrom(
-                        primary: ColorConstants.appThemeColor),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(vertical: 16.0),
-                      width: double.infinity,
-                      child: Center(
-                        child: Text(
+                        // pop off container trip summary dialog
+                        Navigator.pop(context,
+                            TripCompletionDialog.DIALOG_RESULT_OKAY_PRESSED);
+                      },
+                      style:
+                          ButtonStyle(
+                            backgroundColor: MaterialStateProperty.all<Color>(Color(0x35F3EFEF)),
+                            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                              RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                          ),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 10.0),
+                        width: double.infinity,
+                        child: Center(
+                          child: Text(
                             SafeLocalizations.of(context)!
                                 .dialog_trip_summary_done,
-                            style:
-                                TextStyle(fontSize: 16.0, color: Colors.white)),
+                            style: TextStyle(
+                              fontSize: 16.0,
+                              color: Color(0xffd30000),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-          SizedBox(height: 5.0),
+          SizedBox(height: 20.0),
         ],
       ),
     );

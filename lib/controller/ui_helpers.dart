@@ -26,6 +26,10 @@ Widget lightGreyVerticalDivider(double height) => Container(
 Widget greyVerticalDivider(double height) => Container(
     height: height, color: Colors.grey.shade300, width: double.infinity);
 
+
+Widget redVerticalDivider(double height) => Container(
+    height: height, color: Color(0xff990000), width: double.infinity);
+
 Widget darkGreyVerticalDivider(double height) => Container(
     height: height, color: Colors.grey.shade500, width: double.infinity);
 

@@ -28,3 +28,6 @@ flutter gen-l10n
 
 // cleaning flutter build cache
 flutter clean
+
+//ios app generator
+flutter build ipa 
