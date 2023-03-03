@@ -9,6 +9,7 @@ import 'package:safe/controller/bottom_sheets/destination_picker_bottom_sheet.da
 import 'package:safe/models/address.dart';
 import 'package:safe/models/color_constants.dart';
 import 'package:safe/models/google_place_description.dart';
+import 'package:safe/models/sys_config.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/google_api_util.dart';
 import 'package:safe/utils/map_style.dart';
@@ -22,6 +23,7 @@ class SelectDropOffPinBottomSheet extends BaseBottomSheet {
   Image CURRENT_PIN_ICON;
 
   VoidCallback onBackSelected;
+  SysConfig? sysConfig;
 
   SelectDropOffPinBottomSheet({
     Key? key,
@@ -31,6 +33,7 @@ class SelectDropOffPinBottomSheet extends BaseBottomSheet {
     required this.CURRENT_PIN_ICON,
     required this.currentPosition,
     required this.onBackSelected,
+    this.sysConfig,
   }) : super(
           tickerProvider: tickerProvider,
           showBottomSheet: showBottomSheet,
@@ -82,8 +85,10 @@ class _SelectDropOffPinBottomSheetState
   }
 
   void loadDestinationLocation() async {
-    _destinationAddress =
-        await GoogleApiUtils.searchCoordinateAddress(widget.currentPosition);
+    if (widget.sysConfig != null) {
+      _destinationAddress = await GoogleApiUtils.searchCoordinateAddress(
+          widget.currentPosition, widget.sysConfig!);
+    }
     setState(() {});
   }
 
@@ -125,9 +130,14 @@ class _SelectDropOffPinBottomSheetState
   }
 
   void delayedSetState() {
-    Future.delayed(Duration.zero, () async {
-      setState(() {});
-    },);
+    Future.delayed(
+      Duration.zero,
+      () async {
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
   }
 
   @override
@@ -171,12 +181,12 @@ class _SelectDropOffPinBottomSheetState
             _locationGeocodeTimer = new Timer(
               Duration(milliseconds: 100),
               () async {
-                if (!mounted) return;
+                if (!mounted || widget.sysConfig == null) return;
 
                 try {
                   _destinationAddress =
                       await GoogleApiUtils.searchCoordinateLatLng(
-                          newPosition.target);
+                          newPosition.target, widget.sysConfig!);
                 } catch (err) {
                   _destinationAddress = null;
                 }

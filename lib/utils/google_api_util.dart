@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:safe/models/google_place_description.dart';
@@ -9,17 +11,25 @@ import 'package:safe/models/sys_config.dart';
 
 class GoogleApiUtils {
   static const String REST_API_ROOT_PATH =
-      "us-central1-waliif-ride-adea0.cloudfunctions.net";
+      "us-central1-safetransports-et.cloudfunctions.net";
+
+  static String _getRandomInstanceEndPoint(SysConfig sysConfig) {
+    Random random = new Random();
+    int instId =
+        random.nextInt(sysConfig.num_fun_https_cache_endpoints ?? 1) + 1;
+    return "/CacheEndpoint$instId/api/v1/";
+  }
 
   // Convert [lat,long] into an human readable address using google maps api
-  static Future<Address> searchCoordinateLatLng(LatLng latLng) async {
+  static Future<Address> searchCoordinateLatLng(
+      LatLng latLng, SysConfig sysConfig) async {
     Map<String, dynamic> params = {
       'lat': '${latLng.latitude}',
       'lng': '${latLng.longitude}',
     };
 
-    var response = await HttpUtil.getHttpsRequest(
-        REST_API_ROOT_PATH, '/RESTApis/api/v1/geocode', params);
+    var response = await HttpUtil.getHttpsRequest(REST_API_ROOT_PATH,
+        _getRandomInstanceEndPoint(sysConfig) + 'geocode', params);
 
     String placeAddress = response['place'];
 
@@ -30,14 +40,15 @@ class GoogleApiUtils {
   }
 
   // Convert [lat,long] into an human readable address using google maps api
-  static Future<Address> searchCoordinateAddress(Position position) async {
+  static Future<Address> searchCoordinateAddress(
+      Position position, SysConfig sysConfig) async {
     Map<String, dynamic> params = {
       'lat': '${position.latitude}',
       'lng': '${position.longitude}',
     };
 
-    var response = await HttpUtil.getHttpsRequest(
-        REST_API_ROOT_PATH, '/RESTApis/api/v1/geocode', params);
+    var response = await HttpUtil.getHttpsRequest(REST_API_ROOT_PATH,
+        _getRandomInstanceEndPoint(sysConfig) + 'geocode', params);
 
     String placeAddress = response['place'];
 
@@ -49,44 +60,44 @@ class GoogleApiUtils {
 
   // Given a starting and ending point, generate the path and compute distance/time
   static Future<RouteDetails> getRouteDetailsFromStartToDestination(
-      LatLng startPosition, LatLng destPosition, SysConfig? sysConfig) async {
+      LatLng startPosition, LatLng destPosition, SysConfig sysConfig) async {
     Map<String, dynamic> params = {
-      'mode': 'driving',
-      'transit_routing_preference': 'less_driving',
-      'origin': '${startPosition.latitude},${startPosition.longitude}',
-      'destination': '${destPosition.latitude},${destPosition.longitude}',
-      'key': '$GoogleMapKey',
+      'start_lat': '${startPosition.latitude}',
+      'start_lng': '${startPosition.longitude}',
+      'dest_lat': '${destPosition.latitude}',
+      'dest_lng': '${destPosition.longitude}',
     };
 
-    var response = await HttpUtil.getHttpsRequest(
-        'maps.googleapis.com', "/maps/api/directions/json", params);
+    var response = await HttpUtil.getHttpsRequest(REST_API_ROOT_PATH,
+        _getRandomInstanceEndPoint(sysConfig) + 'directions', params);
 
-    RouteDetails routeDetails = RouteDetails(
-      distanceValue: response['routes'][0]['legs'][0]['distance']['value'],
-      durationValue: response['routes'][0]['legs'][0]['duration']['value'],
-      distanceText: response['routes'][0]['legs'][0]['distance']['text'],
-      durationText: response['routes'][0]['legs'][0]['duration']['text'],
-      encodedPoints: response['routes'][0]['overview_polyline']['points'],
-    );
+    var dir_details = response['directions'];
 
-    routeDetails.pickUpLoc = startPosition;
-    routeDetails.dropOffLoc = destPosition;
+    RouteDetails routeDetails = RouteDetails()
+      ..distance_value = dir_details['path_length_meters']
+      ..duration_value = dir_details['path_duration_seconds']
+      ..distance_text = dir_details['path_length_str']
+      ..duration_text = dir_details['path_duration_str']
+      ..encoded_points = dir_details['encoded_points'];
 
-    routeDetails.estimatedFarePrice =
+    routeDetails.pickup_loc = startPosition;
+    routeDetails.dropoff_loc = destPosition;
+
+    routeDetails.estimated_fare_price =
         _calculateEstimatedFarePrice(routeDetails, sysConfig);
 
     return routeDetails;
   }
 
   static Future<Address> getPlaceAddressDetails(
-      String placeId, String sessionId) async {
+      String placeId, String sessionId, SysConfig sysConfig) async {
     Map<String, dynamic> params = {
       'place_id': '${placeId}',
       'session_id': '${sessionId}',
     };
 
-    var response = await HttpUtil.getHttpsRequest(
-        REST_API_ROOT_PATH, '/RESTApis/api/v1/place_detail', params);
+    var response = await HttpUtil.getHttpsRequest(REST_API_ROOT_PATH,
+        _getRandomInstanceEndPoint(sysConfig) + 'place_detail', params);
 
     var detail = response['detail'];
 
@@ -101,14 +112,14 @@ class GoogleApiUtils {
   }
 
   static Future<List<GooglePlaceDescription>?> autoCompletePlaceName(
-      String placeName, String sessionId) async {
+      String placeName, String sessionId, SysConfig sysConfig) async {
     Map<String, dynamic> params = {
       'search': '${placeName}',
       'session_id': '${sessionId}',
     };
 
-    var response = await HttpUtil.getHttpsRequest(
-        REST_API_ROOT_PATH, '/RESTApis/api/v1/auto_complete', params);
+    var response = await HttpUtil.getHttpsRequest(REST_API_ROOT_PATH,
+        _getRandomInstanceEndPoint(sysConfig) + 'auto_complete', params);
 
     var predictions = response['matches'];
 
@@ -118,21 +129,21 @@ class GoogleApiUtils {
   }
 
   static double _calculateEstimatedFarePrice(
-      RouteDetails directionDetails,  SysConfig? sysConfig) {
-
+      RouteDetails directionDetails, SysConfig? sysConfig) {
     double base_fare =
-    (sysConfig == null) ? 85.0 : sysConfig.rate_normal_base_fare!;
+        (sysConfig == null) ? 85.0 : sysConfig.rate_normal_base_fare!;
     double per_km =
-    (sysConfig == null) ? 10.0 : sysConfig.rate_normal_fair_per_km_charge!;
-    double per_minute =
-    (sysConfig == null) ? 1.0 : sysConfig.rate_normal_fair_per_minute_charge!;
-
+        (sysConfig == null) ? 10.0 : sysConfig.rate_normal_fair_per_km_charge!;
+    double per_minute = (sysConfig == null)
+        ? 1.0
+        : sysConfig.rate_normal_fair_per_minute_charge!;
 
     double timeTraveledFare =
-        ((directionDetails.durationValue + 0.0) / 60.0) * per_minute;
+        ((directionDetails.duration_value + 0.0) / 60.0) * per_minute;
     double distanceTraveledFare =
-        ((directionDetails.distanceValue + 0.0) / 1000) * per_km;
-    double totalPrice = timeTraveledFare * 0.5 + distanceTraveledFare + base_fare;
+        ((directionDetails.distance_value + 0.0) / 1000) * per_km;
+    double totalPrice =
+        timeTraveledFare * 0.5 + distanceTraveledFare + base_fare;
 
     return totalPrice;
   }

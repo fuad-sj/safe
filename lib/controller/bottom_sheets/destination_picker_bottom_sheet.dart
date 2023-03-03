@@ -10,6 +10,7 @@ import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/models/address.dart';
 import 'package:safe/models/color_constants.dart';
 import 'package:safe/models/google_place_description.dart';
+import 'package:safe/models/sys_config.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/google_api_util.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
@@ -22,6 +23,7 @@ class DestinationPickerBottomSheet extends BaseBottomSheet {
   static const double TOP_CORNER_BORDER_RADIUS = 15.0;
 
   VoidCallback onSelectPinCalled;
+  SysConfig? sysConfig;
 
   DestinationPickerBottomSheet({
     Key? key,
@@ -29,6 +31,7 @@ class DestinationPickerBottomSheet extends BaseBottomSheet {
     required bool showBottomSheet,
     required VoidCallback callback,
     required this.onSelectPinCalled,
+    this.sysConfig,
   }) : super(
           tickerProvider: tickerProvider,
           showBottomSheet: showBottomSheet,
@@ -181,12 +184,16 @@ class _DestinationPickerBottomSheetState
                                         _autoCompleteTimer = new Timer(
                                           Duration(milliseconds: 300),
                                           () async {
+                                            if (widget.sysConfig == null) {
+                                              return;
+                                            }
                                             try {
                                               _placePredictionList =
                                                   await GoogleApiUtils
                                                       .autoCompletePlaceName(
                                                           _pickupPlaceName,
-                                                          _sessionId);
+                                                          _sessionId,
+                                                          widget.sysConfig!);
                                             } catch (err) {
                                               _placePredictionList = null;
                                             }
@@ -257,12 +264,16 @@ class _DestinationPickerBottomSheetState
                                       _autoCompleteTimer = new Timer(
                                         Duration(milliseconds: 300),
                                         () async {
+                                          if (widget.sysConfig == null) {
+                                            return;
+                                          }
                                           try {
                                             _placePredictionList =
                                                 await GoogleApiUtils
                                                     .autoCompletePlaceName(
                                                         _dropoffPlaceName,
-                                                        _sessionId);
+                                                        _sessionId,
+                                                        widget.sysConfig!);
                                           } catch (err) {
                                             _placePredictionList = null;
                                           }
@@ -363,6 +374,10 @@ class _DestinationPickerBottomSheetState
           ...(_placePredictionList ?? []).map((place) {
             return _SearchedPlaceTile(
               clickCallback: (place) async {
+                if (widget.sysConfig == null) {
+                  return;
+                }
+
                 showDialog(
                     context: context,
                     builder: (_) => CustomProgressDialog(
@@ -371,7 +386,7 @@ class _DestinationPickerBottomSheetState
                             : "Updating Dropoff"));
                 try {
                   Address address = await GoogleApiUtils.getPlaceAddressDetails(
-                      place.place_id, _sessionId);
+                      place.place_id, _sessionId, widget.sysConfig!);
 
                   Navigator.pop(context);
 

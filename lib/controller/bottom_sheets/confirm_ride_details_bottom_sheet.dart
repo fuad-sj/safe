@@ -151,9 +151,9 @@ class _ConfirmRideDetailsBottomSheetState
                               ? FontWeight.bold
                               : FontWeight.normal))),
                   Text(
-                      widget.routeDetails!.distanceText +
+                      widget.routeDetails!.distance_text +
                           ' in ' +
-                          widget.routeDetails!.durationText,
+                          widget.routeDetails!.duration_text,
                       style: TextStyle(fontSize: 16.0, color: Colors.grey)),
                 ],
               ),
@@ -161,7 +161,7 @@ class _ConfirmRideDetailsBottomSheetState
               Text(
                 '~ ' +
                     AlphaNumericUtil.formatDouble(
-                        widget.routeDetails!.estimatedFarePrice *
+                        widget.routeDetails!.estimated_fare_price *
                             (carType == CAR_TYPE_MINIVAN ? 1.03
                                 : (carType == CAR_TYPE_LADA ? 0.72
                                 : (carType == CAR_TYPE_LADY ? 1.06

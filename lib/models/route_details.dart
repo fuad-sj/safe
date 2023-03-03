@@ -1,23 +1,18 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class RouteDetails {
-  late int distanceValue;
-  late int durationValue;
-  late String distanceText;
-  late String durationText;
+  late int distance_value;
+  late int duration_value;
+  late String distance_text;
+  late String duration_text;
 
-  late String encodedPoints;
+  late String encoded_points;
 
-  late LatLng pickUpLoc;
-  late LatLng dropOffLoc;
+  late LatLng pickup_loc;
 
-  late double estimatedFarePrice;
+  late LatLng dropoff_loc;
 
-  RouteDetails({
-    required this.distanceValue,
-    required this.durationValue,
-    required this.distanceText,
-    required this.durationText,
-    required this.encodedPoints,
-  });
+  late double estimated_fare_price;
+
+  RouteDetails();
 }

@@ -1052,6 +1052,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               DestinationPickerBottomSheet(
                 tickerProvider: this,
                 showBottomSheet: _UIState == UI_STATE_WHERE_TO_SELECTED,
+                sysConfig: _sysConfig,
                 onSelectPinCalled: () {
                   _UIState = UI_STATE_SELECT_PIN_SELECTED;
                   setState(() {});
@@ -1086,6 +1087,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                   showBottomSheet: _UIState == UI_STATE_SELECT_PIN_SELECTED,
                   CURRENT_PIN_ICON: _CURRENT_PIN_ICON!,
                   currentPosition: _currentPosition!,
+                  sysConfig: _sysConfig,
                   onBackSelected: () {
                     _UIState = UI_STATE_WHERE_TO_SELECTED;
                     setState(() {});
@@ -1452,11 +1454,15 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _mapController!
           .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-      Address address = await GoogleApiUtils.searchCoordinateAddress(position);
-
-      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-          .updatePickupLocationAddress(address);
-      return true;
+      if (_sysConfig != null) {
+        Address address =
+            await GoogleApiUtils.searchCoordinateAddress(position, _sysConfig!);
+        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+            .updatePickupLocationAddress(address);
+        return true;
+      } else {
+        return false;
+      }
     } catch (err) {}
 
     return false;
@@ -1549,9 +1555,16 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         context: context,
         message: SafeLocalizations.of(context)!.progress_dialog_please_wait);
 
-    _pickupToDropOffRouteDetail =
-        await GoogleApiUtils.getRouteDetailsFromStartToDestination(
-            pickUpLoc, dropOffLoc, _sysConfig);
+    if (_sysConfig == null) {
+      return;
+    }
+    try {
+      _pickupToDropOffRouteDetail =
+          await GoogleApiUtils.getRouteDetailsFromStartToDestination(
+              pickUpLoc, dropOffLoc, _sysConfig!);
+    } catch (err) {
+      return;
+    }
 
     Navigator.pop(context);
 
@@ -1561,7 +1574,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         color: Color(0xffDE0000),
         jointType: JointType.round,
         points: _POLYLINE_POINTS_DECODER
-            .decodePolyline(_pickupToDropOffRouteDetail!.encodedPoints)
+            .decodePolyline(_pickupToDropOffRouteDetail!.encoded_points)
             // convert from [PointLatLng] to [LatLng]
             .map((loc) => LatLng(loc.latitude, loc.longitude))
             .toList(),
@@ -1598,8 +1611,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       ),
     };
 
-    zoomCameraToWithinBounds(_pickupToDropOffRouteDetail!.pickUpLoc,
-        _pickupToDropOffRouteDetail!.dropOffLoc, 150);
+    zoomCameraToWithinBounds(_pickupToDropOffRouteDetail!.pickup_loc,
+        _pickupToDropOffRouteDetail!.dropoff_loc, 150);
   }
 
   void zoomCameraToWithinBounds(
@@ -1648,8 +1661,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           var driver_id = map[FIELD_KEY];
 
           if (!_nearbyDriverLocations.containsKey(driver_id)) {
-            if (random.nextDouble() > 0.2)
-              return;
+            if (random.nextDouble() > 0.2) return;
           }
         }
 

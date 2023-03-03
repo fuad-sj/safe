@@ -9,9 +9,12 @@ part 'sys_config.g.dart';
 class SysConfig extends FirebaseDocument {
   static const FIELD_RATE_NORMAL_BASE_FARE = "rate_normal_base_fare";
   static const FIELD_RATE_NORMAL_PER_KM_CHARGE = "rate_normal_per_km_charge";
-  static const FIELD_RATE_NORMAL_PER_MINUTE_CHARGE = "rate_normal_per_minute_charge";
-  static const FIELD_RATE_NORMAL_FAIR_PER_KM_CHARGE = "rate_normal_fair_per_km_charge";
-  static const FIELD_RATE_NORMAL_FAIR_PER_MINUTE_CHARGE = "rate_normal_fair_per_minute_charge";
+  static const FIELD_RATE_NORMAL_PER_MINUTE_CHARGE =
+      "rate_normal_per_minute_charge";
+  static const FIELD_RATE_NORMAL_FAIR_PER_KM_CHARGE =
+      "rate_normal_fair_per_km_charge";
+  static const FIELD_RATE_NORMAL_FAIR_PER_MINUTE_CHARGE =
+      "rate_normal_fair_per_minute_charge";
   static const FIELD_SEARCH_RADIUS = "search_radius";
 
   // END field declarations
@@ -28,7 +31,6 @@ class SysConfig extends FirebaseDocument {
   @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? rate_normal_fair_per_km_charge;
 
-
   @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? rate_normal_fair_per_minute_charge;
 
@@ -38,8 +40,11 @@ class SysConfig extends FirebaseDocument {
   @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? customer_cashout_min_balance;
 
-  SysConfig();
+  int? num_fun_update_instances;
+  int? num_fun_update_check_instances;
+  int? num_fun_https_cache_endpoints;
 
+  SysConfig();
 
   factory SysConfig.fromSnapshot(
       DocumentSnapshot<Map<String, dynamic>> snapshot) {
