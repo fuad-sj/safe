@@ -17,6 +17,17 @@ RideRequest _$RideRequestFromJson(Map<String, dynamic> json) => RideRequest()
       json['cancel_source_trigger_source_id'] as String?
   ..cancel_code = json['cancel_code'] as int?
   ..cancel_reason = json['cancel_reason'] as String?
+  ..original_distance_value = json['original_distance_value'] as int?
+  ..original_duration_value = json['original_duration_value'] as int?
+  ..original_distance_text = json['original_distance_text'] as String?
+  ..original_duration_text = json['original_duration_text'] as String?
+  ..original_encoded_points = json['original_encoded_points'] as String?
+  ..original_pickup_loc =
+      FirebaseDocument.LatLngFromJson(json['original_pickup_loc'])
+  ..original_dropoff_loc =
+      FirebaseDocument.LatLngFromJson(json['original_dropoff_loc'])
+  ..original_estimated_fare_price =
+      FirebaseDocument.DoubleFromJson(json['original_estimated_fare_price'])
   ..customer_id = json['customer_id'] as String?
   ..customer_name = json['customer_name'] as String
   ..customer_phone = json['customer_phone'] as String
@@ -83,6 +94,16 @@ Map<String, dynamic> _$RideRequestToJson(RideRequest instance) =>
           instance.cancel_source_trigger_source_id,
       'cancel_code': instance.cancel_code,
       'cancel_reason': instance.cancel_reason,
+      'original_distance_value': instance.original_distance_value,
+      'original_duration_value': instance.original_duration_value,
+      'original_distance_text': instance.original_distance_text,
+      'original_duration_text': instance.original_duration_text,
+      'original_encoded_points': instance.original_encoded_points,
+      'original_pickup_loc':
+          FirebaseDocument.LatLngToJson(instance.original_pickup_loc),
+      'original_dropoff_loc':
+          FirebaseDocument.LatLngToJson(instance.original_dropoff_loc),
+      'original_estimated_fare_price': instance.original_estimated_fare_price,
       'customer_id': instance.customer_id,
       'customer_name': instance.customer_name,
       'customer_phone': instance.customer_phone,

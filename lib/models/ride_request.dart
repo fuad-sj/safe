@@ -26,6 +26,16 @@ class RideRequest extends FirebaseDocument {
   static const FIELD_CANCEL_CODE = 'cancel_code';
   static const FIELD_CANCEL_REASON = 'cancel_reason';
 
+  static const FIELD_ORIGINAL_DISTANCE_VALUE = "original_distance_value";
+  static const FIELD_ORIGINAL_DURATION_VALUE = "original_duration_value";
+  static const FIELD_ORIGINAL_DISTANCE_TEXT = "original_distance_text";
+  static const FIELD_ORIGINAL_DURATION_TEXT = "original_duration_text";
+  static const FIELD_ORIGINAL_ENCODED_POINTS = "original_encoded_points";
+  static const FIELD_ORIGINAL_PICKUP_LOC = "original_pickup_loc";
+  static const FIELD_ORIGINAL_DROPOFF_LOC = "original_dropoff_loc";
+  static const FIELD_ORIGINAL_ESTIMATED_FARE_PRICE =
+      "original_estimated_fare_price";
+
   static const FIELD_CUSTOMER_ID = 'customer_id';
   static const FIELD_CUSTOMER_NAME = 'customer_name';
   static const FIELD_CUSTOMER_PHONE = 'customer_phone';
@@ -142,6 +152,22 @@ class RideRequest extends FirebaseDocument {
   String? cancel_source_trigger_source_id;
   int? cancel_code;
   String? cancel_reason;
+
+  int? original_distance_value;
+  int? original_duration_value;
+  String? original_distance_text;
+  String? original_duration_text;
+  String? original_encoded_points;
+  @JsonKey(
+      fromJson: FirebaseDocument.LatLngFromJson,
+      toJson: FirebaseDocument.LatLngToJson)
+  LatLng? original_pickup_loc;
+  @JsonKey(
+      fromJson: FirebaseDocument.LatLngFromJson,
+      toJson: FirebaseDocument.LatLngToJson)
+  LatLng? original_dropoff_loc;
+  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
+  double? original_estimated_fare_price;
 
   String? customer_id;
   late String customer_name;

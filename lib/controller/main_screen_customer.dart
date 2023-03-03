@@ -1519,6 +1519,23 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     rideFields[RideRequest.FIELD_ORDER_SOURCE] =
         RideRequest.ORDER_SOURCE_CLIENT_APP;
 
+    rideFields[RideRequest.FIELD_ORIGINAL_DISTANCE_VALUE] =
+        _pickupToDropOffRouteDetail!.distance_value;
+    rideFields[RideRequest.FIELD_ORIGINAL_DURATION_VALUE] =
+        _pickupToDropOffRouteDetail!.duration_value;
+    rideFields[RideRequest.FIELD_ORIGINAL_DISTANCE_TEXT] =
+        _pickupToDropOffRouteDetail!.distance_text;
+    rideFields[RideRequest.FIELD_ORIGINAL_DURATION_TEXT] =
+        _pickupToDropOffRouteDetail!.duration_text;
+    rideFields[RideRequest.FIELD_ORIGINAL_ENCODED_POINTS] =
+        _pickupToDropOffRouteDetail!.encoded_points;
+    rideFields[RideRequest.FIELD_ORIGINAL_PICKUP_LOC] =
+        FirebaseDocument.LatLngToJson(_pickupToDropOffRouteDetail!.pickup_loc);
+    rideFields[RideRequest.FIELD_ORIGINAL_DROPOFF_LOC] =
+        FirebaseDocument.LatLngToJson(_pickupToDropOffRouteDetail!.dropoff_loc);
+    rideFields[RideRequest.FIELD_ORIGINAL_ESTIMATED_FARE_PRICE] =
+        _pickupToDropOffRouteDetail!.estimated_fare_price;
+
     _rideRequestRef = await FirebaseFirestore.instance
         .collection(FIRESTORE_PATHS.COL_RIDES)
         .add(rideFields);
@@ -1729,7 +1746,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   void setDriverLocationAndBearing(DriverLocation driverLoc) {
     if (_nearbyDriverLocations.length > 10) return;
-
 
     if (_nearbyDriverLocations.containsKey(driverLoc.driverID)) {
       DriverLocation prevLocation = _nearbyDriverLocations[driverLoc.driverID]!;
