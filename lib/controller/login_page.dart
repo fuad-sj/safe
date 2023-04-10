@@ -11,7 +11,7 @@ import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/registration_screen.dart';
 import 'package:safe/controller/verify_otp_page.dart';
-import 'package:package_info/package_info.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:safe/language_selector_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';

@@ -9,6 +9,8 @@ import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../dialogs/sharedTripDialog.dart';
+
 class WhereToBottomSheet extends BaseBottomSheet {
   static const String KEY = 'WhereToBottomSheet';
 
@@ -98,20 +100,44 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
             ),
           ),
 
-          SizedBox(height: VSpace(0.036)),
+          SizedBox(height: VSpace(0.026)),
 
-          Text(
-              SafeLocalizations.of(context)!.bottom_sheet_where_to_hello_there +
-                  (widget.customerName != null
-                      ? ', ${widget.customerName!}'
-                      : ''),
-              style: TextStyle(
-                  fontSize: 25.0,
-                  fontFamily: 'Lato',
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xff515151))),
+          Container(
+            child: Row(
+              children: [
+                Text(
+                  SafeLocalizations.of(context)!
+                          .bottom_sheet_where_to_hello_there +
+                      (widget.customerName != null
+                          ? ', ${widget.customerName!}'
+                          : ''),
+                  style: TextStyle(
+                    fontSize: 25.0,
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff515151),
+                  ),
+                ),
+                Spacer(),
+                FloatingActionButton.small(
+                    onPressed: () async {
+                      await showDialog<String>(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (_) => ShowSharedDialog()
+                      );
+                    },
+                  child: CircleAvatar(
+                    backgroundColor: Color(0xffDD0000),
+                    child: ImageIcon(AssetImage('images/people_gather.png'), color: Colors.white, size: 26.0),
+                  ),
 
-          SizedBox(height: VSpace(0.030)),
+                ),
+              ],
+            ),
+          ),
+
+          SizedBox(height: VSpace(0.025)),
 
           GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -176,9 +202,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: () async {
-
-                      },
+                      onTap: () async {},
                       child: Container(
                         child: Column(
                           children: <Widget>[
@@ -290,45 +314,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
             color: Color.fromRGBO(229, 229, 229, 1),
           )
 
-          // Add home address
-          /*
-          SizedBox(height: 15.0),
-          Text(Provider.of<PickUpAndDropOffLocations>(context)
-                  .pickUpLocation
-                  ?.placeName ??
-              SafeLocalizations.of(context)!
-                  .bottom_sheet_where_to_current_location),
-          SizedBox(height: 25.0),
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
-              backgroundColor: widget.enableButtonSelection
-                  ? ColorConstants.lyftColor
-                  : Colors.grey.shade700,
-              textStyle: const TextStyle(fontSize: 20, color: Colors.white),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(35.0),
-              ),
-            ),
-            onPressed: () {
-              if (widget.enableButtonSelection) {
-                widget.onActionCallback();
-              } else {
-                widget.onDisabledCallback();
-              }
-            },
-            child: Text(
-              SafeLocalizations.of(context)!
-                  .bottom_sheet_where_to_enter_destination,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Open Sans',
-              ),
-            ),
-          )
-          */
         ],
       ),
     );

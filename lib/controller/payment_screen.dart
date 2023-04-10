@@ -106,7 +106,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
             ),
             BubbleBottomBarItem(
-              badgeColor: Colors.blue,
               backgroundColor: Color(0xffDE0000),
               icon: _teleImageIcon,
               activeIcon: _teleImageIcon,
