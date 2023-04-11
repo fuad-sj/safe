@@ -9,7 +9,8 @@ import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../dialogs/sharedTripDialog.dart';
+import '../dialogs/shared_trip_dialog.dart';
+import '../dialogs/way_to_driver_compass_dialog.dart';
 
 class WhereToBottomSheet extends BaseBottomSheet {
   static const String KEY = 'WhereToBottomSheet';
@@ -72,7 +73,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.07)),
-      height: VSpace(0.40),
+      height: VSpace(0.45),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -91,17 +92,13 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
                     color: Color(0xffDD0000)),
-                margin: EdgeInsets.only(
-                  top: VSpace(0.005),
-                ),
+                margin: EdgeInsets.only(top: VSpace(0.005)),
                 width: HSpace(0.12),
                 height: VSpace(0.01),
               ),
             ),
           ),
-
-          SizedBox(height: VSpace(0.026)),
-
+          SizedBox(height: VSpace(0.016)),
           Container(
             child: Row(
               children: [
@@ -118,13 +115,19 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                     color: Color(0xff515151),
                   ),
                 ),
+                /*
                 Spacer(),
                 FloatingActionButton.small(
                     onPressed: () async {
                       await showDialog<String>(
                           barrierDismissible: false,
                           context: context,
-                          builder: (_) => ShowSharedDialog()
+                        /*
+                        *  to do conditional dialog before and after launch
+                        *  */
+                        // builder: (_) => ShowSharedDialog()
+                          builder: (_) => WayToDriverCompassDialog()
+
                       );
                     },
                   child: CircleAvatar(
@@ -133,12 +136,75 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   ),
 
                 ),
+
+                 */
               ],
             ),
           ),
-
-          SizedBox(height: VSpace(0.025)),
-
+          SizedBox(height: VSpace(0.005)),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              await showDialog<String>(
+                barrierDismissible: false,
+                context: context,
+                /**  to do conditional dialog before and after launch  **/
+                // builder: (_) => ShowSharedDialog()
+                builder: (_) => WayToDriverCompassDialog(),
+              );
+            },
+            child: Banner(
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.073,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomRight,
+                    end: Alignment.topRight,
+                    colors: [
+                      Color(0xff990000),
+                      Color(0xffDE0000),
+                    ],
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: CircleAvatar(
+                        backgroundColor: Color(0xdd0000),
+                        child: ImageIcon(AssetImage('images/share3.png'),
+                            color: Colors.white, size: 26.0),
+                      ),
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          'የኛ',
+                          style: TextStyle(
+                            fontSize: 42.0,
+                            fontFamily: 'Lato',
+                            color: Color.fromRGBO(227, 227, 227, 1.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: CircleAvatar(
+                        backgroundColor: Color(0xdd0000),
+                        child: ImageIcon(AssetImage('images/share2.png'),
+                            color: Colors.white, size: 26.0),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              message: "NEW",
+              location: BannerLocation.bottomEnd,
+              color: Colors.black,
+            ),
+          ),
+          SizedBox(height: VSpace(0.020)),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
@@ -224,7 +290,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   )
                 ],
               )),
-
           SizedBox(height: VSpace(0.023)),
           Center(
             child: Container(
@@ -313,7 +378,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
             height: VSpace(0.002),
             color: Color.fromRGBO(229, 229, 229, 1),
           )
-
         ],
       ),
     );

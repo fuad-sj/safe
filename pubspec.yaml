@@ -59,6 +59,7 @@ dependencies:
   share_plus: ^4.0.10+1
   launch_review:
     path: ./launch_review
+  smooth_compass: ^2.0.17
 
 dev_dependencies:
   flutter_test:
@@ -87,7 +88,6 @@ flutter:
     - images/pin_logo.png
     - images/economy.png
     - images/minivan_safe.png
-    - images/people_gather.png
     - images/minbus_safe.png
     - images/white_logo.png
     - images/logoBack.png
@@ -107,6 +107,9 @@ flutter:
     - images/lady.png
     - images/motor.png
     - images/shared.png
+    - images/arrow.png
+    - images/share2.png
+    - images/share3.png
 
   fonts:
     - family: Signatra

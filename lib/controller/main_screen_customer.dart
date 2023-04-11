@@ -174,8 +174,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   bool _isInternetWorking = false;
 
-
-
   bool updateAvailable = false;
   bool forcefulUpdateAvailable = false;
   bool showUpdateDialog = false;
