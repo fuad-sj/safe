@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smooth_compass/utils/src/compass_ui.dart';
+import 'package:safe/controller/compass_ui.dart';
 
 class WayToDriverCompassDialog extends StatefulWidget {
   const WayToDriverCompassDialog({Key? key}) : super(key: key);

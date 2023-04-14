@@ -59,8 +59,8 @@ dependencies:
   share_plus: ^4.0.10+1
   launch_review:
     path: ./launch_review
-  smooth_compass: ^2.0.17
-
+  flutter_sensors: ^1.0.1
+  location: ^4.4.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
