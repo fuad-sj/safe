@@ -107,9 +107,10 @@ flutter:
     - images/lady.png
     - images/motor.png
     - images/shared.png
-    - images/arrow.png
     - images/share2.png
     - images/share3.png
+    - images/new_arrow.png
+    - images/yegna.png
 
   fonts:
     - family: Signatra

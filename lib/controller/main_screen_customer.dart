@@ -592,7 +592,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       case MenuOption.MENU_OPTION_BALANCE:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PaymentScreen()),
+          MaterialPageRoute(builder: (context) => PaymentScreen()
+          ),
         );
         break;
 

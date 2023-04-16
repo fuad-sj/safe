@@ -10,7 +10,8 @@ import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../dialogs/shared_trip_dialog.dart';
-import '../dialogs/way_to_driver_compass_dialog.dart';
+import '../shared_ride_where_to_go_screen.dart';
+import '../way_to_driver_compass_screen.dart';
 
 class WhereToBottomSheet extends BaseBottomSheet {
   static const String KEY = 'WhereToBottomSheet';
@@ -145,65 +146,19 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () async {
-              await showDialog<String>(
-                barrierDismissible: false,
-                context: context,
-                /**  to do conditional dialog before and after launch  **/
-                // builder: (_) => ShowSharedDialog()
-                builder: (_) => WayToDriverCompassDialog(),
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SharedRideWhereToGoScreen()),
               );
             },
-            child: Banner(
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.073,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomRight,
-                    end: Alignment.topRight,
-                    colors: [
-                      Color(0xff990000),
-                      Color(0xffDE0000),
-                    ],
+              child: Center(
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.085,
+                  child: Image(
+                    image: AssetImage('images/yegna.png'),
                   ),
                 ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: CircleAvatar(
-                        backgroundColor: Color(0xdd0000),
-                        child: ImageIcon(AssetImage('images/share3.png'),
-                            color: Colors.white, size: 26.0),
-                      ),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          'የኛ',
-                          style: TextStyle(
-                            fontSize: 42.0,
-                            fontFamily: 'Lato',
-                            color: Color.fromRGBO(227, 227, 227, 1.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: CircleAvatar(
-                        backgroundColor: Color(0xdd0000),
-                        child: ImageIcon(AssetImage('images/share2.png'),
-                            color: Colors.white, size: 26.0),
-                      ),
-                    ),
-                  ],
-                ),
               ),
-              message: "NEW",
-              location: BannerLocation.bottomEnd,
-              color: Colors.black,
             ),
-          ),
           SizedBox(height: VSpace(0.020)),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
