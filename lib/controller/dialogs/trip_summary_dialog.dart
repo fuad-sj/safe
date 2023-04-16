@@ -65,10 +65,12 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
           children: [
             Icon(Icons.location_on, color: ColorConstants.appThemeColor),
             SizedBox(width: 15.0),
-            Text(
-              widget.rideRequest.pickup_address_name ?? '',
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 14.0),
+            Container(
+              child: Text(
+                widget.rideRequest.pickup_address_name ?? '',
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 14.0),
+              ),
             ),
           ],
         ),
@@ -80,9 +82,12 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
           children: [
             Icon(Icons.location_on, color: ColorConstants.appThemeColor),
             SizedBox(width: 15.0),
-            Text(
-              widget.rideRequest.dropoff_address_name ?? '',
-              style: TextStyle(fontSize: 14.0),
+            Container(
+              child: Text(
+                widget.rideRequest.dropoff_address_name ?? '',
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 14.0),
+              ),
             ),
           ],
         ),
@@ -97,7 +102,7 @@ class _TripCompletionDialogState extends State<TripCompletionDialog> {
             Icon(Icons.monetization_on, color: ColorConstants.appThemeColor),
             SizedBox(width: 15.0),
             Text(
-              SafeLocalizations.of(context)!.dialog_trip_summary_base_fare,
+              SafeLocalizations.of(context)!.dialog_trip_summary_base_fare ?? '',
               style: TextStyle(fontSize: 12.0),
             ),
             Expanded(child: Container()),

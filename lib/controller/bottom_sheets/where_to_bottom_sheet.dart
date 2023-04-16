@@ -9,6 +9,10 @@ import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../dialogs/shared_trip_dialog.dart';
+import '../shared_ride_where_to_go_screen.dart';
+import '../way_to_driver_compass_screen.dart';
+
 class WhereToBottomSheet extends BaseBottomSheet {
   static const String KEY = 'WhereToBottomSheet';
 
@@ -70,7 +74,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.07)),
-      height: VSpace(0.40),
+      height: VSpace(0.45),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -89,30 +93,73 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                 decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5.0),
                     color: Color(0xffDD0000)),
-                margin: EdgeInsets.only(
-                  top: VSpace(0.005),
-                ),
+                margin: EdgeInsets.only(top: VSpace(0.005)),
                 width: HSpace(0.12),
                 height: VSpace(0.01),
               ),
             ),
           ),
+          SizedBox(height: VSpace(0.016)),
+          Container(
+            child: Row(
+              children: [
+                Text(
+                  SafeLocalizations.of(context)!
+                          .bottom_sheet_where_to_hello_there +
+                      (widget.customerName != null
+                          ? ', ${widget.customerName!}'
+                          : ''),
+                  style: TextStyle(
+                    fontSize: 25.0,
+                    fontFamily: 'Lato',
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xff515151),
+                  ),
+                ),
+                /*
+                Spacer(),
+                FloatingActionButton.small(
+                    onPressed: () async {
+                      await showDialog<String>(
+                          barrierDismissible: false,
+                          context: context,
+                        /*
+                        *  to do conditional dialog before and after launch
+                        *  */
+                        // builder: (_) => ShowSharedDialog()
+                          builder: (_) => WayToDriverCompassDialog()
 
-          SizedBox(height: VSpace(0.036)),
+                      );
+                    },
+                  child: CircleAvatar(
+                    backgroundColor: Color(0xffDD0000),
+                    child: ImageIcon(AssetImage('images/people_gather.png'), color: Colors.white, size: 26.0),
+                  ),
 
-          Text(
-              SafeLocalizations.of(context)!.bottom_sheet_where_to_hello_there +
-                  (widget.customerName != null
-                      ? ', ${widget.customerName!}'
-                      : ''),
-              style: TextStyle(
-                  fontSize: 25.0,
-                  fontFamily: 'Lato',
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xff515151))),
+                ),
 
-          SizedBox(height: VSpace(0.030)),
-
+                 */
+              ],
+            ),
+          ),
+          SizedBox(height: VSpace(0.005)),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () async {
+              Navigator.push(context,
+                MaterialPageRoute(builder: (context) => SharedRideWhereToGoScreen()),
+              );
+            },
+              child: Center(
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.085,
+                  child: Image(
+                    image: AssetImage('images/yegna.png'),
+                  ),
+                ),
+              ),
+            ),
+          SizedBox(height: VSpace(0.020)),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
@@ -176,9 +223,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: () async {
-
-                      },
+                      onTap: () async {},
                       child: Container(
                         child: Column(
                           children: <Widget>[
@@ -200,7 +245,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   )
                 ],
               )),
-
           SizedBox(height: VSpace(0.023)),
           Center(
             child: Container(
@@ -289,46 +333,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
             height: VSpace(0.002),
             color: Color.fromRGBO(229, 229, 229, 1),
           )
-
-          // Add home address
-          /*
-          SizedBox(height: 15.0),
-          Text(Provider.of<PickUpAndDropOffLocations>(context)
-                  .pickUpLocation
-                  ?.placeName ??
-              SafeLocalizations.of(context)!
-                  .bottom_sheet_where_to_current_location),
-          SizedBox(height: 25.0),
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 20.0),
-              backgroundColor: widget.enableButtonSelection
-                  ? ColorConstants.lyftColor
-                  : Colors.grey.shade700,
-              textStyle: const TextStyle(fontSize: 20, color: Colors.white),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(35.0),
-              ),
-            ),
-            onPressed: () {
-              if (widget.enableButtonSelection) {
-                widget.onActionCallback();
-              } else {
-                widget.onDisabledCallback();
-              }
-            },
-            child: Text(
-              SafeLocalizations.of(context)!
-                  .bottom_sheet_where_to_enter_destination,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Open Sans',
-              ),
-            ),
-          )
-          */
         ],
       ),
     );

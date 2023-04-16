@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:launch_review/launch_review.dart';
-import 'package:package_info/package_info.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:safe/controller/bottom_sheets/activate_referral_code_bottom_sheet.dart';
 import 'package:safe/controller/bottom_sheets/driver_picked_bottom_sheet.dart';
@@ -592,7 +592,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       case MenuOption.MENU_OPTION_BALANCE:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PaymentScreen()),
+          MaterialPageRoute(builder: (context) => PaymentScreen()
+          ),
         );
         break;
 
@@ -954,8 +955,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         _referalController.success();
       });
     }
-
     bool _referalBtnActive = false;
+
     return Scaffold(
         key: _scaffoldKey,
         drawer: _getDrawerLayout(context),
