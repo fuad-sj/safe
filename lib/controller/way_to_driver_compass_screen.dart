@@ -56,7 +56,10 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
 
   StreamSubscription? _compassStreamSub;
 
-  double _lastReadCompassHeading = 0.0;
+  double _lastReadCompassTurns = 0.0;
+  double _lastReadCompassAngels = 0.0;
+
+  double _computedOffsetHeading = 0.0;
 
   bool loadingFinished = false;
   bool isCompassAvailable = false;
@@ -80,7 +83,8 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                 currentLoc: MyLoc(latitude: 0, longitude: 0))
             .listen((snapshot) {
           setState(() {
-            _lastReadCompassHeading = snapshot.turns;
+            _lastReadCompassTurns = snapshot.turns;
+            _lastReadCompassAngels = snapshot.angle;
           });
         });
       }
@@ -166,18 +170,22 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
     }
   }
 
-  double getTurnDegree() {
-    double turns = 0.0;
+  double getAdjustedTurn() {
+    double bearing = 0.0;
     if (_rideLocation != null && _currentLocation != null) {
-      double bearing = Geolocator.bearingBetween(
+      bearing = Geolocator.bearingBetween(
           _currentLocation!.latitude,
           _currentLocation!.longitude,
           _rideLocation!.latitude!,
           _rideLocation!.longitude!);
-
-      turns = bearing / 360.0;
     }
-    return turns - _lastReadCompassHeading;
+
+    double adjustedBearing = (bearing - _lastReadCompassAngels + 360) % 360;
+    double finalBearing =
+        (adjustedBearing < 180.0) ? adjustedBearing : (adjustedBearing - 360.0);
+    _computedOffsetHeading = finalBearing / 360.0;
+
+    return _computedOffsetHeading;
   }
 
   String distanceToCar() {
@@ -293,14 +301,16 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                       //height: MediaQuery.of(context).size.height * 0.19,
                       child: Center(
                         child: AnimatedRotation(
-                          turns: getTurnDegree(),
+                          turns: getAdjustedTurn(),
                           duration: Duration(milliseconds: 400),
                           child: Container(
                             width: MediaQuery.of(context).size.width * 0.23,
                             height: MediaQuery.of(context).size.width * 0.30,
-                            decoration: BoxDecoration(
-                              image: DecorationImage(
-                                  image: arrowImage, fit: BoxFit.fill),
+                            child: Image(
+                              image: arrowImage,
+                              color: _computedOffsetHeading.abs() < 0.06
+                                  ? Colors.amber.shade400
+                                  : Colors.white,
                             ),
                           ),
                         ),
@@ -321,7 +331,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                         height: MediaQuery.of(context).size.height * 0.19,
                         child: Center(
                           child: AnimatedRotation(
-                            turns: _lastReadCompassHeading,
+                            turns: _lastReadCompassTurns,
                             duration: Duration(milliseconds: 400),
                             child: Container(
                               decoration: BoxDecoration(
@@ -381,5 +391,3 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
     );
   }
 }
-
-
