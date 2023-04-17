@@ -1,17 +1,44 @@
 part of flutter_sensor_compass;
 
+double preValue = 0;
+double turns = 0;
+
+///calculating compass Model
+getCompassValues(double heading, double latitude, double longitude) {
+  double direction = heading;
+  direction = direction < 0 ? (360 + direction) : direction;
+
+  double diff = direction - preValue;
+  if (diff.abs() > 180) {
+    if (preValue > direction) {
+      diff = 360 - (direction - preValue).abs();
+    } else {
+      diff = (360 - (preValue - direction).abs()).toDouble();
+      diff = diff * -1;
+    }
+  }
+
+  turns += (diff / 360);
+  preValue = direction;
+
+  return CompassModel(
+      turns: -1 * turns,
+      angle: heading,
+      driverLocOffset: getDriverDirection(latitude, longitude, heading));
+}
+
 class _Compass {
   final List<double> _rotationMatrix = List.filled(9, 0.0);
   double _azimuth = 0.0;
   double azimuthFix = 0.0;
-  double driverLocation = 0.0;
-  double x = 0, y = 0;
+  double x = 0,
+      y = 0;
   final List<_CompassStreamSubscription> _updatesSubscriptions = [];
 
   // ignore: cancel_subscriptions
   StreamSubscription<SensorEvent>? _rotationSensorStream;
   final StreamController<double> _internalUpdateController =
-      StreamController.broadcast();
+  StreamController.broadcast();
 
   /// Starts the compass updates.
   Stream<CompassModel> compassUpdates(Duration? interval, double azimuthFix,
@@ -22,7 +49,7 @@ class _Compass {
     _CompassStreamSubscription? compassStreamSubscription;
     // ignore: cancel_subscriptions
     StreamSubscription<double> compassSubscription =
-        _internalUpdateController.stream.listen((value) {
+    _internalUpdateController.stream.listen((value) {
       if (interval != null) {
         DateTime instant = DateTime.now();
         int difference = instant
@@ -170,8 +197,8 @@ class _CompassStreamSubscription {
 }
 
 ///to get Qibla direction
-double getDriverDirection(
-    double latitude, double longitude, double headingValue) {
+double getDriverDirection(double latitude, double longitude,
+    double headingValue) {
   if (latitude != 0 && longitude != 0) {
     final offSet = Utils.getOffsetFromNorth(latitude, longitude);
 
@@ -189,10 +216,8 @@ class Utils {
   static final _deLo = radians(39.826206);
 
   /// returns the qiblah offset for the current location
-  static double getOffsetFromNorth(
-    double currentLatitude,
-    double currentLongitude,
-  ) {
+  static double getOffsetFromNorth(double currentLatitude,
+      double currentLongitude,) {
     /// converting current lat & lang to radians
     var laRad = radians(currentLatitude);
     var loRad = radians(currentLongitude);

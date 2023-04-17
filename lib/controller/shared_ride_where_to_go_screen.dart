@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:safe/driver_location/compass_ui.dart';
-import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import '../models/customer.dart';
 import '../utils/map_style.dart';
 

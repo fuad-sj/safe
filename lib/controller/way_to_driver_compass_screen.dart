@@ -7,7 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:safe/controller/shared_rides_screen.dart';
-import 'package:safe/driver_location/compass_ui.dart';
+import 'package:safe/driver_location/smooth_compass.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/shared_ride_broadcast.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
@@ -54,6 +54,13 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
   late ImageProvider arrowImage;
   late ImageProvider compassImage;
 
+  StreamSubscription? _compassStreamSub;
+
+  double _lastReadCompassHeading = 0.0;
+
+  bool loadingFinished = false;
+  bool isCompassAvailable = false;
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +68,23 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
     Future.delayed(Duration.zero, () async {
       liveLocation = new Location();
       await attachRideStreams();
+
+      isCompassAvailable = await Compass().isCompassAvailable();
+      if (isCompassAvailable) {
+        _compassStreamSub = Compass()
+            .compassUpdates(
+                interval: const Duration(
+                  milliseconds: 200,
+                ),
+                azimuthFix: 0.0,
+                currentLoc: MyLoc(latitude: 0, longitude: 0))
+            .listen((snapshot) {
+          setState(() {
+            _lastReadCompassHeading = snapshot.turns;
+          });
+        });
+      }
+      loadingFinished = true;
     });
 
     arrowImage = AssetImage("images/arrow.png");
@@ -73,6 +97,8 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
     _rideLocationStreamSubscription?.cancel();
 
     _currentLocStreamSubscription?.cancel();
+
+    _compassStreamSub?.cancel();
 
     super.dispose();
   }
@@ -151,7 +177,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
 
       turns = bearing / 360.0;
     }
-    return turns;
+    return turns - _lastReadCompassHeading;
   }
 
   String distanceToCar() {
@@ -268,7 +294,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                       child: Center(
                         child: AnimatedRotation(
                           turns: getTurnDegree(),
-                          duration: Duration(milliseconds: 100),
+                          duration: Duration(milliseconds: 400),
                           child: Container(
                             width: MediaQuery.of(context).size.width * 0.23,
                             height: MediaQuery.of(context).size.width * 0.30,
@@ -282,35 +308,33 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                     ),
                   ),
                 ),
-                // Compass
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.304,
-                  left: MediaQuery.of(context).size.width * 0.082,
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  height: MediaQuery.of(context).size.width * 0.8,
-                  child: SmoothCompass(
-                    compassBuilder: (context, snapshot, child) {
-                      return Container(
-                        color: Colors.transparent,
-                        child: Container(
-                          height: MediaQuery.of(context).size.height * 0.19,
-                          child: Center(
-                            child: AnimatedRotation(
-                              turns: snapshot?.data?.turns ?? 0,
-                              duration: Duration(milliseconds: 300),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                      image: compassImage, fit: BoxFit.fill),
-                                ),
+                if (loadingFinished && isCompassAvailable) ...[
+                  // Compass
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.304,
+                    left: MediaQuery.of(context).size.width * 0.082,
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    height: MediaQuery.of(context).size.width * 0.8,
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Container(
+                        height: MediaQuery.of(context).size.height * 0.19,
+                        child: Center(
+                          child: AnimatedRotation(
+                            turns: _lastReadCompassHeading,
+                            duration: Duration(milliseconds: 400),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                    image: compassImage, fit: BoxFit.fill),
                               ),
                             ),
                           ),
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
-                ),
+                ],
                 // Meters Left
                 Positioned(
                   bottom: MediaQuery.of(context).size.height * 0.104,
@@ -357,3 +381,5 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
     );
   }
 }
+
+

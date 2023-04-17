@@ -8,8 +8,6 @@ import 'package:flutter_sensors/flutter_sensors.dart';
 import 'driverLoc.dart';
 import 'package:vector_math/vector_math.dart';
 
-import 'compass_ui.dart';
-
 part 'compass.dart';
 
 class Compass {
@@ -40,4 +38,16 @@ class Compass {
   Future<bool> isCompassAvailable() => _Compass.isCompassAvailable;
 
   void setAzimuthFix(double fix) => _compass.azimuthFix = fix;
+}
+
+/// model to store the sensor value
+class CompassModel {
+  double turns;
+  double angle;
+  double driverLocOffset;
+
+  CompassModel(
+      {required this.turns,
+        required this.angle,
+        required this.driverLocOffset});
 }
