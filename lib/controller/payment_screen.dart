@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:bubble_bottom_bar/bubble_bottom_bar.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
+import 'package:safe/controller/bubble_bottom_bar.dart';
 import 'package:safe/controller/payments/recent_transaction_screen.dart';
 import 'package:safe/controller/payments/cash_out_screen.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';

@@ -1,11 +1,24 @@
+import 'dart:async';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
+import 'package:safe/controller/shared_rides_screen.dart';
 import 'package:safe/driver_location/compass_ui.dart';
+import 'package:safe/models/FIREBASE_PATHS.dart';
+import 'package:safe/models/shared_ride_broadcast.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../utils/map_style.dart';
 
 class WayToDriverCompassScreen extends StatefulWidget {
-  const WayToDriverCompassScreen({Key? key}) : super(key: key);
+  final String selectedRideId;
+
+  const WayToDriverCompassScreen({Key? key, required this.selectedRideId})
+      : super(key: key);
 
   @override
   State<WayToDriverCompassScreen> createState() =>
@@ -19,13 +32,104 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
   Set<Polyline> _mapPolyLines = Set();
   Set<Marker> _mapMarkers = Set();
 
+  StreamSubscription? _rideDetailStreamSubscription;
+  StreamSubscription? _rideLocationStreamSubscription;
+
+  SharedRideLocation? _rideLocation;
+  SharedRideBroadcast? _rideDetails;
+
   GoogleMapController? _mapController;
+
+  StreamSubscription? _currentLocStreamSubscription;
+  LatLng? _currentLocation;
+  late Location liveLocation;
 
   double left_n_rgt = 0.0;
 
   bool isLeftTrue = false;
 
   static const double DEFAULT_SEARCH_RADIUS = 3.0;
+
+  late ImageProvider arrowImage;
+
+  @override
+  void initState() {
+    super.initState();
+
+    Future.delayed(Duration.zero, () async {
+      liveLocation = new Location();
+      await attachRideStreams();
+    });
+
+    arrowImage = AssetImage("images/arrow.png");
+  }
+
+  @override
+  void dispose() {
+    _rideDetailStreamSubscription?.cancel();
+    _rideLocationStreamSubscription?.cancel();
+
+    _currentLocStreamSubscription?.cancel();
+
+    super.dispose();
+  }
+
+  Future<void> attachRideStreams() async {
+    _rideLocationStreamSubscription = FirebaseDatabase.instanceFor(
+            app: Firebase.app(),
+            databaseURL: SharedRidesScreen.SHARED_RIDE_DATABASE_ROOT)
+        .ref()
+        .child(FIREBASE_DB_PATHS.SHARED_RIDE_LOCATIONS)
+        .child(widget.selectedRideId)
+        .onValue
+        .listen((event) async {
+      _rideLocation = SharedRideLocation.fromSnapshot(event.snapshot);
+      if (_rideLocation?.ride_id == null) return;
+
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    _rideDetailStreamSubscription = FirebaseDatabase.instanceFor(
+            app: Firebase.app(),
+            databaseURL: SharedRidesScreen.SHARED_RIDE_DATABASE_ROOT)
+        .ref()
+        .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
+        .child(widget.selectedRideId)
+        .onValue
+        .listen((event) async {
+      _rideDetails = SharedRideBroadcast.fromSnapshot(event.snapshot);
+      if (_rideDetails?.ride_id == null) return;
+
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    PermissionStatus permissionStatus = await liveLocation.hasPermission();
+    if (permissionStatus == PermissionStatus.denied) {
+      permissionStatus = await liveLocation.requestPermission();
+      if (permissionStatus != PermissionStatus.granted) {
+        return;
+      }
+    }
+    //await liveLocation.requestPermission();
+    var locData;
+    try {
+      locData = await liveLocation.getLocation();
+    } catch (e) {
+      print(e);
+      return;
+    }
+
+    _currentLocation = new LatLng(locData.latitude!, locData.longitude!);
+
+    _currentLocStreamSubscription =
+        liveLocation.onLocationChanged.listen((LocationData locData) async {
+          _currentLocation = new LatLng(locData.latitude!, locData.longitude!);
+        });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,10 +228,22 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   height: MediaQuery.of(context).size.height * 0.60,
                   child: SmoothCompass(
                     compassBuilder: (context, snapshot, child) {
-                      left_n_rgt = double.parse(snapshot?.data?.angle.toStringAsFixed(2) ?? '0');
+                      left_n_rgt = double.parse(
+                          snapshot?.data?.angle.toStringAsFixed(2) ?? '0');
 
                       if (left_n_rgt <= 180) {
                         isLeftTrue = true;
+                      }
+
+                      double turns = 0.0;
+                      if (_rideLocation != null && _currentLocation != null) {
+                        double bearing = Geolocator.bearingBetween(
+                            _currentLocation!.latitude,
+                            _currentLocation!.longitude,
+                            _rideLocation!.latitude!,
+                            _rideLocation!.longitude!);
+
+                        turns = bearing / 360.0;
                       }
 
                       return Container(
@@ -139,8 +255,9 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                               height: MediaQuery.of(context).size.height * 0.19,
                               child: Center(
                                 child: AnimatedRotation(
-                                  turns: snapshot?.data?.turns ?? 0,
-                                  duration: Duration(milliseconds: 400),
+                                  //turns: snapshot?.data?.turns ?? 0,
+                                  turns: turns,
+                                  duration: Duration(milliseconds: 100),
                                   child: Container(
                                     width: MediaQuery.of(context).size.width *
                                         0.30,
@@ -148,9 +265,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                                         0.10,
                                     decoration: BoxDecoration(
                                       image: DecorationImage(
-                                          image: AssetImage(
-                                              "images/new_arrow.png"),
-                                          fit: BoxFit.fill),
+                                          image: arrowImage, fit: BoxFit.fill),
                                     ),
                                   ),
                                 ),
@@ -177,7 +292,9 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                                               fontWeight: FontWeight.bold),
                                         ),
                                         Text(
-                                           isLeftTrue! ? 'to your Left ' : 'to your right',
+                                          isLeftTrue!
+                                              ? 'to your Left '
+                                              : 'to your right',
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 18,
@@ -198,7 +315,6 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
               ],
             ),
           ),
-
         ],
       ),
     );

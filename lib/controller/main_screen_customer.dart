@@ -230,7 +230,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _connectivitySubscription =
           _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
-      await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
+      //await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
       _geoFireInitialized = true;
     });
   }
@@ -251,9 +251,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   void dispose() {
     _tripCounterTimer?.cancel();
 
+    /*
     if (_geoFireInitialized) {
       Geofire.stopListener();
     }
+    */
 
     _connectivitySubscription.cancel();
     _currentCustomerSubscription?.cancel();
@@ -289,6 +291,18 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           await updateLoginCredentials();
           await checkVersionUpdateDetails();
         } catch (e) {}
+      }
+
+      if ((_currentCustomer?.current_trip_id ?? '').trim().isEmpty &&
+          ((_currentCustomer!.is_trip_completed ?? false) == false)) {
+        resetTripDetails();
+      } else {
+        _rideRequestRef = FirebaseFirestore.instance
+            .collection(FIRESTORE_PATHS.COL_RIDES)
+            .doc(_currentCustomer?.current_trip_id);
+
+        // Will update UI when either driver is assigned OR trip is cancelled
+        await listenToRideStatusUpdates();
       }
 
       if (mounted) {
@@ -994,7 +1008,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
                 // start listening to nearby drivers once location is acquired
                 if (locationAcquired) {
-                  await attachGeoFireListener();
+                  //await attachGeoFireListener();
                 }
               },
             ),

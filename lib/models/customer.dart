@@ -57,6 +57,9 @@ class Customer extends FirebaseDocument {
 
   bool? client_triggered_event;
 
+  String? current_trip_id;
+  bool? is_trip_completed;
+
   String? phone_number;
   String? user_name;
   String? last_user_name;

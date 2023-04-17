@@ -8,6 +8,8 @@ part of 'customer.dart';
 
 Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
   ..client_triggered_event = json['client_triggered_event'] as bool?
+  ..current_trip_id = json['current_trip_id'] as String?
+  ..is_trip_completed = json['is_trip_completed'] as bool?
   ..phone_number = json['phone_number'] as String?
   ..user_name = json['user_name'] as String?
   ..last_user_name = json['last_user_name'] as String?
@@ -43,6 +45,8 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer()
 
 Map<String, dynamic> _$CustomerToJson(Customer instance) => <String, dynamic>{
       'client_triggered_event': instance.client_triggered_event,
+      'current_trip_id': instance.current_trip_id,
+      'is_trip_completed': instance.is_trip_completed,
       'phone_number': instance.phone_number,
       'user_name': instance.user_name,
       'last_user_name': instance.last_user_name,

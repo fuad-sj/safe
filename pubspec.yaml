@@ -15,28 +15,27 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.4
-  firebase_core: ^1.13.1
-  firebase_auth: ^3.3.9
-  firebase_auth_web: ^3.3.9
-  firebase_messaging: ^11.2.8
-  firebase_analytics: ^9.1.2
-  firebase_storage: ^10.2.9
-  firebase_remote_config: ^2.0.0
-  firebase_database: ^9.0.8
+  firebase_core: ^2.7.0
+  firebase_auth: ^4.2.9
+  firebase_auth_web: ^5.2.8
+  firebase_messaging: ^14.2.5
+  #firebase_analytics: ^9.1.2
+  firebase_storage: ^11.0.14
+  firebase_remote_config: ^3.0.13
+  cloud_firestore: ^4.4.3
+  firebase_database: ^10.0.14
   firebase: ^9.0.3
-  cloud_firestore: ^3.1.10
   fluttertoast: ^8.0.8
   google_maps_flutter: ^2.1.1
-  geolocator: ^7.1.0
+  geolocator: ^9.0.2
   http: ^0.13.4
   provider: ^6.0.2
   flutter_polyline_points: ^1.0.0
   font_awesome_flutter: ^9.2.0
   animated_text_kit: ^4.2.1
-  flutter_geofire: ^2.0.1
   vector_math: ^2.1.1
   json_annotation: ^4.0.0
-  shared_preferences: ^2.1.0
+  shared_preferences: ^2.0.10
   synchronized: ^3.0.0
   flutter_local_notifications: ^9.3.3
   future_progress_dialog: ^0.2.0
@@ -54,13 +53,17 @@ dependencies:
   file: ^6.1.4
   uuid: ^3.0.6
   widget_mask: ^1.0.0+0
-  bubble_bottom_bar: ^2.0.0
+  #bubble_bottom_bar: ^2.0.0
+  badges: ^2.0.0-nullsafety.1
   syncfusion_flutter_charts: ^20.3.59
   share_plus: ^4.0.10+1
   launch_review:
     path: ./launch_review
   flutter_sensors: ^1.0.1
   location: ^4.4.0
+  flutter_geofire:
+    path: ./flutter_geofire
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -110,6 +113,7 @@ flutter:
     - images/share2.png
     - images/share3.png
     - images/new_arrow.png
+    - images/arrow.png
     - images/yegna.png
 
   fonts:
