@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -39,6 +40,8 @@ class _SharedRidesScreenState extends State<SharedRidesScreen> {
   StreamSubscription? _locationStreamSubscription;
   late Location liveLocation;
 
+  bool _geofireLoadComplete = false;
+
   LatLng? current_location;
 
   List<MapEntry<String, SharedRidePlaceAggregate>> _destination_places = [];
@@ -54,7 +57,7 @@ class _SharedRidesScreenState extends State<SharedRidesScreen> {
           is_default: false, root: SharedRidesScreen.SHARED_RIDE_DATABASE_ROOT);
       _geoFireInitialized = true;
 
-      await attachSharedRidesListener();
+      await attachGeofireQuery();
     });
   }
 
@@ -76,7 +79,7 @@ class _SharedRidesScreenState extends State<SharedRidesScreen> {
     super.dispose();
   }
 
-  Future<void> attachSharedRidesListener() async {
+  Future<void> attachGeofireQuery() async {
     final String FIELD_CALLBACK = 'callBack';
     final String FIELD_KEY = 'key';
     final String FIELD_LATITUDE = 'latitude';
@@ -89,7 +92,6 @@ class _SharedRidesScreenState extends State<SharedRidesScreen> {
         return;
       }
     }
-    //await liveLocation.requestPermission();
     var locData = await liveLocation.getLocation();
 
     current_location = new LatLng(locData.latitude!, locData.longitude!);
@@ -104,7 +106,7 @@ class _SharedRidesScreenState extends State<SharedRidesScreen> {
      * i.e: it doesn't accommodate for changes in the user's live position
      */
     _geofireStream =
-        Geofire.queryAtLocation(locData.latitude!, locData.longitude!, 0.3)
+        Geofire.queryAtLocation(locData.latitude!, locData.longitude!, 1.0)
             ?.listen(
       (obj) async {
         if (obj == null) {
@@ -113,7 +115,12 @@ class _SharedRidesScreenState extends State<SharedRidesScreen> {
 
         var callBack = obj[FIELD_CALLBACK];
 
-        if (callBack != Geofire.onGeoQueryReady) {
+        if (callBack == Geofire.onGeoQueryReady) {
+          if (!_geofireLoadComplete) {
+            _geofireLoadComplete = true;
+            //attachFirebaseListener();
+          }
+        } else {
           String ride_id = obj[FIELD_KEY];
 
           switch (callBack) {
@@ -126,6 +133,11 @@ class _SharedRidesScreenState extends State<SharedRidesScreen> {
               );
               updateDistanceToBroadcast(ride_id);
               aggregateByPlace(ride_id);
+              if (mounted) {
+                setState(() {
+                  _destination_places = sortedPlaces();
+                });
+              }
               break;
 
             case Geofire.onKeyExited:
@@ -150,6 +162,36 @@ class _SharedRidesScreenState extends State<SharedRidesScreen> {
         }
       },
     );
+
+    attachFirebaseListener();
+  }
+
+  Future<void> attachFirebaseListener() async {
+    var data = await FirebaseDatabase.instanceFor(
+            app: Firebase.app(),
+            databaseURL: SharedRidesScreen.SHARED_RIDE_DATABASE_ROOT)
+        .ref()
+        .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
+        .once();
+
+    LinkedHashMap<Object?, Object?> rideBroadcasts =
+        data.snapshot.value as LinkedHashMap;
+
+    rideBroadcasts.forEach((key, value) {
+      SharedRideBroadcast broadcast =
+          SharedRideBroadcast.fromMap(value as Map, key as String);
+      if (broadcast.ride_id == null) return;
+
+      _rideBroadcastDetails[broadcast.ride_id!] = broadcast;
+
+      updateDistanceToBroadcast(broadcast.ride_id!);
+      aggregateByPlace(broadcast.ride_id!);
+
+      if (mounted && rideBroadcasts.length == _rideBroadcastDetails.length) {
+        _destination_places = sortedPlaces();
+        setState(() {});
+      }
+    });
 
     _rideDetailsStream = FirebaseDatabase.instanceFor(
             app: Firebase.app(),

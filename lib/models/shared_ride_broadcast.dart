@@ -26,8 +26,12 @@ class SharedRideBroadcast {
   factory SharedRideBroadcast.fromSnapshot(DataSnapshot snapshot) {
     var data = snapshot.value as Map;
 
+    return SharedRideBroadcast.fromMap(data, snapshot.key!);
+  }
+
+  factory SharedRideBroadcast.fromMap(Map data, String ride_id) {
     return SharedRideBroadcast()
-      ..ride_id = snapshot.key!
+      ..ride_id = ride_id
       ..dest_name = data["dest_name"] ?? null
       ..dest_id = data["dest_id"] ?? null
       ..est_price = data["est_price"] + 0.0 ?? null
