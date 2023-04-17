@@ -52,6 +52,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
   static const double DEFAULT_SEARCH_RADIUS = 3.0;
 
   late ImageProvider arrowImage;
+  late ImageProvider compassImage;
 
   @override
   void initState() {
@@ -63,6 +64,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
     });
 
     arrowImage = AssetImage("images/arrow.png");
+    compassImage = AssetImage("images/compass_base.png");
   }
 
   @override
@@ -253,165 +255,100 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                     ),
                   ),
                 ),
+                // Arrow
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.384,
+                  top: MediaQuery.of(context).size.height * 0.414,
                   left: MediaQuery.of(context).size.width * 0.082,
                   width: MediaQuery.of(context).size.width * 0.8,
-                  height: MediaQuery.of(context).size.height * 0.60,
+                  //height: MediaQuery.of(context).size.height * 0.60,
                   child: Container(
                     color: Colors.transparent,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        Container(
-                          height: MediaQuery.of(context).size.height * 0.19,
-                          child: Center(
-                            child: AnimatedRotation(
-                              //turns: snapshot?.data?.turns ?? 0,
-                              turns: getTurnDegree(),
-                              duration: Duration(milliseconds: 100),
-                              child: Container(
-                                width: MediaQuery.of(context).size.width * 0.30,
-                                height:
-                                    MediaQuery.of(context).size.height * 0.10,
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                      image: arrowImage, fit: BoxFit.fill),
-                                ),
-                              ),
+                    child: Container(
+                      //height: MediaQuery.of(context).size.height * 0.19,
+                      child: Center(
+                        child: AnimatedRotation(
+                          turns: getTurnDegree(),
+                          duration: Duration(milliseconds: 100),
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.23,
+                            height: MediaQuery.of(context).size.width * 0.30,
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                  image: arrowImage, fit: BoxFit.fill),
                             ),
                           ),
                         ),
-                        SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.19),
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.82,
-                          child: Row(
-                            children: [
-                              Container(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      distanceToCar(),
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 41,
-                                          fontFamily: 'Lato',
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    Text(
-                                      isLeftTrue!
-                                          ? 'to your Left '
-                                          : 'to your right',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      ],
+                      ),
                     ),
                   ),
                 ),
-                /*
+                // Compass
                 Positioned(
-                  top: MediaQuery.of(context).size.height * 0.384,
+                  top: MediaQuery.of(context).size.height * 0.304,
                   left: MediaQuery.of(context).size.width * 0.082,
                   width: MediaQuery.of(context).size.width * 0.8,
-                  height: MediaQuery.of(context).size.height * 0.60,
+                  height: MediaQuery.of(context).size.width * 0.8,
                   child: SmoothCompass(
                     compassBuilder: (context, snapshot, child) {
-                      left_n_rgt = double.parse(
-                          snapshot?.data?.angle.toStringAsFixed(2) ?? '0');
-
-                      if (left_n_rgt <= 180) {
-                        isLeftTrue = true;
-                      }
-
-                      double turns = 0.0;
-                      if (_rideLocation != null && _currentLocation != null) {
-                        double bearing = Geolocator.bearingBetween(
-                            _currentLocation!.latitude,
-                            _currentLocation!.longitude,
-                            _rideLocation!.latitude!,
-                            _rideLocation!.longitude!);
-
-                        turns = bearing / 360.0;
-                      }
-
                       return Container(
                         color: Colors.transparent,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Container(
-                              height: MediaQuery.of(context).size.height * 0.19,
-                              child: Center(
-                                child: AnimatedRotation(
-                                  //turns: snapshot?.data?.turns ?? 0,
-                                  turns: turns,
-                                  duration: Duration(milliseconds: 100),
-                                  child: Container(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.30,
-                                    height: MediaQuery.of(context).size.height *
-                                        0.10,
-                                    decoration: BoxDecoration(
-                                      image: DecorationImage(
-                                          image: arrowImage, fit: BoxFit.fill),
-                                    ),
-                                  ),
+                        child: Container(
+                          height: MediaQuery.of(context).size.height * 0.19,
+                          child: Center(
+                            child: AnimatedRotation(
+                              turns: snapshot?.data?.turns ?? 0,
+                              duration: Duration(milliseconds: 300),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: compassImage, fit: BoxFit.fill),
                                 ),
                               ),
                             ),
-                            SizedBox(
-                                height:
-                                    MediaQuery.of(context).size.height * 0.19),
-                            Container(
-                              width: MediaQuery.of(context).size.width * 0.82,
-                              child: Row(
-                                children: [
-                                  Container(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "15 m",
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 41,
-                                              fontFamily: 'Lato',
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        Text(
-                                          isLeftTrue!
-                                              ? 'to your Left '
-                                              : 'to your right',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          ],
+                          ),
                         ),
                       );
                     },
                   ),
                 ),
-                 */
+                // Meters Left
+                Positioned(
+                  bottom: MediaQuery.of(context).size.height * 0.104,
+                  left: MediaQuery.of(context).size.width * 0.082,
+                  /*
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: MediaQuery.of(context).size.width * 0.8,
+                   */
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.82,
+                    child: Row(
+                      children: [
+                        Container(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                distanceToCar(),
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 41,
+                                    fontFamily: 'Lato',
+                                    fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                isLeftTrue! ? 'to your Left ' : 'to your right',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

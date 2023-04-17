@@ -115,6 +115,7 @@ flutter:
     - images/new_arrow.png
     - images/arrow.png
     - images/yegna.png
+    - images/compass_base.png
 
   fonts:
     - family: Signatra
