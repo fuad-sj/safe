@@ -10,6 +10,7 @@ import 'package:safe/controller/shared_rides_screen.dart';
 import 'package:safe/driver_location/compass_ui.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/shared_ride_broadcast.dart';
+import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../utils/map_style.dart';
@@ -114,7 +115,6 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
         return;
       }
     }
-    //await liveLocation.requestPermission();
     var locData;
     try {
       locData = await liveLocation.getLocation();
@@ -127,8 +127,40 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
 
     _currentLocStreamSubscription =
         liveLocation.onLocationChanged.listen((LocationData locData) async {
-          _currentLocation = new LatLng(locData.latitude!, locData.longitude!);
-        });
+      _currentLocation = new LatLng(locData.latitude!, locData.longitude!);
+      if (mounted) {
+        setState(() {});
+      }
+    });
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  double getTurnDegree() {
+    double turns = 0.0;
+    if (_rideLocation != null && _currentLocation != null) {
+      double bearing = Geolocator.bearingBetween(
+          _currentLocation!.latitude,
+          _currentLocation!.longitude,
+          _rideLocation!.latitude!,
+          _rideLocation!.longitude!);
+
+      turns = bearing / 360.0;
+    }
+    return turns;
+  }
+
+  String distanceToCar() {
+    if (_rideLocation == null || _currentLocation == null) return "";
+
+    double meters = Geolocator.distanceBetween(
+        _currentLocation!.latitude,
+        _currentLocation!.longitude,
+        _rideLocation!.latitude!,
+        _rideLocation!.longitude!);
+    return "${AlphaNumericUtil.formatDouble(meters, 0)} m";
   }
 
   @override
@@ -226,6 +258,73 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   left: MediaQuery.of(context).size.width * 0.082,
                   width: MediaQuery.of(context).size.width * 0.8,
                   height: MediaQuery.of(context).size.height * 0.60,
+                  child: Container(
+                    color: Colors.transparent,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Container(
+                          height: MediaQuery.of(context).size.height * 0.19,
+                          child: Center(
+                            child: AnimatedRotation(
+                              //turns: snapshot?.data?.turns ?? 0,
+                              turns: getTurnDegree(),
+                              duration: Duration(milliseconds: 100),
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.30,
+                                height:
+                                    MediaQuery.of(context).size.height * 0.10,
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: arrowImage, fit: BoxFit.fill),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.19),
+                        Container(
+                          width: MediaQuery.of(context).size.width * 0.82,
+                          child: Row(
+                            children: [
+                              Container(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      distanceToCar(),
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 41,
+                                          fontFamily: 'Lato',
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    Text(
+                                      isLeftTrue!
+                                          ? 'to your Left '
+                                          : 'to your right',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ),
+                /*
+                Positioned(
+                  top: MediaQuery.of(context).size.height * 0.384,
+                  left: MediaQuery.of(context).size.width * 0.082,
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  height: MediaQuery.of(context).size.height * 0.60,
                   child: SmoothCompass(
                     compassBuilder: (context, snapshot, child) {
                       left_n_rgt = double.parse(
@@ -312,6 +411,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                     },
                   ),
                 ),
+                 */
               ],
             ),
           ),
