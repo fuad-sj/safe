@@ -258,7 +258,8 @@ class _RideRequestListItemState extends State<_RideRequestListItem> {
             top: 10.0,
             left: hWidth * 0.076,
             right: hWidth * 0.076,
-            bottom: vHeight * 0.02),
+            bottom: vHeight * 0.02
+        ),
         child: Container(
           padding: EdgeInsets.only(
               top: vHeight * 0.021,
