@@ -116,6 +116,11 @@ flutter:
     - images/arrow.png
     - images/yegna.png
     - images/compass_base.png
+    - images/avanza_car.png
+    - images/s_avanza.png
+    - images/s_suzuki.png
+    - images/back_pic.png
+    - images/swip_logo.png
 
   fonts:
     - family: Signatra
@@ -132,6 +137,12 @@ flutter:
     - family: Brand Bold
       fonts:
         - asset: fonts/bolt-semibold.ttf
+    - family: Adwa Regular
+      fonts:
+        - asset: fonts/አድዋ.ttf
+    - family: Nokia Pure Headline Bold
+      fonts:
+        - asset: fonts/ኖኪያ Bold.ttf
 
 
 
