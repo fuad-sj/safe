@@ -100,25 +100,27 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: SingleChildScrollView(
-      child: Column(
-        children: [
-          Container(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                    begin: Alignment.bottomRight,
-                    end: Alignment.topRight,
-                    colors: [
-                      Color(0xff990000),
-                      Color(0xffDE0000),
-                    ]),
+                  begin: Alignment.bottomRight,
+                  end: Alignment.topRight,
+                  colors: [
+                    Color(0xff990000),
+                    Color(0xffDE0000),
+                  ],
+                ),
                 borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.elliptical(
-                        MediaQuery.of(context).size.width * 0.5,
-                        MediaQuery.of(context).size.height * 0.125),
-                    bottomRight: Radius.elliptical(
-                        MediaQuery.of(context).size.width * 0.5,
-                        MediaQuery.of(context).size.height * 0.125)),
+                  bottomLeft: Radius.elliptical(
+                      MediaQuery.of(context).size.width * 0.5,
+                      MediaQuery.of(context).size.height * 0.125),
+                  bottomRight: Radius.elliptical(
+                      MediaQuery.of(context).size.width * 0.5,
+                      MediaQuery.of(context).size.height * 0.125),
+                ),
               ),
               height: !_isVerifyTrue
                   ? MediaQuery.of(context).size.height * 0.71
@@ -127,17 +129,19 @@ class _LoginPageState extends State<LoginPage> {
               child: Stack(
                 children: <Widget>[
                   Positioned(
-                      top: !_isVerifyTrue
-                          ? 0.0
-                          : MediaQuery.of(context).size.height * 0.06,
-                      left: !_isVerifyTrue ? 0.0 : 22.0,
-                      child: IconButton(
-                          icon: Icon(Icons.arrow_back_ios_new_sharp,
-                              size: !_isVerifyTrue ? 0.0 : 18.0),
-                          color: Colors.white,
-                          onPressed: () {
-                            FocusScope.of(context).unfocus();
-                          })),
+                    top: !_isVerifyTrue
+                        ? 0.0
+                        : MediaQuery.of(context).size.height * 0.06,
+                    left: !_isVerifyTrue ? 0.0 : 22.0,
+                    child: IconButton(
+                      icon: Icon(Icons.arrow_back_ios_new_sharp,
+                          size: !_isVerifyTrue ? 0.0 : 18.0),
+                      color: Colors.white,
+                      onPressed: () {
+                        FocusScope.of(context).unfocus();
+                      },
+                    ),
+                  ),
                   Center(
                     child: Padding(
                       padding: EdgeInsets.only(
@@ -153,133 +157,139 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   )
                 ],
-              )),
-          Container(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Padding(
+              ),
+            ),
+            Container(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Padding(
+                      padding: EdgeInsets.only(
+                          top: MediaQuery.of(context).size.height * 0.02),
+                      child: Visibility(
+                        visible: !_isVerifyTrue,
+                        child: Container(
+                          child: Text(
+                            'THE FUTURE IS SAFE',
+                            style: TextStyle(
+                                fontSize:
+                                    MediaQuery.of(context).size.height * 0.02,
+                                fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      )),
+                  Padding(
                     padding: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.height * 0.02),
-                    child: Visibility(
-                      visible: !_isVerifyTrue,
-                      child: Container(
-                        child: Text(
-                          'THE FUTURE IS SAFE',
-                          style: TextStyle(
-                              fontSize:
-                                  MediaQuery.of(context).size.height * 0.02,
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    )),
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).size.height * 0.02,
-                    left: MediaQuery.of(context).size.width * 0.1,
-                    right: MediaQuery.of(context).size.width * 0.1,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                        border: Border.all(
-                          color: Color(0xffDD0000),
-                          width: 3.0,
-                        ),
-                        borderRadius: BorderRadius.circular(20.0)),
-                    child: Row(
-                      children: [
-                        CountryCodePicker(
-                          onChanged: (newCode) {
-                            _countryCode = newCode.dialCode ?? '+251';
-                          },
-                          initialSelection: 'ET',
-                          favorite: ['+251', 'ET'],
-                          showFlagDialog: true,
-                          enabled: true,
-                          textStyle: TextStyle(color: Colors.black),
-                        ),
-                        Container(
-                          height: MediaQuery.of(context).size.height * 0.04,
-                          width: 1.0,
-                          decoration: BoxDecoration(color: Color(0xff0f0f0f)),
-                        ),
-                        Expanded(
-                          child: Container(
-                            width: MediaQuery.of(context).size.width,
-                            padding: EdgeInsets.only(right: 30.0),
-                            child: FocusScope(
-                              child: Focus(
-                                onFocusChange: (focus) =>
-                                    _isVerifyTrue = !_isVerifyTrue,
-                                child: TextField(
-                                  style: TextStyle(
-                                      color: Colors.black, fontSize: 20),
-                                  keyboardType: TextInputType.phone,
-                                  controller: _phoneController,
-                                  decoration: InputDecoration(
-                                      border: InputBorder.none,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                              horizontal: 10.0, vertical: 10.0),
-                                      hintText: '912345678',
-                                      hintStyle: TextStyle(color: Colors.grey),
-                                      fillColor: Colors.black),
+                      top: MediaQuery.of(context).size.height * 0.02,
+                      left: MediaQuery.of(context).size.width * 0.1,
+                      right: MediaQuery.of(context).size.width * 0.1,
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                          border: Border.all(
+                            color: Color(0xffDD0000),
+                            width: 3.0,
+                          ),
+                          borderRadius: BorderRadius.circular(20.0)),
+                      child: Row(
+                        children: [
+                          CountryCodePicker(
+                            onChanged: (newCode) {
+                              _countryCode = newCode.dialCode ?? '+251';
+                            },
+                            initialSelection: 'ET',
+                            favorite: ['+251', 'ET'],
+                            showFlagDialog: true,
+                            enabled: true,
+                            textStyle: TextStyle(color: Colors.black),
+                          ),
+                          Container(
+                            height: MediaQuery.of(context).size.height * 0.04,
+                            width: 1.0,
+                            decoration: BoxDecoration(color: Color(0xff0f0f0f)),
+                          ),
+                          Expanded(
+                            child: Container(
+                              width: MediaQuery.of(context).size.width,
+                              padding: EdgeInsets.only(right: 30.0),
+                              child: FocusScope(
+                                child: Focus(
+                                  onFocusChange: (focus) =>
+                                      _isVerifyTrue = !_isVerifyTrue,
+                                  child: TextField(
+                                    style: TextStyle(
+                                        color: Colors.black, fontSize: 20),
+                                    keyboardType: TextInputType.phone,
+                                    controller: _phoneController,
+                                    decoration: InputDecoration(
+                                        border: InputBorder.none,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                                horizontal: 10.0,
+                                                vertical: 10.0),
+                                        hintText: '912345678',
+                                        hintStyle:
+                                            TextStyle(color: Colors.grey),
+                                        fillColor: Colors.black),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                Visibility(
+                  Visibility(
                     visible: _isVerifyTrue,
                     child: Padding(
                       padding: EdgeInsets.only(
                           top: MediaQuery.of(context).size.height * 0.04),
                       child: Container(
-                          width: _isVerifyClicked
-                              ? MediaQuery.of(context).size.width * 0.11
-                              : MediaQuery.of(context).size.width * 0.5,
-                          height: MediaQuery.of(context).size.width * 0.1,
-                          decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                  begin: Alignment.bottomRight,
-                                  end: Alignment.topRight,
-                                  colors: [
-                                    Color(0xff990000),
-                                    Color(0xffDE0000),
-                                  ]),
-                              borderRadius: BorderRadius.circular(
-                                25.0,
-                              )),
-                          child: IgnorePointer(
-                            ignoring: !_loginBtnActive,
-                            child: RoundedLoadingButton(
-                                child: Text('Verify Your Phone',
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: Colors.white)),
-                                controller: _loginBtnController,
-                                onPressed: () async {
-                                  if (_loginBtnActive) {
-                                    sendOTPRequest(context);
-                                    setState(() {
-                                      _isVerifyClicked = true;
-                                    });
-                                  }
-                                },
-                                color: _loginBtnActive
-                                    ? Color(0xffDE0000)
-                                    : Colors.white.withOpacity(0.1)),
-                          )),
-                    )),
-              ],
+                        width: _isVerifyClicked
+                            ? MediaQuery.of(context).size.width * 0.11
+                            : MediaQuery.of(context).size.width * 0.5,
+                        height: MediaQuery.of(context).size.width * 0.1,
+                        decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                                begin: Alignment.bottomRight,
+                                end: Alignment.topRight,
+                                colors: [
+                                  Color(0xff990000),
+                                  Color(0xffDE0000),
+                                ]),
+                            borderRadius: BorderRadius.circular(
+                              25.0,
+                            )),
+                        child: IgnorePointer(
+                          ignoring: !_loginBtnActive,
+                          child: RoundedLoadingButton(
+                              child: Text('Verify Your Phone',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(color: Colors.white)),
+                              controller: _loginBtnController,
+                              onPressed: () async {
+                                if (_loginBtnActive) {
+                                  sendOTPRequest(context);
+                                  setState(() {
+                                    _isVerifyClicked = true;
+                                  });
+                                }
+                              },
+                              color: _loginBtnActive
+                                  ? Color(0xffDE0000)
+                                  : Colors.white.withOpacity(0.1)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   Future<void> sendOTPRequest(BuildContext context) async {

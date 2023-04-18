@@ -1,10 +1,28 @@
 class GoogleMapStyle {
   static const String mapStyles = '''[
+  
   {
     "elementType": "geometry",
     "stylers": [
       {
-        "color": "#eff3ff"
+        "color": "#ff0000"
+      },
+      {
+        "gradient": {
+          "color1": "#ff0000",
+          "color2": "#000000",
+          "type": "linear",
+          "stops": [
+            {
+              "offset": "0%",
+              "color": "#ff0000"
+            },
+            {
+              "offset": "100%",
+              "color": "#000000"
+            }
+          ]
+        }
       }
     ]
   },
