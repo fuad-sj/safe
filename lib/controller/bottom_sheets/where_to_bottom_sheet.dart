@@ -147,16 +147,18 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () async {
+
+              /*
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => SharedRidesScreen()),
               );
+               */
 
-              /*
               Navigator.push(context,
                 MaterialPageRoute(builder: (context) => SharedRideWhereToGoScreen()),
               );
-               */
+
             },
             child: Center(
               child: Container(

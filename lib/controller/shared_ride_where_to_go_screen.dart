@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:safe/driver_location/compass_ui.dart';
+import 'package:safe/controller/way_to_driver_compass_screen.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import '../models/customer.dart';
 import '../utils/map_style.dart';
 
 class SharedRideWhereToGoScreen extends StatefulWidget {
+  static const String SHARED_RIDE_DATABASE_ROOT =
+      "https://safetransports-et-2995d.firebaseio.com/";
+
   const SharedRideWhereToGoScreen({Key? key}) : super(key: key);
 
   @override
@@ -39,71 +42,63 @@ class _SharedRideWhereToGoScreenState extends State<SharedRideWhereToGoScreen> {
             snap: _snap,
             floating: _floating,
             expandedHeight: 160.0,
-            flexibleSpace: Container(
-              decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                      colors: [
-                    Color(0xFFDC0000),
-                    Color(0xff8f0909),
-                  ])),
-              child: LayoutBuilder(
-                builder: (BuildContext context, BoxConstraints constraints) {
-                  return Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.arrow_back_ios_new_outlined,
-                                  color: Colors.white),
-                              onPressed: () {
-                                Navigator.pop(context);
-                              },
-                            ),
-                            Expanded(
-                              child: Center(
-                                child: Text(
-                                  'Selam, Fuad',
-                                  style: TextStyle(
-                                    fontSize: 20.0,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontFamily: "Lato",
+            flexibleSpace: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.asset(
+                  'images/back_pic.png',
+                  fit: BoxFit.cover,
+                ),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.4),
+                  ),
+                ),
+                LayoutBuilder(
+                  builder: (BuildContext context, BoxConstraints constraints) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: Row(
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  Icons.arrow_back_ios_new_outlined,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                },
+                              ),
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    'ወዴት መሄድ ይፈልጋሉ ?',
+                                    style: TextStyle(
+                                      fontSize: 25.0,
+                                      color: Color.fromRGBO(255, 255, 255, 1.0),
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: "Nokia Pure Headline Bold",
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        height: constraints.maxHeight > 130 ? 56 : 0,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 16.0, right: 16.0, bottom: 10.0),
-                          child: TextField(
-                            decoration: InputDecoration(
-                              hintText: 'ወዴት መሄድ ይፈልጋሉ',
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10.0),
-                                borderSide: BorderSide.none,
-                              ),
-                              filled: true,
-                              fillColor: Colors.white,
-                              prefixIcon: Icon(Icons.search),
-                            ),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SliverToBoxAdapter(
+            child: SizedBox(
+              height: 15,
             ),
           ),
           SliverList(
@@ -131,63 +126,154 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
     double vHeight = MediaQuery.of(context).size.height;
     double hWidth = MediaQuery.of(context).size.width;
 
+    double devicePixelDensity = MediaQuery.of(context).devicePixelRatio;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => WayToDriverCompassScreen()),
+          MaterialPageRoute(
+              builder: (context) => WayToDriverCompassScreen(
+                    selectedRideId: '',
+                  )),
         );
       },
       child: Padding(
         padding: EdgeInsets.only(
-            top: 10.0,
-            left: hWidth * 0.076,
-            right: hWidth * 0.076,
-            bottom: vHeight * 0.02),
+          left: hWidth * 0.014,
+          right: hWidth * 0.014,
+          bottom: vHeight * 0.01,
+        ),
         child: Container(
+          decoration: BoxDecoration(
+              color: Color.fromRGBO(245, 242, 242, 1.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey,
+                  blurRadius: 2.0,
+                  spreadRadius: 0.0,
+                  offset: Offset(2.0, 2.0),
+                )
+              ]),
+          width: hWidth * 0.97,
           child: Column(
             children: [
               Container(
+                height: vHeight * 0.050,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    end: Alignment.bottomRight,
-                    begin: Alignment.topRight,
-                    colors: [
-                      Color(0xCFD30808),
-                      Color(0xdddc0000),
-                    ],
-                  ),
-                ),
+                    gradient: LinearGradient(
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                        colors: [
+                      Color(0xFFDC0000),
+                      Color(0xff8f0909),
+                    ])),
                 child: Center(
-                  child: Text('Bole'),
+                  child: Text('LOCATION',
+                      style: TextStyle(
+                          fontSize: 45.0 / devicePixelDensity,
+                          fontFamily: 'Nokia Pure Headline Bold',
+                          color: Color.fromRGBO(255, 255, 255, 1.0))),
                 ),
               ),
               Container(
-                child: Wrap(
-                  alignment: WrapAlignment.spaceEvenly,
+                height: vHeight * 0.090,
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(
+                      color: Color(0xFFC2C1C1),
+                      width: 1.0,
+                    ),
+                    bottom: BorderSide(
+                      color: Color(0xFFC2C1C1),
+                      width: 1.0,
+                    ),
+                    right: BorderSide(
+                      color: Color(0xFFC2C1C1),
+                      width: 1.0,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Container(
-                      width: hWidth * 0.25,
-                      child: Image(image: AssetImage('images/car_side.png')
+                      child: Row(
+                        children: [
+                          Container(
+                            width: hWidth * 0.135,
+                            height: vHeight * 0.035,
+                            child:
+                                Image(image: AssetImage('images/s_suzuki.png')),
+                          ),
+                          Container(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'ባለ 4 መቀመጫ',
+                                  style: TextStyle(
+                                    fontFamily: 'Nokia Pure Headline Bold',
+                                    fontSize: 40 / devicePixelDensity,
+                                  ),
+                                ),
+                                Text(
+                                  '65.00 ብር',
+                                  style: TextStyle(
+                                      fontFamily: 'Nokia Pure Headline Bold',
+                                      fontSize: 35 / devicePixelDensity,
+                                      color: Color.fromRGBO(215, 0, 0, 1.0)),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    VerticalDivider(
+                      width: 1.0,
+                      thickness: 1,
+                      endIndent: 0,
+                      color: Color.fromRGBO(164, 163, 163, 1.0),
+                    ),
                     Container(
-                      child: Column(
+                      child: Row(
                         children: [
-                          Text('ባለ 4 መቀመጫ'),
-                          Text('65.00 ብር'),
+                          Container(
+                            height: vHeight * 0.035,
+                            width: hWidth * 0.135,
+                            child:
+                                Image(image: AssetImage('images/s_avanza.png')),
+                          ),
+                          Container(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'ባለ 6 መቀመጫ',
+                                  style: TextStyle(
+                                    fontFamily: 'Nokia Pure Headline Bold',
+                                    fontSize: 40 / devicePixelDensity,
+                                  ),
+                                ),
+                                Text(
+                                  '45.00 ብር',
+                                  style: TextStyle(
+                                      fontFamily: 'Nokia Pure Headline Bold',
+                                      fontSize: 35 / devicePixelDensity,
+                                      color: Color.fromRGBO(215, 0, 0, 1.0)),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     )
                   ],
-
                 ),
               )
             ],
-
           ),
-
         ),
       ),
     );
