@@ -579,7 +579,11 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
                     if (widget.placeAggregate.nearby_four_seater_rides
                         .isNotEmpty) ...[
                       _getCarSeaterWidget(
-                          true, 10.0, hWidth, vHeight, devicePixelDensity),
+                          true,
+                          widget.placeAggregate.four_seater_est_price!,
+                          hWidth,
+                          vHeight,
+                          devicePixelDensity),
                     ],
                     if (widget.placeAggregate.nearby_four_seater_rides
                             .isNotEmpty &&
@@ -595,7 +599,11 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
                     if (widget
                         .placeAggregate.nearby_six_seater_rides.isNotEmpty) ...[
                       _getCarSeaterWidget(
-                          false, 20.4, hWidth, vHeight, devicePixelDensity),
+                          false,
+                          widget.placeAggregate.six_seater_est_price!,
+                          hWidth,
+                          vHeight,
+                          devicePixelDensity),
                     ],
                   ],
                 ),
