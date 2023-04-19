@@ -14,6 +14,7 @@ import 'package:safe/controller/way_to_driver_compass_screen.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/shared_ride_broadcast.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class SharedRidesWhereToGoScreen extends StatefulWidget {
   static const String SHARED_RIDE_DATABASE_ROOT =
@@ -391,19 +392,38 @@ class _SharedRidesWhereToGoScreenState
               height: 15,
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return _AvailableDriverListItem(
-                  placeId: _destination_places[index].key,
-                  placeAggregate: _destination_places[index].value,
-                  onFourSeaterSelected: pickSharedRideForPlaceAndSeater,
-                  onSixSeaterSelected: pickSharedRideForPlaceAndSeater,
-                );
-              },
-              childCount: _destination_places.length,
+          if (_destination_places.isEmpty) ...[
+            CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  child: SpinKitFadingCircle(itemBuilder: (_, int index) {
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: index.isEven
+                            ? Color.fromRGBO(153, 0, 0, 1)
+                            : Color.fromRGBO(221, 0, 0, 1),
+                      ),
+                    );
+                  }),
+                ),
+              ],
             ),
-          )
+          ],
+          if (_destination_places.isNotEmpty) ...[
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return _AvailableDriverListItem(
+                    placeId: _destination_places[index].key,
+                    placeAggregate: _destination_places[index].value,
+                    onFourSeaterSelected: pickSharedRideForPlaceAndSeater,
+                    onSixSeaterSelected: pickSharedRideForPlaceAndSeater,
+                  );
+                },
+                childCount: _destination_places.length,
+              ),
+            ),
+          ],
         ],
       ),
     );
