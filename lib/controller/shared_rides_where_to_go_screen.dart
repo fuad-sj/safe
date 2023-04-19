@@ -276,16 +276,21 @@ class _SharedRidesWhereToGoScreenState
       aggregate.all_six_seater_rides.add(ride_id);
 
       if (loc_available) {
-        aggregate.nearby_six_seater_rides
-          ..add(ride_id)
-          ..sort(_compareRidesForSorting);
+        if (!aggregate.prev_seen_nearby_six_seater_rides.contains(ride_id)) {
+          aggregate.prev_seen_nearby_six_seater_rides.add(ride_id);
+          aggregate.nearby_six_seater_rides.add(ride_id);
+        }
+        aggregate.nearby_six_seater_rides.sort(_compareRidesForSorting);
       }
     } else {
       aggregate.four_seater_est_price = broadcast.est_price;
       aggregate.all_four_seater_rides.add(ride_id);
 
       if (loc_available) {
-        aggregate.nearby_four_seater_rides.add(ride_id);
+        if (!aggregate.prev_seen_nearby_four_seater_rides.contains(ride_id)) {
+          aggregate.prev_seen_nearby_four_seater_rides.add(ride_id);
+          aggregate.nearby_four_seater_rides.add(ride_id);
+        }
         aggregate.nearby_four_seater_rides.sort(_compareRidesForSorting);
       }
     }
@@ -389,7 +394,6 @@ class _SharedRidesWhereToGoScreenState
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
-                index = index % 2;
                 return _AvailableDriverListItem(
                   placeId: _destination_places[index].key,
                   placeAggregate: _destination_places[index].value,

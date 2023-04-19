@@ -90,11 +90,16 @@ class SharedRidePlaceAggregate {
   List<String> nearby_four_seater_rides;
   List<String> nearby_six_seater_rides;
 
+  Set<String> prev_seen_nearby_four_seater_rides;
+  Set<String> prev_seen_nearby_six_seater_rides;
+
   SharedRidePlaceAggregate({
     required this.place_id,
     required this.place_name,
   })  : all_four_seater_rides = Set(),
         all_six_seater_rides = Set(),
+        prev_seen_nearby_four_seater_rides = Set(),
+        prev_seen_nearby_six_seater_rides = Set(),
         nearby_four_seater_rides = [],
         nearby_six_seater_rides = [];
 }

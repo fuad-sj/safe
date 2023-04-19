@@ -121,6 +121,7 @@ flutter:
     - images/s_avanza.png
     - images/s_suzuki.png
     - images/back_pic.png
+    - images/swip_logo.png
 
   fonts:
     - family: Signatra
