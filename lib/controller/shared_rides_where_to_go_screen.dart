@@ -26,9 +26,12 @@ class SharedRidesWhereToGoScreen extends StatefulWidget {
       _SharedRidesWhereToGoScreenState();
 }
 
-class _SharedRidesWhereToGoScreenState extends State<SharedRidesWhereToGoScreen> {
+class _SharedRidesWhereToGoScreenState
+    extends State<SharedRidesWhereToGoScreen> {
   StreamSubscription<dynamic>? _geofireStream;
-  StreamSubscription? _rideDetailsStream;
+
+  StreamSubscription? _rideAddedDetailsStream;
+  StreamSubscription? _rideUpdatedDetailsStream;
 
   bool _geoFireInitialized = false;
 
@@ -75,7 +78,8 @@ class _SharedRidesWhereToGoScreenState extends State<SharedRidesWhereToGoScreen>
 
     _geofireStream?.cancel();
 
-    _rideDetailsStream?.cancel();
+    _rideAddedDetailsStream?.cancel();
+    _rideUpdatedDetailsStream?.cancel();
 
     _locationStreamSubscription?.cancel();
 
@@ -165,27 +169,51 @@ class _SharedRidesWhereToGoScreenState extends State<SharedRidesWhereToGoScreen>
         .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
         .get();
 
-    LinkedHashMap<Object?, Object?> rideBroadcasts =
-        data.value as LinkedHashMap;
+    // if there is no document, it is null
+    if (data.value != null) {
+      LinkedHashMap<Object?, Object?> rideBroadcasts =
+          data.value as LinkedHashMap;
 
-    rideBroadcasts.forEach((key, value) {
+      rideBroadcasts.forEach((key, value) {
+        SharedRideBroadcast broadcast =
+            SharedRideBroadcast.fromMap(value as Map, key as String);
+
+        _rideBroadcastDetails[broadcast.ride_id] = broadcast;
+
+        updateBroadCastDistanceAndAggregate(broadcast.ride_id);
+
+        // if all load finished, update ui
+        if (rideBroadcasts.length == _rideBroadcastDetails.length) {
+          if (mounted) {
+            _destination_places = sortedPlaces();
+            setState(() {});
+          }
+        }
+      });
+    }
+
+    _rideAddedDetailsStream = FirebaseDatabase.instanceFor(
+            app: Firebase.app(),
+            databaseURL: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT)
+        .ref()
+        .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
+        .onChildAdded
+        .listen((event) async {
       SharedRideBroadcast broadcast =
-          SharedRideBroadcast.fromMap(value as Map, key as String);
+          SharedRideBroadcast.fromSnapshot(event.snapshot);
 
       _rideBroadcastDetails[broadcast.ride_id] = broadcast;
 
       updateBroadCastDistanceAndAggregate(broadcast.ride_id);
 
-      // if all load finished, update ui
-      if (rideBroadcasts.length == _rideBroadcastDetails.length) {
-        if (mounted) {
+      if (mounted) {
+        setState(() {
           _destination_places = sortedPlaces();
-          setState(() {});
-        }
+        });
       }
     });
 
-    _rideDetailsStream = FirebaseDatabase.instanceFor(
+    _rideUpdatedDetailsStream = FirebaseDatabase.instanceFor(
             app: Firebase.app(),
             databaseURL: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT)
         .ref()
