@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:safe/controller/shared_rides_screen.dart';
+import 'package:safe/controller/shared_rides_where_to_go_screen.dart';
 import 'package:safe/controller/slider_button/slider.dart';
 import 'package:safe/driver_location/smooth_compass.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
@@ -91,10 +91,12 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                 azimuthFix: 0.0,
                 currentLoc: MyLoc(latitude: 0, longitude: 0))
             .listen((snapshot) {
-          setState(() {
-            _lastReadCompassTurns = snapshot.turns;
-            _lastReadCompassAngels = snapshot.angle;
-          });
+          if (mounted) {
+            setState(() {
+              _lastReadCompassTurns = snapshot.turns;
+              _lastReadCompassAngels = snapshot.angle;
+            });
+          }
         });
       }
       loadingFinished = true;
@@ -117,14 +119,12 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
   }
 
   Future<void> attachRideStreams() async {
-    String ride_id = "a";
     _rideLocationStreamSubscription = FirebaseDatabase.instanceFor(
             app: Firebase.app(),
-            databaseURL: SharedRidesScreen.SHARED_RIDE_DATABASE_ROOT)
+            databaseURL: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT)
         .ref()
         .child(FIREBASE_DB_PATHS.SHARED_RIDE_LOCATIONS)
-        //.child(widget.selectedRideId)
-        .child(ride_id)
+        .child(widget.selectedRideId)
         .onValue
         .listen((event) async {
       _rideLocation = SharedRideLocation.fromSnapshot(event.snapshot);
@@ -137,11 +137,10 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
 
     _rideDetailStreamSubscription = FirebaseDatabase.instanceFor(
             app: Firebase.app(),
-            databaseURL: SharedRidesScreen.SHARED_RIDE_DATABASE_ROOT)
+            databaseURL: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT)
         .ref()
         .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
-        //.child(widget.selectedRideId)
-        .child(ride_id)
+        .child(widget.selectedRideId)
         .onValue
         .listen((event) async {
       _rideDetails = SharedRideBroadcast.fromSnapshot(event.snapshot);

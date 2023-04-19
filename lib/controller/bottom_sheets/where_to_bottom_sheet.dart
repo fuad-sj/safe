@@ -4,14 +4,13 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/controller/custom_toast_message.dart';
-import 'package:safe/controller/shared_rides_screen.dart';
 import 'package:safe/models/color_constants.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:flutter_gen/gen_l10n/safe_localizations.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../dialogs/shared_trip_dialog.dart';
-import '../shared_ride_where_to_go_screen.dart';
+import '../shared_rides_where_to_go_screen.dart';
 import '../way_to_driver_compass_screen.dart';
 
 class WhereToBottomSheet extends BaseBottomSheet {
@@ -147,18 +146,11 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () async {
-
-              /*
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SharedRidesScreen()),
+                MaterialPageRoute(
+                    builder: (context) => SharedRidesWhereToGoScreen()),
               );
-               */
-
-              Navigator.push(context,
-                MaterialPageRoute(builder: (context) => SharedRideWhereToGoScreen()),
-              );
-
             },
             child: Center(
               child: Container(

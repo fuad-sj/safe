@@ -63,6 +63,7 @@ dependencies:
   location: ^4.4.0
   flutter_geofire:
     path: ./flutter_geofire
+  dartx: ^1.1.0
 
 dev_dependencies:
   flutter_test:
@@ -120,7 +121,6 @@ flutter:
     - images/s_avanza.png
     - images/s_suzuki.png
     - images/back_pic.png
-    - images/swip_logo.png
 
   fonts:
     - family: Signatra

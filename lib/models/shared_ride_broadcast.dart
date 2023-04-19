@@ -1,20 +1,23 @@
 import 'package:firebase_database/firebase_database.dart';
 
 class SharedRideBroadcast {
-  String? ride_id;
+  late String ride_id;
 
-  String? dest_name;
-  String? dest_id;
-  double? est_price;
+  late String place_name;
+  late String place_id;
 
-  int? timestamp;
+  late double est_price;
+
+  late bool is_six_seater;
+
+  late int timestamp;
 
   bool? is_cancelled;
 
-  int? seats_remaining;
+  late String car_plate;
+  late String car_details;
 
-  String? car_plate;
-  String? car_details;
+  int? seats_remaining;
 
   /**
    * This is a computed value, not stored ANYWHERE. but useful in comparing different broadcasts
@@ -32,9 +35,10 @@ class SharedRideBroadcast {
   factory SharedRideBroadcast.fromMap(Map data, String ride_id) {
     return SharedRideBroadcast()
       ..ride_id = ride_id
-      ..dest_name = data["dest_name"] ?? null
-      ..dest_id = data["dest_id"] ?? null
+      ..place_name = data["place_name"] ?? null
+      ..place_id = data["place_id"] ?? null
       ..est_price = data["est_price"] + 0.0 ?? null
+      ..is_six_seater = data["is_six_seater"] ?? null
       ..timestamp = data["timestamp"] ?? null
       ..is_cancelled = data["is_cancelled"] ?? null
       ..seats_remaining = data["seats_remaining"] ?? null
@@ -76,18 +80,21 @@ class SharedRideLocation {
 class SharedRidePlaceAggregate {
   String place_id;
   String place_name;
-  double est_price;
 
-  Set<String> place_rides;
+  double? four_seater_est_price;
+  double? six_seater_est_price;
 
-  String? selected_ride_id;
-  int? selected_ride_timestamp;
-  double? selected_ride_distance;
+  Set<String> all_four_seater_rides;
+  Set<String> all_six_seater_rides;
+
+  List<String> nearby_four_seater_rides;
+  List<String> nearby_six_seater_rides;
 
   SharedRidePlaceAggregate({
     required this.place_id,
     required this.place_name,
-    required this.est_price,
-    required this.place_rides,
-  });
+  })  : all_four_seater_rides = Set(),
+        all_six_seater_rides = Set(),
+        nearby_four_seater_rides = [],
+        nearby_six_seater_rides = [];
 }
