@@ -69,10 +69,13 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
   bool isCustomerArrivedAtPickup = false;
   double fontSizeMultiplier = 1.0;
   bool isTripStarted = false;
+  bool isTripCompleted = false;
 
   double zoomLevel = 1.0;
 
   bool get isCorrectHeading => _computedOffsetHeading.abs() < 0.06;
+
+
 
   @override
   void initState() {
@@ -257,9 +260,22 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
               _mapController = controller;
               controller.setMapStyle(GoogleMapStyle.mapStyles);
 
-              setState(() {
-                // once location is acquired, add a bottom padding to the map
-              });
+              if(isTripStarted) {
+                final LatLng startLocation = LatLng(9.003511, 38.781497);
+                final LatLng endLocation = LatLng(9.020452, 38.878872);
+
+                final List<LatLng> polylinePoints = [startLocation, endLocation];
+                final Polyline polyline = Polyline(
+                  polylineId: PolylineId('myPolyline'),
+                  color: Colors.white,
+                  width: 15,
+                  points: polylinePoints,
+                );
+                setState(() {
+                  _mapPolyLines.add(polyline);
+
+                });
+              }
             },
           ),
           Container(
@@ -422,8 +438,8 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   if (loadingFinished && isCompassAvailable) ...[
                     // Compass
                     Positioned(
-                      top: MediaQuery.of(context).size.height * 0.25,
-                      left: MediaQuery.of(context).size.width * 0.082,
+                      top: MediaQuery.of(context).size.height * 0.28,
+                      left: MediaQuery.of(context).size.width * 0.080,
                       width: MediaQuery.of(context).size.width * 0.8,
                       height: MediaQuery.of(context).size.width * 0.8,
                       child: Container(
@@ -521,18 +537,136 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                     ),
                   ),
                 ],
-
+                  // on trip UI must be started after the swipe is approved by driver and trip started
                 if (isTripStarted) ...[
                   Positioned(
-                    top: MediaQuery.of(context).size.height * 0.025,
-                    left: MediaQuery.of(context).size.width * 0.070,
+                    top: MediaQuery.of(context).size.height * 0.25,
+                    left: MediaQuery.of(context).size.width * 0.28,
                     child: Container(
                       width: MediaQuery.of(context).size.width * 0.36,
-                      height: MediaQuery.of(context).size.width * 0.06,
+                      height: MediaQuery.of(context).size.height * 0.06,
                       color: Colors.white,
+                      child: Row(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(left: 10.0, right: 10.0),
+                            width: MediaQuery.of(context).size.width * 0.081,
+                            height: MediaQuery.of(context).size.height * 0.04,
+                            color: Color(0xffd20001),
+                          ),
+                          Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'መነሻ',
+                                  style: TextStyle(
+                                    fontSize: 10.0,
+                                    color: Colors.black87,
+                                    letterSpacing: 2.0,
+                                    fontFamily: "Nokia Pure Headline Bold",
+                                  ),
+                                ),
+                                Text(
+                                  'Bole',
+                                  style: TextStyle(
+                                    fontSize: 15.0,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.67,
+                    left: MediaQuery.of(context).size.width * 0.37,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.36,
+                      height: MediaQuery.of(context).size.height * 0.06,
+                      color: Colors.white,
+                      child: Row(
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(left: 10.0, right: 10.0),
+                            width: MediaQuery.of(context).size.width * 0.081,
+                            height: MediaQuery.of(context).size.height * 0.04,
+                            color: Color(0xffd20001),
+                          ),
+                          Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'መዳረሻ',
+                                  style: TextStyle(
+                                    fontSize: 10.0,
+                                    color: Colors.black87,
+                                    letterSpacing: 2.0,
+                                    fontFamily: "Nokia Pure Headline Bold",
+                                  ),
+                                ),
+                                Text(
+                                  'bethel',
+                                  style: TextStyle(
+                                    fontSize: 15.0,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],
+
+
+                if(isTripCompleted) ...[
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.35,
+                    left: MediaQuery.of(context).size.width * 0.16,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.80,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ጉዞው ተጠናቅዋል!',
+                            style: TextStyle(
+                              fontSize: 26.0,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromRGBO(255, 255, 255, 1.0),
+                              fontFamily: "lato",
+                            ),
+                          ),
+                          SizedBox(height: 10.0),
+                          Text(
+                            'ድምር ዋጋ : 65 ብር',
+                            style: driverDetailTextStyleBig,
+                          ),
+                          Text(
+                            'ርቀት: 10 ኪ ሜ',
+                            style: driverDetailTextStyleBig,
+                          ),
+                          Text(
+                            'የፈጀው ሰዓት : 30 ደቂቃ ',
+                            style: driverDetailTextStyleBig,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                ],
+
+                //ende here
 
                 Positioned(
                   bottom: MediaQuery.of(context).size.height * 0.06,
