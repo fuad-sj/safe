@@ -68,6 +68,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
   double metersToCar = -1;
   bool isCustomerArrivedAtPickup = false;
   double fontSizeMultiplier = 1.0;
+  bool isTripStarted = false;
 
   double zoomLevel = 1.0;
 
@@ -456,8 +457,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                       height: MediaQuery.of(context).size.height * 0.07,
                       child: SliderButton(
                         sliderKey: 'Arrived at Pickup',
-                        action: () async {
-                        },
+                        action: () async {},
                         boxShadow: BoxShadow(
                           color: Colors.grey.shade500,
                           blurRadius: 8.0,
@@ -518,6 +518,18 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                           ),
                         ),
                       ),
+                    ),
+                  ),
+                ],
+
+                if (isTripStarted) ...[
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.025,
+                    left: MediaQuery.of(context).size.width * 0.070,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.36,
+                      height: MediaQuery.of(context).size.width * 0.06,
+                      color: Colors.white,
                     ),
                   ),
                 ],
