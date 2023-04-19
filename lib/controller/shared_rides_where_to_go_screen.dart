@@ -59,8 +59,9 @@ class _SharedRidesWhereToGoScreenState
       liveLocation = new Location();
 
       await Geofire.initialize(FIREBASE_DB_PATHS.SHARED_RIDE_LOCATIONS,
-          is_default: false,
-          root: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT);
+       is_default: false,
+          root: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT
+          );
       _geoFireInitialized = true;
 
       attachGeofireQuery();
@@ -393,20 +394,18 @@ class _SharedRidesWhereToGoScreenState
             ),
           ),
           if (_destination_places.isEmpty) ...[
-            CustomScrollView(
-              slivers: [
-                SliverFillRemaining(
-                  child: SpinKitFadingCircle(itemBuilder: (_, int index) {
-                    return DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: index.isEven
-                            ? Color.fromRGBO(153, 0, 0, 1)
-                            : Color.fromRGBO(221, 0, 0, 1),
-                      ),
-                    );
-                  }),
-                ),
-              ],
+                SliverToBoxAdapter(
+                  child: SpinKitFadingCircle(
+                    itemBuilder: (_, int index) {
+                      return DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: index.isEven
+                              ? Color.fromRGBO(131, 1, 1, 1.0)
+                              : Color.fromRGBO(255, 0, 0, 1.0),
+                        ),
+                      );
+                    },
+                  ),
             ),
           ],
           if (_destination_places.isNotEmpty) ...[
