@@ -59,9 +59,8 @@ class _SharedRidesWhereToGoScreenState
       liveLocation = new Location();
 
       await Geofire.initialize(FIREBASE_DB_PATHS.SHARED_RIDE_LOCATIONS,
-       is_default: false,
-          root: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT
-          );
+          is_default: false,
+          root: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT);
       _geoFireInitialized = true;
 
       attachGeofireQuery();
@@ -180,6 +179,9 @@ class _SharedRidesWhereToGoScreenState
         SharedRideBroadcast broadcast =
             SharedRideBroadcast.fromMap(value as Map, key as String);
 
+        if (!broadcast.isValidOrderToConsider()) {
+          return;
+        }
         _rideBroadcastDetails[broadcast.ride_id] = broadcast;
 
         updateBroadCastDistanceAndAggregate(broadcast.ride_id);
@@ -204,6 +206,10 @@ class _SharedRidesWhereToGoScreenState
       SharedRideBroadcast broadcast =
           SharedRideBroadcast.fromSnapshot(event.snapshot);
 
+      if (!broadcast.isValidOrderToConsider()) {
+        return;
+      }
+
       _rideBroadcastDetails[broadcast.ride_id] = broadcast;
 
       updateBroadCastDistanceAndAggregate(broadcast.ride_id);
@@ -224,6 +230,10 @@ class _SharedRidesWhereToGoScreenState
         .listen((event) async {
       SharedRideBroadcast broadcast =
           SharedRideBroadcast.fromSnapshot(event.snapshot);
+
+      if (!broadcast.isValidOrderToConsider()) {
+        return;
+      }
 
       _rideBroadcastDetails[broadcast.ride_id] = broadcast;
 
@@ -273,7 +283,7 @@ class _SharedRidesWhereToGoScreenState
     bool loc_available = _rideLocations.containsKey(ride_id);
 
     SharedRidePlaceAggregate aggregate = _placeRideAggregate[place_id]!;
-    if (broadcast.is_six_seater) {
+    if (broadcast.is_six_seater!) {
       aggregate.six_seater_est_price = broadcast.est_price;
       aggregate.all_six_seater_rides.add(ride_id);
 
@@ -307,7 +317,7 @@ class _SharedRidesWhereToGoScreenState
     SharedRideBroadcast ride_A = _rideBroadcastDetails[rideIdA]!;
     SharedRideBroadcast ride_B = _rideBroadcastDetails[rideIdB]!;
 
-    return ride_A.timestamp.compareTo(ride_B.timestamp);
+    return ride_A.created_timestamp.compareTo(ride_B.created_timestamp);
   }
 
   List<MapEntry<String, SharedRidePlaceAggregate>> sortedPlaces() {
@@ -394,18 +404,18 @@ class _SharedRidesWhereToGoScreenState
             ),
           ),
           if (_destination_places.isEmpty) ...[
-                SliverToBoxAdapter(
-                  child: SpinKitFadingCircle(
-                    itemBuilder: (_, int index) {
-                      return DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: index.isEven
-                              ? Color.fromRGBO(131, 1, 1, 1.0)
-                              : Color.fromRGBO(255, 0, 0, 1.0),
-                        ),
-                      );
-                    },
-                  ),
+            SliverToBoxAdapter(
+              child: SpinKitFadingCircle(
+                itemBuilder: (_, int index) {
+                  return DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: index.isEven
+                          ? Color.fromRGBO(131, 1, 1, 1.0)
+                          : Color.fromRGBO(255, 0, 0, 1.0),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
           if (_destination_places.isNotEmpty) ...[

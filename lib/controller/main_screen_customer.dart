@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:launch_review/launch_review.dart';
+import 'package:location/location.dart' hide LocationAccuracy;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:safe/controller/bottom_sheets/activate_referral_code_bottom_sheet.dart';
@@ -188,6 +189,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     return _currentCustomer?.referral_activation_complete ?? false;
   }
 
+  late Location liveLocation;
+
   /// We ONLY want to show the referral dialog IF we know for SURE referral is NOT complete
   bool get isReferralSurelyIncomplete {
     if (_currentCustomer == null || !_isInternetWorking) {
@@ -222,6 +225,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       initConnectivity();
       loadMapIcons();
 
+      liveLocation = new Location();
+
+      loadCurrentPosition();
+
       await attachCustomerListener();
 
       setBottomMapPadding(
@@ -233,6 +240,19 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       //await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
       _geoFireInitialized = true;
     });
+  }
+
+  Future<void> loadCurrentPosition() async {
+    PermissionStatus permissionStatus = await liveLocation.hasPermission();
+    if (permissionStatus == PermissionStatus.denied) {
+      permissionStatus = await liveLocation.requestPermission();
+      if (permissionStatus != PermissionStatus.granted) {
+        return;
+      }
+    }
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    _currentPosition = position;
   }
 
   Future<void> _loadPhoneNumber() async {
@@ -606,8 +626,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       case MenuOption.MENU_OPTION_BALANCE:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => PaymentScreen()
-          ),
+          MaterialPageRoute(builder: (context) => PaymentScreen()),
         );
         break;
 
@@ -969,6 +988,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         _referalController.success();
       });
     }
+
     bool _referalBtnActive = false;
 
     return Scaffold(
@@ -1458,20 +1478,22 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   Future<bool> zoomCameraToCurrentPosition() async {
-    try {
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
-      _currentPosition = position;
+    if (_currentPosition == null) {
+      return false;
+    }
 
+    try {
       CameraPosition cameraPosition = CameraPosition(
-          target: LatLng(position.latitude, position.longitude), zoom: 17.0);
+          target:
+              LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          zoom: 17.0);
 
       _mapController!
           .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
       if (_sysConfig != null) {
-        Address address =
-            await GoogleApiUtils.searchCoordinateAddress(position, _sysConfig!);
+        Address address = await GoogleApiUtils.searchCoordinateAddress(
+            _currentPosition!, _sysConfig!);
         Provider.of<PickUpAndDropOffLocations>(context, listen: false)
             .updatePickupLocationAddress(address);
         return true;

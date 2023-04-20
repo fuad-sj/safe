@@ -1,12 +1,13 @@
 import 'package:firebase_database/firebase_database.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class SharedRideBroadcast {
   late String ride_id;
 
   late String place_name;
   late String place_id;
-  late List<double> place_loc;
-  late List<double> initial_loc;
+  late LatLng place_loc;
+  late LatLng initial_loc;
 
   late int created_timestamp;
   int? ping_timestamp;
@@ -20,9 +21,6 @@ class SharedRideBroadcast {
 
   double? est_price;
 
-  /**
-   * TODO: do appropriate filtering of orders based on these
-   */
   bool? is_setup_done;
   bool? is_trip_cancelled;
   bool? is_stale_order;
@@ -40,6 +38,21 @@ class SharedRideBroadcast {
    */
   double? distance_to_broadcast;
 
+  bool isValidOrderToConsider() {
+    if ((is_setup_done ?? false) != true) {
+      return false;
+    }
+
+    if ((is_stale_order ?? false) == true ||
+        (is_trip_cancelled ?? false) == true ||
+        (is_trip_started ?? false) == true ||
+        (is_fully_booked ?? false) == true) {
+      return false;
+    }
+
+    return true;
+  }
+
   SharedRideBroadcast();
 
   factory SharedRideBroadcast.fromSnapshot(DataSnapshot snapshot) {
@@ -51,10 +64,10 @@ class SharedRideBroadcast {
   factory SharedRideBroadcast.fromMap(Map data, String ride_id) {
     return SharedRideBroadcast()
       ..ride_id = ride_id
-      ..place_name = data["place_name"] ?? null
-      ..place_id = data["place_id"] ?? null
-      ..place_loc = data["place_loc"] ?? null
-      ..initial_loc = data["initial_loc"] ?? null
+      ..place_name = data["place_name"]
+      ..place_id = data["place_id"]
+      ..place_loc = LatLng.fromJson(data["place_loc"])!
+      ..initial_loc = LatLng.fromJson(data["initial_loc"])!
       ..created_timestamp = data["created_timestamp"] ?? null
       ..ping_timestamp = data["ping_timestamp"] ?? null
       ..trip_started_timestamp = data["trip_started_timestamp"] ?? null
