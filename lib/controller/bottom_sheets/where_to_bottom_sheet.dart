@@ -116,29 +116,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                     color: Color(0xff515151),
                   ),
                 ),
-                /*
-                Spacer(),
-                FloatingActionButton.small(
-                    onPressed: () async {
-                      await showDialog<String>(
-                          barrierDismissible: false,
-                          context: context,
-                        /*
-                        *  to do conditional dialog before and after launch
-                        *  */
-                        // builder: (_) => ShowSharedDialog()
-                          builder: (_) => WayToDriverCompassDialog()
-
-                      );
-                    },
-                  child: CircleAvatar(
-                    backgroundColor: Color(0xffDD0000),
-                    child: ImageIcon(AssetImage('images/people_gather.png'), color: Colors.white, size: 26.0),
-                  ),
-
-                ),
-
-                 */
               ],
             ),
           ),

@@ -36,11 +36,18 @@ public class SwiftGeofirePlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     let arguements = call.arguments as? NSDictionary
     
     if(call.method.elementsEqual("GeoFire.start")){
-     
         let path = arguements!["path"] as! String
-        
-        geoFireRef = Database.database().reference().child(path)
-        geoFire = GeoFire(firebaseRef: geoFireRef!)
+        let root = arguements!["root"] as! String
+        let isDefault = arguements!["is_default"] as! Bool
+
+        let databaseReference: DatabaseReference
+        if isDefault {
+            databaseReference = Database.database().reference(withPath: path)
+        } else {
+            databaseReference = Database.database(url: root).reference(withPath: path)
+        }
+
+        geoFire = GeoFire(firebaseRef: databaseReference)
         
         result(true)
     }

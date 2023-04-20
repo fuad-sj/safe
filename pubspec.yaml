@@ -61,8 +61,9 @@ dependencies:
     path: ./launch_review
   flutter_sensors: ^1.0.1
   location: ^4.4.0
+
   flutter_geofire:
-    path: ./flutter_geofire
+   path: ./flutter_geofire
   dartx: ^1.1.0
 
 dev_dependencies:

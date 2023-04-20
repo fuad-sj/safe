@@ -409,7 +409,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                 if (!isCustomerArrivedAtPickup) ...[
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.414,
-                    left: MediaQuery.of(context).size.width * 0.082,
+                    left: MediaQuery.of(context).size.width * 0.090,
                     width: MediaQuery.of(context).size.width * 0.8,
                     //height: MediaQuery.of(context).size.height * 0.60,
                     child: Container(
@@ -438,14 +438,13 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   if (loadingFinished && isCompassAvailable) ...[
                     // Compass
                     Positioned(
-                      top: MediaQuery.of(context).size.height * 0.28,
-                      left: MediaQuery.of(context).size.width * 0.080,
+                      top: MediaQuery.of(context).size.height * 0.30,
+                      left: MediaQuery.of(context).size.width * 0.10,
                       width: MediaQuery.of(context).size.width * 0.8,
                       height: MediaQuery.of(context).size.width * 0.8,
                       child: Container(
                         color: Colors.transparent,
                         child: Container(
-                          height: MediaQuery.of(context).size.height * 0.13,
                           child: Center(
                             child: AnimatedRotation(
                               turns: _lastReadCompassTurns,
@@ -664,6 +663,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                       ),
                     ),
                   )
+
                 ],
 
                 //ende here
@@ -694,7 +694,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                               Text(
                                 isCorrectHeading
                                     ? ""
-                                    : (_computedOffsetHeading > 0
+                                    : (_computedOffsetHeading < 0
                                         ? 'በስተ ግራ'
                                         : 'በስተ ቀኝ'),
                                 style: TextStyle(
