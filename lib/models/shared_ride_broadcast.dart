@@ -2,6 +2,9 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class SharedRideBroadcast {
+  bool? client_triggered_event;
+  bool? is_unread_data;
+
   late String ride_id;
 
   late String place_name;
@@ -21,7 +24,9 @@ class SharedRideBroadcast {
 
   double? est_price;
 
-  bool? is_setup_done;
+  bool? is_price_calculated;
+  bool? is_order_confirmed;
+  bool? is_broadcast_launched;
   bool? is_trip_cancelled;
   bool? is_stale_order;
   bool? is_fully_booked;
@@ -39,7 +44,7 @@ class SharedRideBroadcast {
   double? distance_to_broadcast;
 
   bool isValidOrderToConsider() {
-    if ((is_setup_done ?? false) != true) {
+    if ((is_broadcast_launched ?? false) != true) {
       return false;
     }
 
@@ -77,7 +82,9 @@ class SharedRideBroadcast {
       ..car_details = data["car_details"] ?? null
       ..is_six_seater = data["is_six_seater"] ?? null
       ..est_price = data["est_price"] ?? null
-      ..is_setup_done = data["is_setup_done"] ?? null
+      ..is_price_calculated = data["is_price_calculated"] ?? null
+      ..is_order_confirmed = data["is_order_confirmed"] ?? null
+      ..is_broadcast_launched = data["is_broadcast_launched"] ?? null
       ..is_trip_cancelled = data["is_trip_cancelled"] ?? null
       ..is_stale_order = data["is_stale_order"] ?? null
       ..is_fully_booked = data["is_fully_booked"] ?? null
