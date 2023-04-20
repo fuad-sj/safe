@@ -6,9 +6,19 @@ class SharedRideBroadcast {
   late String place_name;
   late String place_id;
 
-  late double est_price;
+  /**
+   * TODO: do appropriate filtering of orders based on these
+   */
+  bool? is_setup_done;
+  bool? is_trip_cancelled;
+  bool? is_stale_order;
+  bool? is_fully_booked;
+  bool? is_trip_started;
+  bool? is_trip_completed;
 
-  late bool is_six_seater;
+  double? est_price;
+
+  bool? is_six_seater;
 
   late int timestamp;
 
@@ -37,6 +47,12 @@ class SharedRideBroadcast {
       ..ride_id = ride_id
       ..place_name = data["place_name"] ?? null
       ..place_id = data["place_id"] ?? null
+      ..is_setup_done = data["is_setup_done"] ?? null
+      ..is_trip_cancelled = data["is_trip_cancelled"] ?? null
+      ..is_stale_order = data["is_stale_order"] ?? null
+      ..is_fully_booked = data["is_fully_booked"] ?? null
+      ..is_trip_started = data["is_trip_started"] ?? null
+      ..is_trip_completed = data["is_trip_completed"] ?? null
       ..est_price = data["est_price"] + 0.0 ?? null
       ..is_six_seater = data["is_six_seater"] ?? null
       ..timestamp = data["timestamp"] ?? null
