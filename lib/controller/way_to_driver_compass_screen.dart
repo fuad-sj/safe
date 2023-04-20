@@ -12,6 +12,8 @@ import 'package:safe/driver_location/smooth_compass.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/shared_ride_broadcast.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
+import 'package:safe/utils/phone_call.dart';
+import 'package:safe/utils/pref_util.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../utils/map_style.dart';
@@ -73,15 +75,17 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
 
   double zoomLevel = 1.0;
 
+  String _selfPhone = "";
+
   bool get isCorrectHeading => _computedOffsetHeading.abs() < 0.06;
-
-
 
   @override
   void initState() {
     super.initState();
 
     Future.delayed(Duration.zero, () async {
+      _selfPhone = await PrefUtil.getCurrentUserPhone();
+
       liveLocation = new Location();
       await attachRideStreams();
 
@@ -93,8 +97,11 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   milliseconds: 200,
                 ),
                 azimuthFix: 0.0,
-                currentLoc: MyLoc(latitude: 0, longitude: 0))
+                currentLoc: MyLoc(
+                    latitude: _currentLocation?.latitude ?? 0,
+                    longitude: _currentLocation?.longitude ?? 0))
             .listen((snapshot) {
+          loadingFinished = true;
           if (mounted) {
             setState(() {
               _lastReadCompassTurns = snapshot.turns;
@@ -103,7 +110,6 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
           }
         });
       }
-      loadingFinished = true;
     });
 
     arrowImage = AssetImage("images/arrow.png");
@@ -181,7 +187,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
             _currentLocation!.longitude,
             _rideLocation!.latitude!,
             _rideLocation!.longitude!);
-        isCustomerArrivedAtPickup = metersToCar < 20.0;
+        isCustomerArrivedAtPickup = metersToCar < 8.0;
         fontSizeMultiplier = isCustomerArrivedAtPickup ? 2.0 : 1.0;
       }
 
@@ -224,6 +230,14 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
     return "${AlphaNumericUtil.formatDouble(metersToCar, 0)} ሜትር";
   }
 
+  String formatPhone(String phone) {
+    if (phone.startsWith('+251')) {
+      return "0" + phone.substring(4);
+    } else {
+      return phone;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     const double TOP_MAP_PADDING = 40;
@@ -260,11 +274,14 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
               _mapController = controller;
               controller.setMapStyle(GoogleMapStyle.mapStyles);
 
-              if(isTripStarted) {
+              if (isTripStarted) {
                 final LatLng startLocation = LatLng(9.003511, 38.781497);
                 final LatLng endLocation = LatLng(9.020452, 38.878872);
 
-                final List<LatLng> polylinePoints = [startLocation, endLocation];
+                final List<LatLng> polylinePoints = [
+                  startLocation,
+                  endLocation
+                ];
                 final Polyline polyline = Polyline(
                   polylineId: PolylineId('myPolyline'),
                   color: Colors.white,
@@ -273,7 +290,6 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                 );
                 setState(() {
                   _mapPolyLines.add(polyline);
-
                 });
               }
             },
@@ -316,7 +332,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "መለያዎ : -  313",
+                                "መለያዎ :-  ${formatPhone(_selfPhone)}",
                                 style: TextStyle(
                                   fontSize: 24.0,
                                   color: Color.fromRGBO(255, 255, 255, 1.0),
@@ -344,19 +360,19 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Driver Name : Fuad Sefa',
+                            'ሹፌሮ ስም : ${_rideDetails?.driver_name ?? ''}',
                             style: driverDetailTextStyle,
                           ),
                           Text(
-                            'Driver Phone : 0912645911',
+                            'ሹፌሮ ስልክ : ${formatPhone(_rideDetails?.driver_phone ?? '')}',
                             style: driverDetailTextStyle,
                           ),
                           Text(
-                            'Car Color : 12345',
+                            'መኪና ታርጋ : ${_rideDetails?.car_plate ?? ''}',
                             style: driverDetailTextStyle,
                           ),
                           Text(
-                            'Car Plate : A-0-12345',
+                            'መኪና : ${_rideDetails?.car_details ?? ""}',
                             style: driverDetailTextStyle,
                           ),
                         ],
@@ -368,9 +384,8 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                 if (isCustomerArrivedAtPickup) ...[
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.35,
-                    left: MediaQuery.of(context).size.width * 0.16,
+                    left: MediaQuery.of(context).size.width * 0.08,
                     child: Container(
-                      width: MediaQuery.of(context).size.width * 0.80,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -385,19 +400,38 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                           ),
                           SizedBox(height: 10.0),
                           Text(
-                            'የአሽከርካሪው ስም : Fuad Sefa',
+                            'የአሽከርካሪው ስም : ${_rideDetails?.driver_name ?? ""}',
+                            style: driverDetailTextStyleBig,
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                'የአሽከርካሪው ስልክ: ${formatPhone(_rideDetails?.driver_phone ?? "")}',
+                                style: driverDetailTextStyleBig,
+                              ),
+                              SizedBox(width: 10.0),
+                              GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () async {
+                                  try {
+                                    PhoneCaller.callPhone(formatPhone(
+                                        _rideDetails!.driver_phone!));
+                                  } catch (err) {}
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(5.0),
+                                  child: Icon(Icons.phone,
+                                      size: 26.0, color: Colors.blue.shade900),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'የመኪናው ታርጋ ቁጥር : ${_rideDetails?.car_plate ?? ""}',
                             style: driverDetailTextStyleBig,
                           ),
                           Text(
-                            'የአሽከርካሪው ስልክ: 0912645911',
-                            style: driverDetailTextStyleBig,
-                          ),
-                          Text(
-                            'የመኪናው ቀለም : RED ',
-                            style: driverDetailTextStyleBig,
-                          ),
-                          Text(
-                            'የመኪናው ታርጋ ቁጥር : A-01-12345',
+                            'መኪናው : ${_rideDetails?.car_details ?? ""}',
                             style: driverDetailTextStyleBig,
                           ),
                         ],
@@ -480,7 +514,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                           offset: Offset(0.7, 0.7),
                         ),
                         label: Text(
-                          'ገብተዋል ? ',
+                          'ገብተዋል ?',
                           style: TextStyle(
                             color: Color.fromRGBO(231, 0, 0, 1),
                             fontWeight: FontWeight.bold,
@@ -516,7 +550,9 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   )
                 ],
 
-                if (!isCustomerArrivedAtPickup) ...[
+                if (metersToCar != -1 &&
+                    _rideDetails != null &&
+                    !isCustomerArrivedAtPickup) ...[
                   Positioned(
                     bottom: MediaQuery.of(context).size.height * 0.18,
                     left: MediaQuery.of(context).size.width * 0.2,
@@ -524,7 +560,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                       width: MediaQuery.of(context).size.width * 0.6,
                       child: Center(
                         child: Text(
-                          '2 ሰው የቀረው ...',
+                          '${_rideDetails?.seats_remaining ?? 4} ሰው የቀረው ...',
                           style: TextStyle(
                             fontSize: 30.0,
                             letterSpacing: 1.0,
@@ -536,7 +572,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                     ),
                   ),
                 ],
-                  // on trip UI must be started after the swipe is approved by driver and trip started
+                // on trip UI must be started after the swipe is approved by driver and trip started
                 if (isTripStarted) ...[
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.25,
@@ -568,7 +604,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'Bole',
+                                  "Current Location",
                                   style: TextStyle(
                                     fontSize: 15.0,
                                     color: Colors.grey,
@@ -581,7 +617,6 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                       ),
                     ),
                   ),
-
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.67,
                     left: MediaQuery.of(context).size.width * 0.37,
@@ -612,7 +647,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                                   ),
                                 ),
                                 Text(
-                                  'bethel',
+                                  _rideDetails?.place_name ?? "",
                                   style: TextStyle(
                                     fontSize: 15.0,
                                     color: Colors.grey,
@@ -627,8 +662,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   ),
                 ],
 
-
-                if(isTripCompleted) ...[
+                if (isTripCompleted) ...[
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.35,
                     left: MediaQuery.of(context).size.width * 0.16,
