@@ -81,7 +81,7 @@ class SharedRideBroadcast {
       ..car_plate = data["car_plate"] ?? null
       ..car_details = data["car_details"] ?? null
       ..is_six_seater = data["is_six_seater"] ?? null
-      ..est_price = data["est_price"] ?? null
+      ..est_price = (data["est_price"] ?? 0) + 0.0 ?? null
       ..is_price_calculated = data["is_price_calculated"] ?? null
       ..is_order_confirmed = data["is_order_confirmed"] ?? null
       ..is_broadcast_launched = data["is_broadcast_launched"] ?? null
