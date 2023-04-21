@@ -717,7 +717,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   ),
                 ],
                 // on trip UI must be started after the swipe is approved by driver and trip started
-                if (isTripStarted) ...[
+                if (customerAcceptedIntoCar) ...[
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.25,
                     left: MediaQuery.of(context).size.width * 0.28,
@@ -748,7 +748,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                                   ),
                                 ),
                                 Text(
-                                  "Current Location",
+                                  "Location",
                                   style: TextStyle(
                                     fontSize: 15.0,
                                     color: Colors.grey,
