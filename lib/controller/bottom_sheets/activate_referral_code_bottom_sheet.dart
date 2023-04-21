@@ -16,6 +16,8 @@ import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
 import 'package:safe/models/customer_referral.dart';
 
+import '../shared_rides_where_to_go_screen.dart';
+
 class ActivateReferralCodeBottomSheet extends BaseBottomSheet {
   static const String KEY = 'ActivateReferralCodeBottomSheet';
 
@@ -110,8 +112,8 @@ class _ActivateReferralCodeBottomSheetState
 
     switch (_refState) {
       case REFERRAL_STATE_NOT_ENOUGH_LENGTH:
-        bkgndColorValLeft = 0xff990000;
-        bkgndColorValRight = 0xffDE0000;
+        bkgndColorValLeft = 0xffF0f0f0;
+        bkgndColorValRight = 0xff000000;
         break;
       case REFERRAL_STATE_VALID_REFERRAL:
         bkgndColorValLeft = 0xff009900;
@@ -119,9 +121,9 @@ class _ActivateReferralCodeBottomSheetState
         break;
       case REFERRAL_STATE_INVALID_REFERRAL:
       default:
-        bkgndColorValLeft = 0xffF0f0f0;
-        bkgndColorValRight = 0xff000000;
-        break;
+      bkgndColorValLeft = 0xff990000;
+      bkgndColorValRight = 0xffDE0000;
+      break;
     }
 
     return Padding(
@@ -147,17 +149,39 @@ class _ActivateReferralCodeBottomSheetState
                 child: Column(
                   children: <Widget>[
                     Container(
-                        height: MediaQuery.of(context).size.height * 0.07,
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                              top: MediaQuery.of(context).size.height * 0.027),
-                          child: Text('Referral Code',
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 16.0,
-                                  fontFamily: 'Lato')),
-                        )),
+                      height: MediaQuery.of(context).size.height * 0.05,
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                            top: MediaQuery.of(context).size.height * 0.027),
+                        child: Text(
+                          'Referral Code',
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 6.0,
+                              fontFamily: 'Lato'),
+                        ),
+                      ),
+                    ),
+
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => SharedRidesWhereToGoScreen()),
+                        );
+                      },
+                      child: Center(
+                        child: Container(
+                          height: MediaQuery.of(context).size.height * 0.1,
+                          child: Image(
+                            image: AssetImage('images/yegna.png'),
+                          ),
+                        ),
+                      ),
+                    ),
                     Container(
                       decoration: BoxDecoration(
                         image: DecorationImage(
@@ -192,7 +216,7 @@ class _ActivateReferralCodeBottomSheetState
                             fieldStyle: FieldStyle.box,
                             outlineBorderRadius: 10,
                             otpFieldStyle: OtpFieldStyle(
-                              borderColor: Color(0xff990000),
+                              borderColor: Color(0x8ef11414),
                               focusBorderColor: Color(0xffDE0000),
                               enabledBorderColor: Color(0xff990000),
                             ),

@@ -29,7 +29,7 @@ enum Gender { female, male }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final picker = ImagePicker();
+ // final picker = ImagePicker();
   TextEditingController _nameController = TextEditingController();
   TextEditingController _lastNameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
@@ -105,6 +105,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             fontWeight: FontWeight.bold,
                             foreground: Paint()..shader = linearGradient)),
                   ),
+                /*
                   GestureDetector(
                     onTap: () async {
                       XFile? pickedXFile =
@@ -170,6 +171,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ],
                     ),
                   ),
+
+                 */
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.383,
                     left: MediaQuery.of(context).size.width * 0.11,
@@ -282,6 +285,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               ],
                             ),
                           ),
+                          /*
                           Padding(
                             padding: EdgeInsets.only(
                                 top: MediaQuery.of(context).size.height * 0.02,
@@ -306,6 +310,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               ),
                             ),
                           ),
+
+                           */
                           Container(
                             width: MediaQuery.of(context).size.width * 0.8,
                             child: Row(

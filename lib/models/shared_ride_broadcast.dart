@@ -57,13 +57,7 @@ class SharedRideBroadcast {
 
   String? place_name;
   String? place_id;
-  @JsonKey(
-      fromJson: FirebaseDocument.LatLngFromJson,
-      toJson: FirebaseDocument.LatLngToJson)
   LatLng? place_loc;
-  @JsonKey(
-      fromJson: FirebaseDocument.LatLngFromJson,
-      toJson: FirebaseDocument.LatLngToJson)
   LatLng? initial_loc;
 
   int? created_timestamp;
@@ -76,8 +70,9 @@ class SharedRideBroadcast {
   String? car_details;
   bool? is_six_seater;
 
-  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? est_price;
+  double? distance_km;
+  double? duration_minutes;
 
   bool? is_price_calculated;
   bool? is_order_confirmed;
@@ -143,6 +138,8 @@ class SharedRideBroadcast {
       ..car_details = data["car_details"] ?? null
       ..is_six_seater = data["is_six_seater"] ?? null
       ..est_price = (data["est_price"] ?? 0) + 0.0 ?? null
+      ..distance_km = (data["distance_km"] ?? 0) + 0.0 ?? null
+      ..duration_minutes = (data["duration_minutes"] ?? 0) + 0.0 ?? null
       ..is_price_calculated = data["is_price_calculated"] ?? null
       ..is_order_confirmed = data["is_order_confirmed"] ?? null
       ..is_broadcast_launched = data["is_broadcast_launched"] ?? null
