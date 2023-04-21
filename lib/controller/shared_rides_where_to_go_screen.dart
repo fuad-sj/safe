@@ -478,6 +478,8 @@ class _AvailableDriverListItem extends StatefulWidget {
 class _AvailableRideListState extends State<_AvailableDriverListItem> {
   Widget _getCarSeaterWidget(bool is_four_seater, double money_amount,
       double hWidth, double vHeight, double DPI) {
+    double per_person_price = money_amount / (is_four_seater ? 4.0 : 6.0);
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
@@ -510,7 +512,7 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
                     ),
                   ),
                   Text(
-                    '${AlphaNumericUtil.formatDouble(money_amount, 2)} ብር',
+                    '${AlphaNumericUtil.formatDouble(per_person_price, 1)} ብር',
                     style: TextStyle(
                         fontFamily: 'Nokia Pure Headline Bold',
                         fontSize: 40 / DPI,
