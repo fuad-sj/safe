@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -68,8 +70,13 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
   bool isCompassAvailable = false;
 
   double metersToCar = -1;
-  bool isCustomerArrivedAtPickup = false;
   double fontSizeMultiplier = 1.0;
+
+  bool isCustomerArrivedAtPickup = false;
+
+  bool customerSwipedToEnter = false;
+  bool customerAcceptedIntoCar = false;
+
   bool isTripStarted = false;
   bool isTripCompleted = false;
 
@@ -156,6 +163,22 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
       _rideDetails = SharedRideBroadcast.fromSnapshot(event.snapshot);
       if (_rideDetails?.ride_id == null) return;
 
+      if (_rideDetails?.accepted_customers != null) {
+        String self_id = FirebaseAuth.instance.currentUser!.uid;
+        SharedRideAcceptedCustomer? occurrence = _rideDetails
+            ?.accepted_customers
+            ?.firstWhere((customer) => customer.customer_id == self_id,
+                orElse: () =>
+                    SharedRideAcceptedCustomer()..customer_id = "none");
+
+        // we've been selected into accepted customer list
+        if (occurrence != null && occurrence.customer_id != "none") {
+          customerAcceptedIntoCar = true;
+        } else {
+          customerAcceptedIntoCar = false;
+        }
+      }
+
       if (mounted) {
         setState(() {});
       }
@@ -187,7 +210,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
             _currentLocation!.longitude,
             _rideLocation!.latitude!,
             _rideLocation!.longitude!);
-        isCustomerArrivedAtPickup = metersToCar < 8.0;
+        isCustomerArrivedAtPickup = metersToCar < 100.0;
         fontSizeMultiplier = isCustomerArrivedAtPickup ? 2.0 : 1.0;
       }
 
@@ -350,7 +373,8 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   ),
                 ),
 
-                if (!isCustomerArrivedAtPickup) ...[
+                if (!isCustomerArrivedAtPickup && !customerSwipedToEnter) ...[
+                  // Car details upto
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.15,
                     left: MediaQuery.of(context).size.width * 0.082,
@@ -374,6 +398,104 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                           Text(
                             'መኪና : ${_rideDetails?.car_details ?? ""}',
                             style: driverDetailTextStyle,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Arrow Pointer
+                  Positioned(
+                    top: MediaQuery.of(context).size.height * 0.414,
+                    left: MediaQuery.of(context).size.width * 0.090,
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    //height: MediaQuery.of(context).size.height * 0.60,
+                    child: Container(
+                      color: Colors.transparent,
+                      child: Container(
+                        //height: MediaQuery.of(context).size.height * 0.19,
+                        child: Center(
+                          child: AnimatedRotation(
+                            turns: getAdjustedTurn(),
+                            duration: Duration(milliseconds: 400),
+                            child: Container(
+                              width: MediaQuery.of(context).size.width * 0.23,
+                              height: MediaQuery.of(context).size.width * 0.30,
+                              child: Image(
+                                image: arrowImage,
+                                color: isCorrectHeading
+                                    ? Colors.amber.shade400
+                                    : Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // Compass
+                  if (loadingFinished && isCompassAvailable) ...[
+                    Positioned(
+                      top: MediaQuery.of(context).size.height * 0.30,
+                      left: MediaQuery.of(context).size.width * 0.10,
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      height: MediaQuery.of(context).size.width * 0.8,
+                      child: Container(
+                        color: Colors.transparent,
+                        child: Container(
+                          child: Center(
+                            child: AnimatedRotation(
+                              turns: _lastReadCompassTurns,
+                              duration: Duration(milliseconds: 400),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                      image: compassImage, fit: BoxFit.fill),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  // To your left or right
+                  Positioned(
+                    bottom: MediaQuery.of(context).size.height * 0.06,
+                    left: MediaQuery.of(context).size.width * 0.082,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.82,
+                      child: Row(
+                        children: [
+                          Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  distanceToCar(),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 41,
+                                      fontFamily: 'Lato',
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                Text(
+                                  isCorrectHeading
+                                      ? ""
+                                      : (_computedOffsetHeading < 0
+                                          ? 'በስተ ግራ'
+                                          : 'በስተ ቀኝ'),
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontFamily: "Nokia Pure Headline Bold",
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -438,121 +560,143 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                       ),
                     ),
                   ),
-                ],
 
-                if (!isCustomerArrivedAtPickup) ...[
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.414,
-                    left: MediaQuery.of(context).size.width * 0.090,
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    //height: MediaQuery.of(context).size.height * 0.60,
-                    child: Container(
-                      color: Colors.transparent,
+                  // Swipe to start
+                  if (!customerSwipedToEnter && _rideDetails != null) ...[
+                    Positioned(
+                      bottom: MediaQuery.of(context).size.height * 0.28,
+                      left: MediaQuery.of(context).size.width * 0.2,
                       child: Container(
-                        //height: MediaQuery.of(context).size.height * 0.19,
-                        child: Center(
-                          child: AnimatedRotation(
-                            turns: getAdjustedTurn(),
-                            duration: Duration(milliseconds: 400),
+                        width: MediaQuery.of(context).size.width * 0.60,
+                        height: MediaQuery.of(context).size.height * 0.07,
+                        child: SliderButton(
+                          sliderKey: 'Arrived at Pickup',
+                          action: () async {
+                            customerSwipedToEnter = true;
+
+                            String self_id =
+                                FirebaseAuth.instance.currentUser!.uid;
+                            String self_phone = formatPhone(_selfPhone);
+
+                            Map<String, dynamic> rideDetails = new Map();
+
+                            List<SharedRideReachOutCustomer> prev_reached_out =
+                                _rideDetails?.reached_out_customers ?? [];
+                            SharedRideReachOutCustomer occurrence =
+                                prev_reached_out.firstWhere(
+                                    (customer) =>
+                                        customer.customer_id == self_id,
+                                    orElse: () => SharedRideReachOutCustomer()
+                                      ..customer_id = "none");
+
+                            // current customer existed before, can't do anything about it
+                            if (occurrence.customer_id == "none") {
+                              prev_reached_out.add(SharedRideReachOutCustomer()
+                                ..customer_id = self_id
+                                ..customer_phone = self_phone);
+                              rideDetails[SharedRideBroadcast
+                                      .FIELD_REACHED_OUT_CUSTOMERS] =
+                                  SharedRideBroadcast
+                                      .SharedRideReachOutCustomers_ToJson(
+                                          prev_reached_out);
+
+                              await FirebaseDatabase.instanceFor(
+                                      app: Firebase.app(),
+                                      databaseURL: SharedRideBroadcast
+                                          .SHARED_RIDE_DATABASE_ROOT)
+                                  .ref()
+                                  .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
+                                  .child(widget.selectedRideId)
+                                  .update(rideDetails);
+                            }
+
+                            setState(() {});
+                          },
+                          boxShadow: BoxShadow(
+                            color: Colors.grey.shade500,
+                            blurRadius: 8.0,
+                            spreadRadius: 0.5,
+                            offset: Offset(0.7, 0.7),
+                          ),
+                          label: Text(
+                            'ገብተዋል ?',
+                            style: TextStyle(
+                              color: Color.fromRGBO(231, 0, 0, 1),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 23,
+                            ),
+                          ),
+                          icon: CircleAvatar(
+                            backgroundColor: Colors.transparent,
+                            radius: 25.0,
                             child: Container(
-                              width: MediaQuery.of(context).size.width * 0.23,
-                              height: MediaQuery.of(context).size.width * 0.30,
-                              child: Image(
-                                image: arrowImage,
-                                color: isCorrectHeading
-                                    ? Colors.amber.shade400
-                                    : Colors.white,
+                              decoration: BoxDecoration(
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.5),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: Offset(0, 3),
+                                  ),
+                                ],
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: Image(
+                                  image: AssetImage('images/swip_logo.png'),
+                                ),
                               ),
                             ),
                           ),
+                          width: double.infinity,
+                          backgroundColor: Colors.white,
+                        ),
+                      ),
+                    )
+                  ],
+                ],
+
+                if (customerSwipedToEnter && !customerAcceptedIntoCar) ...[
+                  Positioned(
+                    bottom: MediaQuery.of(context).size.height * 0.20,
+                    left: MediaQuery.of(context).size.width * 0.2,
+                    child: Container(
+                      width: MediaQuery.of(context).size.width * 0.6,
+                      child: Center(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            SpinKitFadingCircle(
+                              itemBuilder: (_, int index) {
+                                return DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    color: index.isEven
+                                        ? Color.fromRGBO(131, 1, 1, 1.0)
+                                        : Color.fromRGBO(255, 0, 0, 1.0),
+                                  ),
+                                );
+                              },
+                            ),
+                            SizedBox(height: 10.0),
+                            Text(
+                              'የሹፌር ምላሽ እየጠበቀ ነው',
+                              style: TextStyle(
+                                fontSize: 30.0,
+                                letterSpacing: 1.0,
+                                color: Color.fromRGBO(255, 255, 255, 1.0),
+                                fontFamily: "Nokia Pure Headline Bold",
+                              ),
+                            )
+                          ],
                         ),
                       ),
                     ),
                   ),
-                  if (loadingFinished && isCompassAvailable) ...[
-                    // Compass
-                    Positioned(
-                      top: MediaQuery.of(context).size.height * 0.30,
-                      left: MediaQuery.of(context).size.width * 0.10,
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      height: MediaQuery.of(context).size.width * 0.8,
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Container(
-                          child: Center(
-                            child: AnimatedRotation(
-                              turns: _lastReadCompassTurns,
-                              duration: Duration(milliseconds: 400),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  image: DecorationImage(
-                                      image: compassImage, fit: BoxFit.fill),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-                // Meters Left
-                if (isCustomerArrivedAtPickup) ...[
-                  Positioned(
-                    bottom: MediaQuery.of(context).size.height * 0.28,
-                    left: MediaQuery.of(context).size.width * 0.2,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.60,
-                      height: MediaQuery.of(context).size.height * 0.07,
-                      child: SliderButton(
-                        sliderKey: 'Arrived at Pickup',
-                        action: () async {},
-                        boxShadow: BoxShadow(
-                          color: Colors.grey.shade500,
-                          blurRadius: 8.0,
-                          spreadRadius: 0.5,
-                          offset: Offset(0.7, 0.7),
-                        ),
-                        label: Text(
-                          'ገብተዋል ?',
-                          style: TextStyle(
-                            color: Color.fromRGBO(231, 0, 0, 1),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 23,
-                          ),
-                        ),
-                        icon: CircleAvatar(
-                          backgroundColor: Colors.transparent,
-                          radius: 25.0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.grey.withOpacity(0.5),
-                                  spreadRadius: 2,
-                                  blurRadius: 5,
-                                  offset: Offset(0, 3),
-                                ),
-                              ],
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: Image(
-                                image: AssetImage('images/swip_logo.png'),
-                              ),
-                            ),
-                          ),
-                        ),
-                        width: double.infinity,
-                        backgroundColor: Colors.white,
-                      ),
-                    ),
-                  )
                 ],
 
                 if (metersToCar != -1 &&
                     _rideDetails != null &&
-                    !isCustomerArrivedAtPickup) ...[
+                    !customerSwipedToEnter) ...[
                   Positioned(
                     bottom: MediaQuery.of(context).size.height * 0.18,
                     left: MediaQuery.of(context).size.width * 0.2,
@@ -697,54 +841,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                       ),
                     ),
                   )
-
                 ],
-
-                //ende here
-
-                Positioned(
-                  bottom: MediaQuery.of(context).size.height * 0.06,
-                  left: MediaQuery.of(context).size.width * 0.082,
-                  /*
-                  width: MediaQuery.of(context).size.width * 0.8,
-                  height: MediaQuery.of(context).size.width * 0.8,
-                   */
-                  child: Container(
-                    width: MediaQuery.of(context).size.width * 0.82,
-                    child: Row(
-                      children: [
-                        Container(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                distanceToCar(),
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 41,
-                                    fontFamily: 'Lato',
-                                    fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                isCorrectHeading
-                                    ? ""
-                                    : (_computedOffsetHeading < 0
-                                        ? 'በስተ ግራ'
-                                        : 'በስተ ቀኝ'),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontFamily: "Nokia Pure Headline Bold",
-                                  letterSpacing: 1.0,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               ],
             ),
           ),

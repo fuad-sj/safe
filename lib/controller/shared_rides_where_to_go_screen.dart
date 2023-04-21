@@ -179,12 +179,12 @@ class _SharedRidesWhereToGoScreenState
         SharedRideBroadcast broadcast =
             SharedRideBroadcast.fromMap(value as Map, key as String);
 
-        if (!broadcast.isValidOrderToConsider()) {
+        if (broadcast.ride_id == null || !broadcast.isValidOrderToConsider()) {
           return;
         }
-        _rideBroadcastDetails[broadcast.ride_id] = broadcast;
+        _rideBroadcastDetails[broadcast.ride_id!] = broadcast;
 
-        updateBroadCastDistanceAndAggregate(broadcast.ride_id);
+        updateBroadCastDistanceAndAggregate(broadcast.ride_id!);
 
         // if all load finished, update ui
         if (rideBroadcasts.length == _rideBroadcastDetails.length) {
@@ -206,13 +206,13 @@ class _SharedRidesWhereToGoScreenState
       SharedRideBroadcast broadcast =
           SharedRideBroadcast.fromSnapshot(event.snapshot);
 
-      if (!broadcast.isValidOrderToConsider()) {
+      if (broadcast.ride_id == null || !broadcast.isValidOrderToConsider()) {
         return;
       }
 
-      _rideBroadcastDetails[broadcast.ride_id] = broadcast;
+      _rideBroadcastDetails[broadcast.ride_id!] = broadcast;
 
-      updateBroadCastDistanceAndAggregate(broadcast.ride_id);
+      updateBroadCastDistanceAndAggregate(broadcast.ride_id!);
 
       if (mounted) {
         setState(() {
@@ -231,13 +231,13 @@ class _SharedRidesWhereToGoScreenState
       SharedRideBroadcast broadcast =
           SharedRideBroadcast.fromSnapshot(event.snapshot);
 
-      if (!broadcast.isValidOrderToConsider()) {
+      if (broadcast.ride_id == null || !broadcast.isValidOrderToConsider()) {
         return;
       }
 
-      _rideBroadcastDetails[broadcast.ride_id] = broadcast;
+      _rideBroadcastDetails[broadcast.ride_id!] = broadcast;
 
-      updateBroadCastDistanceAndAggregate(broadcast.ride_id);
+      updateBroadCastDistanceAndAggregate(broadcast.ride_id!);
 
       if (mounted) {
         setState(() {
@@ -271,12 +271,12 @@ class _SharedRidesWhereToGoScreenState
     if (!_rideBroadcastDetails.containsKey(ride_id)) return;
 
     SharedRideBroadcast broadcast = _rideBroadcastDetails[ride_id]!;
-    String place_id = broadcast.place_id;
+    String place_id = broadcast.place_id!;
 
     if (!_placeRideAggregate.containsKey(place_id)) {
       _placeRideAggregate[place_id] = SharedRidePlaceAggregate(
         place_id: place_id,
-        place_name: broadcast.place_name,
+        place_name: broadcast.place_name!,
       );
     }
 
@@ -317,7 +317,7 @@ class _SharedRidesWhereToGoScreenState
     SharedRideBroadcast ride_A = _rideBroadcastDetails[rideIdA]!;
     SharedRideBroadcast ride_B = _rideBroadcastDetails[rideIdB]!;
 
-    return ride_A.created_timestamp.compareTo(ride_B.created_timestamp);
+    return ride_A.created_timestamp!.compareTo(ride_B.created_timestamp!);
   }
 
   List<MapEntry<String, SharedRidePlaceAggregate>> sortedPlaces() {
