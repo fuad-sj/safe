@@ -10,6 +10,7 @@ class Geofire {
   static const onKeyEntered = "onKeyEntered";
   static const onGeoQueryReady = "onGeoQueryReady";
   static const onKeyMoved = "onKeyMoved";
+  static const onKeyChanged = "onKeyChanged";
   static const onKeyExited = "onKeyExited";
 
   static Stream<dynamic>? _queryAtLocation;
@@ -17,7 +18,7 @@ class Geofire {
   static Future<bool> initialize(
       String path, {bool is_default = true, String root = ""}) async {
     final dynamic r = await _channel.invokeMethod(
-        'GeoFire.start', <String, dynamic>{
+        'initialize', <String, dynamic>{
       "path": path,
       "is_default": is_default,
       "root": root
@@ -54,8 +55,6 @@ class Geofire {
       location[key] = value;
     });
 
-    // print(location);
-
     return location;
   }
 
@@ -63,9 +62,7 @@ class Geofire {
       double lat, double lng, double radius) {
     _channel.invokeMethod('queryAtLocation',
         {"lat": lat, "lng": lng, "radius": radius}).then((result) {
-      // print("result" + result);
     }).catchError((error) {
-      // print("Error " + error);
     });
 
     if (_queryAtLocation == null) {

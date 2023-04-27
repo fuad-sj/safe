@@ -35,5 +35,8 @@ android {
 
 
 dependencies {
-    implementation 'com.firebase:geofire-android:3.1.0'
+
+    implementation 'com.google.firebase:firebase-database:20.0.5'
+    implementation 'com.google.firebase:firebase-database-ktx:20.0.5'
+    //implementation 'com.firebase:geofire-android:3.1.0'
 }
