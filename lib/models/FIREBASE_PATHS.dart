@@ -1,8 +1,7 @@
 class FIREBASE_DB_PATHS {
   static final PATH_VEHICLE_LOCATIONS = 'vehicle_locations';
 
-  static final SHARED_RIDE_LOCATIONS = 'ride_locations';
-  static final SHARED_RIDE_DETAILS = 'ride_details';
+  static final SHARED_RIDE_BROADCASTS = 'ride_broadcasts';
 }
 
 class FIRESTORE_PATHS {

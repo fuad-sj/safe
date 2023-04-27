@@ -1,10 +1,6 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:dartx/dartx_io.dart';
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
@@ -31,25 +27,16 @@ class _SharedRidesWhereToGoScreenState
     extends State<SharedRidesWhereToGoScreen> {
   StreamSubscription<dynamic>? _geofireStream;
 
-  StreamSubscription? _rideAddedDetailsStream;
-  StreamSubscription? _rideUpdatedDetailsStream;
-
-  bool _geoFireInitialized = false;
-
-  Set<String> _validRideIDs = Set();
-  Set<String> _loadedRideDetails = Set();
-
-  Map<String, SharedRideLocation> _rideLocations = Map();
-  Map<String, SharedRideBroadcast> _rideBroadcastDetails = Map();
+  Map<String, SharedRideBroadcast> _rideBroadcasts = Map();
 
   Map<String, SharedRidePlaceAggregate> _placeRideAggregate = Map();
 
   StreamSubscription? _locationStreamSubscription;
   late Location liveLocation;
 
-  LatLng? current_location;
+  LatLng? currentLocation;
 
-  List<MapEntry<String, SharedRidePlaceAggregate>> _destination_places = [];
+  List<MapEntry<String, SharedRidePlaceAggregate>> _destinationPlaces = [];
 
   @override
   void initState() {
@@ -58,40 +45,31 @@ class _SharedRidesWhereToGoScreenState
     Future.delayed(Duration.zero, () async {
       liveLocation = new Location();
 
-      await Geofire.initialize(FIREBASE_DB_PATHS.SHARED_RIDE_LOCATIONS,
+      await Geofire.initialize(FIREBASE_DB_PATHS.SHARED_RIDE_BROADCASTS,
           is_default: false,
           root: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT);
-      _geoFireInitialized = true;
 
-      attachGeofireQuery();
-      attachFirebaseListener();
+      setupNearbyOrdersQuery();
     });
   }
 
   @override
   void dispose() {
-    if (_geoFireInitialized) {
-      Geofire.stopListener();
-    }
-
-    _loadedRideDetails.clear();
-    _validRideIDs.clear();
+    Future.delayed(Duration.zero, () async {
+      await Geofire.stopListener();
+    });
 
     _geofireStream?.cancel();
-
-    _rideAddedDetailsStream?.cancel();
-    _rideUpdatedDetailsStream?.cancel();
 
     _locationStreamSubscription?.cancel();
 
     super.dispose();
   }
 
-  Future<void> attachGeofireQuery() async {
-    final String FIELD_CALLBACK = 'callBack';
-    final String FIELD_KEY = 'key';
-    final String FIELD_LATITUDE = 'latitude';
-    final String FIELD_LONGITUDE = 'longitude';
+  Future<void> setupNearbyOrdersQuery() async {
+    final String fieldCallback = 'callBack';
+    final String fieldKey = 'key';
+    final String fieldVal = 'val';
 
     PermissionStatus permissionStatus = await liveLocation.hasPermission();
     if (permissionStatus == PermissionStatus.denied) {
@@ -102,11 +80,11 @@ class _SharedRidesWhereToGoScreenState
     }
     var locData = await liveLocation.getLocation();
 
-    current_location = new LatLng(locData.latitude!, locData.longitude!);
+    currentLocation = new LatLng(locData.latitude!, locData.longitude!);
 
     _locationStreamSubscription =
         liveLocation.onLocationChanged.listen((LocationData locData) async {
-      current_location = new LatLng(locData.latitude!, locData.longitude!);
+      currentLocation = new LatLng(locData.latitude!, locData.longitude!);
     });
 
     /**
@@ -114,39 +92,47 @@ class _SharedRidesWhereToGoScreenState
      * i.e: it doesn't accommodate for changes in the user's live position
      */
     _geofireStream =
-        Geofire.queryAtLocation(locData.latitude!, locData.longitude!, 1.0)
+        Geofire.queryAtLocation(locData.latitude!, locData.longitude!, 10.0)
             ?.listen(
       (obj) async {
         if (obj == null) {
           return;
         }
 
-        var callBack = obj[FIELD_CALLBACK];
+        var callBack = obj[fieldCallback];
 
         if (callBack != Geofire.onGeoQueryReady) {
-          String ride_id = obj[FIELD_KEY];
+          String rideId = obj[fieldKey];
 
           switch (callBack) {
             case Geofire.onKeyEntered:
             case Geofire.onKeyMoved:
-              _validRideIDs.add(ride_id);
-              _rideLocations[ride_id] = SharedRideLocation(
-                ride_id: ride_id,
-                latitude: obj[FIELD_LATITUDE],
-                longitude: obj[FIELD_LONGITUDE],
-              );
+            case Geofire.onKeyChanged:
+              Map body = obj[fieldVal] as Map;
 
-              updateBroadCastDistanceAndAggregate(ride_id);
+              SharedRideBroadcast broadcast =
+                  SharedRideBroadcast.fromMap(body, rideId);
+
+              broadcast.distance_to_broadcast = Geolocator.distanceBetween(
+                  broadcast.broadcast_loc!.latitude,
+                  broadcast.broadcast_loc!.longitude,
+                  currentLocation!.latitude,
+                  currentLocation!.longitude);
+
+              _rideBroadcasts[rideId] = broadcast;
+
+              updatePlaceRideAggregate(rideId);
+
               if (mounted) {
                 setState(() {
-                  _destination_places = sortedPlaces();
+                  _destinationPlaces = sortedPlaces();
                 });
               }
               break;
 
             case Geofire.onKeyExited:
-              _validRideIDs.remove(ride_id);
-              _rideLocations.remove(ride_id);
+              updatePlaceRideAggregate(rideId, isRemoveOperation: true);
+              _rideBroadcasts.remove(rideId);
               // TODO: update if ride has moved out of search radius
 
               break;
@@ -155,153 +141,71 @@ class _SharedRidesWhereToGoScreenState
 
         if (mounted) {
           setState(() {
-            _destination_places = sortedPlaces();
+            _destinationPlaces = sortedPlaces();
           });
         }
       },
     );
   }
 
-  Future<void> attachFirebaseListener() async {
-    var data = await FirebaseDatabase.instanceFor(
-            app: Firebase.app(),
-            databaseURL: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT)
-        .ref()
-        .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
-        .get();
+  void updatePlaceRideAggregate(String rideId,
+      {bool isRemoveOperation = false}) {
+    SharedRideBroadcast broadcast = _rideBroadcasts[rideId]!;
+    String placeId = broadcast.ride_details!.place_id!;
 
-    // if there is no document, it is null
-    if (data.value != null) {
-      LinkedHashMap<Object?, Object?> rideBroadcasts =
-          data.value as LinkedHashMap;
-
-      rideBroadcasts.forEach((key, value) {
-        SharedRideBroadcast broadcast =
-            SharedRideBroadcast.fromMap(value as Map, key as String);
-
-        if (broadcast.ride_id == null || !broadcast.isValidOrderToConsider()) {
-          return;
-        }
-        _rideBroadcastDetails[broadcast.ride_id!] = broadcast;
-
-        updateBroadCastDistanceAndAggregate(broadcast.ride_id!);
-
-        // if all load finished, update ui
-        if (rideBroadcasts.length == _rideBroadcastDetails.length) {
-          if (mounted) {
-            _destination_places = sortedPlaces();
-            setState(() {});
-          }
-        }
-      });
-    }
-
-    _rideAddedDetailsStream = FirebaseDatabase.instanceFor(
-            app: Firebase.app(),
-            databaseURL: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT)
-        .ref()
-        .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
-        .onChildAdded
-        .listen((event) async {
-      SharedRideBroadcast broadcast =
-          SharedRideBroadcast.fromSnapshot(event.snapshot);
-
-      if (broadcast.ride_id == null || !broadcast.isValidOrderToConsider()) {
+    if (isRemoveOperation) {
+      // if the an aggregate already doesn't exist for a place, good riddance
+      if (!_placeRideAggregate.containsKey(placeId)) {
         return;
       }
 
-      _rideBroadcastDetails[broadcast.ride_id!] = broadcast;
+      SharedRidePlaceAggregate aggregate = _placeRideAggregate[placeId]!;
 
-      updateBroadCastDistanceAndAggregate(broadcast.ride_id!);
-
-      if (mounted) {
-        setState(() {
-          _destination_places = sortedPlaces();
-        });
-      }
-    });
-
-    _rideUpdatedDetailsStream = FirebaseDatabase.instanceFor(
-            app: Firebase.app(),
-            databaseURL: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT)
-        .ref()
-        .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
-        .onChildChanged
-        .listen((event) async {
-      SharedRideBroadcast broadcast =
-          SharedRideBroadcast.fromSnapshot(event.snapshot);
-
-      if (broadcast.ride_id == null || !broadcast.isValidOrderToConsider()) {
+      aggregate.all_rides_to_place.remove(rideId);
+      // if the ride was the only one to that place, remove place aggregate altogether
+      if (aggregate.all_rides_to_place.isEmpty) {
+        _placeRideAggregate.remove(placeId);
         return;
       }
 
-      _rideBroadcastDetails[broadcast.ride_id!] = broadcast;
-
-      updateBroadCastDistanceAndAggregate(broadcast.ride_id!);
-
-      if (mounted) {
-        setState(() {
-          _destination_places = sortedPlaces();
-        });
-      }
-    });
-  }
-
-  Future<void> updateBroadCastDistanceAndAggregate(String ride_id) async {
-    computeDistanceToBroadcast(ride_id);
-    aggregateByPlace(ride_id);
-  }
-
-  Future<void> computeDistanceToBroadcast(String ride_id) async {
-    if (!_rideBroadcastDetails.containsKey(ride_id) ||
-        !_rideLocations.containsKey(ride_id) ||
-        current_location == null) return;
-
-    SharedRideBroadcast broadcast = _rideBroadcastDetails[ride_id]!;
-    SharedRideLocation location = _rideLocations[ride_id]!;
-
-    broadcast.distance_to_broadcast = Geolocator.distanceBetween(
-        location.latitude!,
-        location.longitude!,
-        current_location!.latitude,
-        current_location!.longitude);
-  }
-
-  Future<void> aggregateByPlace(String ride_id) async {
-    if (!_rideBroadcastDetails.containsKey(ride_id)) return;
-
-    SharedRideBroadcast broadcast = _rideBroadcastDetails[ride_id]!;
-    String place_id = broadcast.place_id!;
-
-    if (!_placeRideAggregate.containsKey(place_id)) {
-      _placeRideAggregate[place_id] = SharedRidePlaceAggregate(
-        place_id: place_id,
-        place_name: broadcast.place_name!,
-      );
-    }
-
-    bool loc_available = _rideLocations.containsKey(ride_id);
-
-    SharedRidePlaceAggregate aggregate = _placeRideAggregate[place_id]!;
-    if (broadcast.is_six_seater!) {
-      aggregate.six_seater_est_price = broadcast.est_price;
-      aggregate.all_six_seater_rides.add(ride_id);
-
-      if (loc_available) {
-        if (!aggregate.prev_seen_nearby_six_seater_rides.contains(ride_id)) {
-          aggregate.prev_seen_nearby_six_seater_rides.add(ride_id);
-          aggregate.nearby_six_seater_rides.add(ride_id);
-        }
-        aggregate.nearby_six_seater_rides.sort(_compareRidesForSorting);
+      if (broadcast.ride_details!.is_six_seater!) {
+        aggregate.all_six_seater_rides.remove(rideId);
+        aggregate.prev_seen_nearby_six_seater_rides.remove(rideId);
+        // no need to update sort, as removing preserves order of the remaining fields
+        aggregate.nearby_six_seater_rides.remove(rideId);
+      } else {
+        aggregate.all_four_seater_rides.remove(rideId);
+        aggregate.prev_seen_nearby_four_seater_rides.remove(rideId);
+        // no need to update sort, as removing preserves order of the remaining fields
+        aggregate.nearby_four_seater_rides.remove(rideId);
       }
     } else {
-      aggregate.four_seater_est_price = broadcast.est_price;
-      aggregate.all_four_seater_rides.add(ride_id);
+      if (!_placeRideAggregate.containsKey(placeId)) {
+        _placeRideAggregate[placeId] = SharedRidePlaceAggregate(
+          place_id: placeId,
+          place_name: broadcast.ride_details!.place_name!,
+        );
+      }
 
-      if (loc_available) {
-        if (!aggregate.prev_seen_nearby_four_seater_rides.contains(ride_id)) {
-          aggregate.prev_seen_nearby_four_seater_rides.add(ride_id);
-          aggregate.nearby_four_seater_rides.add(ride_id);
+      SharedRidePlaceAggregate aggregate = _placeRideAggregate[placeId]!;
+      aggregate.all_rides_to_place.add(rideId);
+
+      if (broadcast.ride_details!.is_six_seater!) {
+        aggregate.six_seater_est_price = broadcast.ride_details!.est_price;
+        aggregate.all_six_seater_rides.add(rideId);
+
+        if (!aggregate.prev_seen_nearby_six_seater_rides.contains(rideId)) {
+          aggregate.prev_seen_nearby_six_seater_rides.add(rideId);
+          aggregate.nearby_six_seater_rides.add(rideId);
+        }
+        aggregate.nearby_six_seater_rides.sort(_compareRidesForSorting);
+      } else {
+        aggregate.four_seater_est_price = broadcast.ride_details!.est_price;
+        aggregate.all_four_seater_rides.add(rideId);
+
+        if (!aggregate.prev_seen_nearby_four_seater_rides.contains(rideId)) {
+          aggregate.prev_seen_nearby_four_seater_rides.add(rideId);
+          aggregate.nearby_four_seater_rides.add(rideId);
         }
         aggregate.nearby_four_seater_rides.sort(_compareRidesForSorting);
       }
@@ -310,14 +214,15 @@ class _SharedRidesWhereToGoScreenState
 
   int _compareRidesForSorting(String rideIdA, String rideIdB) {
     // TODO: check which sorting is being used, nearest distance or timestamp
-    if (!_rideBroadcastDetails.containsKey(rideIdA) ||
-        !_rideBroadcastDetails.containsKey(rideIdB)) {
+    if (!_rideBroadcasts.containsKey(rideIdA) ||
+        !_rideBroadcasts.containsKey(rideIdB)) {
       return -1;
     }
-    SharedRideBroadcast ride_A = _rideBroadcastDetails[rideIdA]!;
-    SharedRideBroadcast ride_B = _rideBroadcastDetails[rideIdB]!;
+    SharedRideBroadcast rideA = _rideBroadcasts[rideIdA]!;
+    SharedRideBroadcast rideB = _rideBroadcasts[rideIdB]!;
 
-    return ride_A.created_timestamp!.compareTo(ride_B.created_timestamp!);
+    return (rideA.ride_details?.created_timestamp ?? -1)
+        .compareTo(rideB.ride_details?.created_timestamp ?? -1);
   }
 
   List<MapEntry<String, SharedRidePlaceAggregate>> sortedPlaces() {
@@ -403,7 +308,7 @@ class _SharedRidesWhereToGoScreenState
               height: 15,
             ),
           ),
-          if (_destination_places.isEmpty) ...[
+          if (_destinationPlaces.isEmpty) ...[
             SliverToBoxAdapter(
               child: SpinKitFadingCircle(
                 itemBuilder: (_, int index) {
@@ -418,18 +323,18 @@ class _SharedRidesWhereToGoScreenState
               ),
             ),
           ],
-          if (_destination_places.isNotEmpty) ...[
+          if (_destinationPlaces.isNotEmpty) ...[
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (BuildContext context, int index) {
                   return _AvailableDriverListItem(
-                    placeId: _destination_places[index].key,
-                    placeAggregate: _destination_places[index].value,
+                    placeId: _destinationPlaces[index].key,
+                    placeAggregate: _destinationPlaces[index].value,
                     onFourSeaterSelected: pickSharedRideForPlaceAndSeater,
                     onSixSeaterSelected: pickSharedRideForPlaceAndSeater,
                   );
                 },
-                childCount: _destination_places.length,
+                childCount: _destinationPlaces.length,
               ),
             ),
           ],
@@ -441,17 +346,17 @@ class _SharedRidesWhereToGoScreenState
   void pickSharedRideForPlaceAndSeater(String placeId, bool isFourSeater) {
     SharedRidePlaceAggregate aggregate = _placeRideAggregate[placeId]!;
 
-    List<String> nearby_rides = isFourSeater
+    List<String> nearbyRides = isFourSeater
         ? aggregate.nearby_four_seater_rides
         : aggregate.nearby_six_seater_rides;
 
-    String selected_ride = nearby_rides.first;
+    String selectedRide = nearbyRides.first;
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) =>
-            WayToDriverCompassScreen(selectedRideId: selected_ride),
+            WayToDriverCompassScreen(selectedRideId: selectedRide),
       ),
     );
   }
@@ -476,14 +381,14 @@ class _AvailableDriverListItem extends StatefulWidget {
 }
 
 class _AvailableRideListState extends State<_AvailableDriverListItem> {
-  Widget _getCarSeaterWidget(bool is_four_seater, double money_amount,
+  Widget _getCarSeaterWidget(bool isFourSeater, double moneyAmount,
       double hWidth, double vHeight, double DPI) {
-    double per_person_price = money_amount / (is_four_seater ? 4.0 : 6.0);
+    double perPersonPrice = moneyAmount / (isFourSeater ? 4.0 : 6.0);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () async {
-        if (is_four_seater) {
+        if (isFourSeater) {
           widget.onFourSeaterSelected(widget.placeId, true);
         } else {
           widget.onSixSeaterSelected(widget.placeId, false);
@@ -497,7 +402,7 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
               height: vHeight * 0.035,
               child: Image(
                   image: AssetImage(
-                      'images/${is_four_seater ? "s_suzuki" : "s_avanza"}.png')),
+                      'images/${isFourSeater ? "s_suzuki" : "s_avanza"}.png')),
             ),
             Container(
               child: Column(
@@ -505,14 +410,14 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    'ባለ ${is_four_seater ? "4" : "6"} መቀመጫ',
+                    'ባለ ${isFourSeater ? "4" : "6"} መቀመጫ',
                     style: TextStyle(
                       fontFamily: 'Nokia Pure Headline Bold',
                       fontSize: 40 / DPI,
                     ),
                   ),
                   Text(
-                    '${AlphaNumericUtil.formatDouble(per_person_price, 1)} ብር',
+                    '${AlphaNumericUtil.formatDouble(perPersonPrice, 1)} ብር',
                     style: TextStyle(
                         fontFamily: 'Nokia Pure Headline Bold',
                         fontSize: 40 / DPI,
@@ -649,4 +554,35 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
       ),
     );
   }
+}
+
+class SharedRidePlaceAggregate {
+  String place_id;
+  String place_name;
+
+  double? four_seater_est_price;
+  double? six_seater_est_price;
+
+  // a quick cache to check/update when rides being added/removed from place
+  Set<String> all_rides_to_place;
+
+  Set<String> all_four_seater_rides;
+  Set<String> all_six_seater_rides;
+
+  List<String> nearby_four_seater_rides;
+  List<String> nearby_six_seater_rides;
+
+  Set<String> prev_seen_nearby_four_seater_rides;
+  Set<String> prev_seen_nearby_six_seater_rides;
+
+  SharedRidePlaceAggregate({
+    required this.place_id,
+    required this.place_name,
+  })  : all_rides_to_place = Set(),
+        all_four_seater_rides = Set(),
+        all_six_seater_rides = Set(),
+        prev_seen_nearby_four_seater_rides = Set(),
+        prev_seen_nearby_six_seater_rides = Set(),
+        nearby_four_seater_rides = [],
+        nearby_six_seater_rides = [];
 }

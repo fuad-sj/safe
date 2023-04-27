@@ -35,14 +35,14 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
   static const CameraPosition ADDIS_ABABA_CENTER_LOCATION = CameraPosition(
       target: LatLng(9.00464643580664, 38.767820855962), zoom: 17.0);
 
+  static const SEARCH_NOT_FOUND_ID = "search_not_found_id";
+
   Set<Polyline> _mapPolyLines = Set();
   Set<Marker> _mapMarkers = Set();
 
-  StreamSubscription? _rideDetailStreamSubscription;
-  StreamSubscription? _rideLocationStreamSubscription;
+  StreamSubscription? _sharedRideStreamSubscription;
 
-  SharedRideLocation? _rideLocation;
-  SharedRideBroadcast? _rideDetails;
+  SharedRideBroadcast? _rideBroadcast;
 
   GoogleMapController? _mapController;
 
@@ -94,7 +94,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
       _selfPhone = await PrefUtil.getCurrentUserPhone();
 
       liveLocation = new Location();
-      await attachRideStreams();
+      await attachSharedRideStream();
 
       isCompassAvailable = await Compass().isCompassAvailable();
       if (isCompassAvailable) {
@@ -125,8 +125,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
 
   @override
   void dispose() {
-    _rideDetailStreamSubscription?.cancel();
-    _rideLocationStreamSubscription?.cancel();
+    _sharedRideStreamSubscription?.cancel();
 
     _currentLocStreamSubscription?.cancel();
 
@@ -135,44 +134,32 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
     super.dispose();
   }
 
-  Future<void> attachRideStreams() async {
-    _rideLocationStreamSubscription = FirebaseDatabase.instanceFor(
+  Future<void> attachSharedRideStream() async {
+    _sharedRideStreamSubscription = FirebaseDatabase.instanceFor(
             app: Firebase.app(),
             databaseURL: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT)
         .ref()
-        .child(FIREBASE_DB_PATHS.SHARED_RIDE_LOCATIONS)
+        .child(FIREBASE_DB_PATHS.SHARED_RIDE_BROADCASTS)
         .child(widget.selectedRideId)
         .onValue
         .listen((event) async {
-      _rideLocation = SharedRideLocation.fromSnapshot(event.snapshot);
-      if (_rideLocation?.ride_id == null) return;
-
-      if (mounted) {
-        setState(() {});
+      _rideBroadcast = SharedRideBroadcast.fromSnapshot(event.snapshot);
+      if (_rideBroadcast?.ride_id == null) {
+        _rideBroadcast = null;
+        return;
       }
-    });
 
-    _rideDetailStreamSubscription = FirebaseDatabase.instanceFor(
-            app: Firebase.app(),
-            databaseURL: SharedRidesWhereToGoScreen.SHARED_RIDE_DATABASE_ROOT)
-        .ref()
-        .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
-        .child(widget.selectedRideId)
-        .onValue
-        .listen((event) async {
-      _rideDetails = SharedRideBroadcast.fromSnapshot(event.snapshot);
-      if (_rideDetails?.ride_id == null) return;
-
-      if (_rideDetails?.accepted_customers != null) {
+      if (_rideBroadcast!.ride_details?.accepted_customers != null) {
         String self_id = FirebaseAuth.instance.currentUser!.uid;
-        SharedRideAcceptedCustomer? occurrence = _rideDetails
-            ?.accepted_customers
+        SharedRideAcceptedCustomer? occurrence = _rideBroadcast!
+            .ride_details?.accepted_customers
             ?.firstWhere((customer) => customer.customer_id == self_id,
-                orElse: () =>
-                    SharedRideAcceptedCustomer()..customer_id = "none");
+                orElse: () => SharedRideAcceptedCustomer()
+                  ..customer_id = SEARCH_NOT_FOUND_ID);
 
         // we've been selected into accepted customer list
-        if (occurrence != null && occurrence.customer_id != "none") {
+        if (occurrence != null &&
+            occurrence.customer_id != SEARCH_NOT_FOUND_ID) {
           customerAcceptedIntoCar = true;
         } else {
           customerAcceptedIntoCar = false;
@@ -191,11 +178,12 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
         return;
       }
     }
+
     var locData;
     try {
       locData = await liveLocation.getLocation();
     } catch (e) {
-      print(e);
+      //print(e);
       return;
     }
 
@@ -204,13 +192,13 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
     _currentLocStreamSubscription =
         liveLocation.onLocationChanged.listen((LocationData locData) async {
       _currentLocation = new LatLng(locData.latitude!, locData.longitude!);
-      if (_rideLocation != null) {
+      if (_rideBroadcast != null) {
         metersToCar = Geolocator.distanceBetween(
             _currentLocation!.latitude,
             _currentLocation!.longitude,
-            _rideLocation!.latitude!,
-            _rideLocation!.longitude!);
-        isCustomerArrivedAtPickup = metersToCar < 100.0;
+            _rideBroadcast!.broadcast_loc!.latitude,
+            _rideBroadcast!.broadcast_loc!.longitude);
+        isCustomerArrivedAtPickup = metersToCar < 10.0;
         fontSizeMultiplier = isCustomerArrivedAtPickup ? 2.0 : 1.0;
       }
 
@@ -226,12 +214,14 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
 
   double getAdjustedTurn() {
     double bearing = 0.0;
-    if (_rideLocation != null && _currentLocation != null) {
+    if (_rideBroadcast != null &&
+        _rideBroadcast?.broadcast_loc != null &&
+        _currentLocation != null) {
       bearing = Geolocator.bearingBetween(
           _currentLocation!.latitude,
           _currentLocation!.longitude,
-          _rideLocation!.latitude!,
-          _rideLocation!.longitude!);
+          _rideBroadcast!.broadcast_loc!.latitude,
+          _rideBroadcast!.broadcast_loc!.longitude);
     }
 
     double adjustedBearing = (bearing - _lastReadCompassAngels + 360) % 360;
@@ -243,7 +233,8 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
   }
 
   String distanceToCar() {
-    if (_rideLocation == null ||
+    if (_rideBroadcast == null ||
+        _rideBroadcast?.broadcast_loc == null ||
         _currentLocation == null ||
         metersToCar == -1) {
       isCustomerArrivedAtPickup = false;
@@ -384,19 +375,19 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'ሹፌሮ ስም : ${_rideDetails?.driver_name ?? ''}',
+                            'ሹፌሮ ስም : ${_rideBroadcast?.ride_details?.driver_name ?? ''}',
                             style: driverDetailTextStyle,
                           ),
                           Text(
-                            'ሹፌሮ ስልክ : ${formatPhone(_rideDetails?.driver_phone ?? '')}',
+                            'ሹፌሮ ስልክ : ${formatPhone(_rideBroadcast?.ride_details?.driver_phone ?? '')}',
                             style: driverDetailTextStyle,
                           ),
                           Text(
-                            'መኪና ታርጋ : ${_rideDetails?.car_plate ?? ''}',
+                            'መኪና ታርጋ : ${_rideBroadcast?.ride_details?.car_plate ?? ''}',
                             style: driverDetailTextStyle,
                           ),
                           Text(
-                            'መኪና : ${_rideDetails?.car_details ?? ""}',
+                            'መኪና : ${_rideBroadcast?.ride_details?.car_details ?? ""}',
                             style: driverDetailTextStyle,
                           ),
                         ],
@@ -522,13 +513,13 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                           ),
                           SizedBox(height: 10.0),
                           Text(
-                            'የአሽከርካሪው ስም : ${_rideDetails?.driver_name ?? ""}',
+                            'የአሽከርካሪው ስም : ${_rideBroadcast?.ride_details?.driver_name ?? ""}',
                             style: driverDetailTextStyleBig,
                           ),
                           Row(
                             children: [
                               Text(
-                                'የአሽከርካሪው ስልክ: ${formatPhone(_rideDetails?.driver_phone ?? "")}',
+                                'የአሽከርካሪው ስልክ: ${formatPhone(_rideBroadcast?.ride_details?.driver_phone ?? "")}',
                                 style: driverDetailTextStyleBig,
                               ),
                               SizedBox(width: 10.0),
@@ -537,7 +528,9 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                                 onTap: () async {
                                   try {
                                     PhoneCaller.callPhone(formatPhone(
-                                        _rideDetails!.driver_phone!));
+                                        _rideBroadcast
+                                                ?.ride_details?.driver_phone ??
+                                            ""));
                                   } catch (err) {}
                                 },
                                 child: Container(
@@ -549,11 +542,11 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                             ],
                           ),
                           Text(
-                            'የመኪናው ታርጋ ቁጥር : ${_rideDetails?.car_plate ?? ""}',
+                            'የመኪናው ታርጋ ቁጥር : ${_rideBroadcast?.ride_details?.car_plate ?? ""}',
                             style: driverDetailTextStyleBig,
                           ),
                           Text(
-                            'መኪናው : ${_rideDetails?.car_details ?? ""}',
+                            'መኪናው : ${_rideBroadcast?.ride_details?.car_details ?? ""}',
                             style: driverDetailTextStyleBig,
                           ),
                         ],
@@ -562,7 +555,9 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                   ),
 
                   // Swipe to start
-                  if (!customerSwipedToEnter && _rideDetails != null) ...[
+                  if (!customerSwipedToEnter &&
+                      _rideBroadcast != null &&
+                      _rideBroadcast?.ride_details != null) ...[
                     Positioned(
                       bottom: MediaQuery.of(context).size.height * 0.28,
                       left: MediaQuery.of(context).size.width * 0.2,
@@ -581,32 +576,35 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                             Map<String, dynamic> rideDetails = new Map();
 
                             List<SharedRideReachOutCustomer> prev_reached_out =
-                                _rideDetails?.reached_out_customers ?? [];
+                                _rideBroadcast!
+                                        .ride_details!.reached_out_customers ??
+                                    [];
                             SharedRideReachOutCustomer occurrence =
                                 prev_reached_out.firstWhere(
                                     (customer) =>
                                         customer.customer_id == self_id,
                                     orElse: () => SharedRideReachOutCustomer()
-                                      ..customer_id = "none");
+                                      ..customer_id = SEARCH_NOT_FOUND_ID);
 
                             // current customer existed before, can't do anything about it
-                            if (occurrence.customer_id == "none") {
+                            if (occurrence.customer_id == SEARCH_NOT_FOUND_ID) {
                               prev_reached_out.add(SharedRideReachOutCustomer()
                                 ..customer_id = self_id
                                 ..customer_phone = self_phone);
-                              rideDetails[SharedRideBroadcast
+                              rideDetails[SharedRideDetails
                                       .FIELD_REACHED_OUT_CUSTOMERS] =
-                                  SharedRideBroadcast
-                                      .SharedRideReachOutCustomers_ToJson(
-                                          prev_reached_out);
+                                  SharedRideReachOutCustomer.List_ToJson(
+                                      prev_reached_out);
 
                               await FirebaseDatabase.instanceFor(
                                       app: Firebase.app(),
                                       databaseURL: SharedRideBroadcast
                                           .SHARED_RIDE_DATABASE_ROOT)
                                   .ref()
-                                  .child(FIREBASE_DB_PATHS.SHARED_RIDE_DETAILS)
+                                  .child(
+                                      FIREBASE_DB_PATHS.SHARED_RIDE_BROADCASTS)
                                   .child(widget.selectedRideId)
+                                  .child(SharedRideBroadcast.KEY_DETAILS)
                                   .update(rideDetails);
                             }
 
@@ -695,7 +693,8 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                 ],
 
                 if (metersToCar != -1 &&
-                    _rideDetails != null &&
+                    _rideBroadcast != null &&
+                    _rideBroadcast?.ride_details != null &&
                     !customerSwipedToEnter) ...[
                   Positioned(
                     bottom: MediaQuery.of(context).size.height * 0.18,
@@ -704,7 +703,7 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                       width: MediaQuery.of(context).size.width * 0.6,
                       child: Center(
                         child: Text(
-                          '${_rideDetails?.seats_remaining ?? 4} ሰው የቀረው ...',
+                          '${_rideBroadcast?.ride_details?.seats_remaining ?? 4} ሰው የቀረው ...',
                           style: TextStyle(
                             fontSize: 30.0,
                             letterSpacing: 1.0,
@@ -791,7 +790,8 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                                   ),
                                 ),
                                 Text(
-                                  _rideDetails?.place_name ?? "",
+                                  _rideBroadcast?.ride_details?.place_name ??
+                                      "",
                                   style: TextStyle(
                                     fontSize: 15.0,
                                     color: Colors.grey,
@@ -807,6 +807,9 @@ class _WayToDriverCompassScreenState extends State<WayToDriverCompassScreen> {
                 ],
 
                 if (isTripCompleted) ...[
+                  /**
+                   * TODO: update finished trip details with actual values
+                   */
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.35,
                     left: MediaQuery.of(context).size.width * 0.16,

@@ -5,10 +5,68 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:safe/models/firebase_document.dart';
 
+part 'shared_ride_broadcast.g.dart';
+
 class SharedRideBroadcast {
   static const String SHARED_RIDE_DATABASE_ROOT =
       "https://safetransports-et-2995d.firebaseio.com/";
 
+  static const KEY_LOCATION = "l";
+  static const KEY_DETAILS = "dt";
+
+  static const FIELD_BROADCAST_LOC = "broadcast_loc";
+
+  String? ride_id;
+
+  LatLng? broadcast_loc;
+
+  SharedRideDetails? ride_details;
+
+  // This is a computed value, not stored.
+  double? distance_to_broadcast;
+
+  SharedRideBroadcast();
+
+  factory SharedRideBroadcast.fromSnapshot(DataSnapshot snapshot) {
+    var data = snapshot.value as Map;
+
+    return SharedRideBroadcast.fromMap(data, snapshot.key!);
+  }
+
+  factory SharedRideBroadcast.fromMap(Map data, String? ride_id) {
+    var coords =
+        data.containsKey(KEY_LOCATION) ? (data[KEY_LOCATION] as List) : null;
+    var broadcast_loc = coords != null ? LatLng(coords[0], coords[1]) : null;
+
+    var details =
+        data.containsKey(KEY_DETAILS) ? (data[KEY_DETAILS] as Map) : Map();
+
+    return SharedRideBroadcast()
+      ..ride_id = ride_id
+      ..broadcast_loc = broadcast_loc
+      ..ride_details =
+          _$SharedRideDetailsFromJson(details as Map<String, dynamic>);
+  }
+
+  bool isValidOrderToConsider() {
+    if (ride_details == null ||
+        (ride_details!.is_broadcast_launched ?? false) != true) {
+      return false;
+    }
+
+    if ((ride_details!.is_stale_order ?? false) == true ||
+        (ride_details!.is_trip_cancelled ?? false) == true ||
+        (ride_details!.is_trip_started ?? false) == true ||
+        (ride_details!.is_fully_booked ?? false) == true) {
+      return false;
+    }
+
+    return true;
+  }
+}
+
+@JsonSerializable()
+class SharedRideDetails {
   static const FIELD_PLACE_NAME = "place_name";
   static const FIELD_PLACE_ID = "place_id";
   static const FIELD_PLACE_LOC = "place_loc";
@@ -53,11 +111,16 @@ class SharedRideBroadcast {
   bool? client_triggered_event;
   bool? is_unread_data;
 
-  String? ride_id;
-
   String? place_name;
   String? place_id;
+
+  @JsonKey(
+      fromJson: FirebaseDocument.LatLngFromJson,
+      toJson: FirebaseDocument.LatLngToJson)
   LatLng? place_loc;
+  @JsonKey(
+      fromJson: FirebaseDocument.LatLngFromJson,
+      toJson: FirebaseDocument.LatLngToJson)
   LatLng? initial_loc;
 
   int? created_timestamp;
@@ -70,8 +133,11 @@ class SharedRideBroadcast {
   String? car_details;
   bool? is_six_seater;
 
+  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? est_price;
+  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? distance_km;
+  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
   double? duration_minutes;
 
   bool? is_price_calculated;
@@ -88,133 +154,49 @@ class SharedRideBroadcast {
 
   int? seats_remaining;
 
+  @JsonKey(
+      fromJson: SharedRideReachOutCustomer.List_FromJson,
+      toJson: SharedRideReachOutCustomer.List_ToJson)
   List<SharedRideReachOutCustomer>? reached_out_customers;
 
+  @JsonKey(
+      fromJson: SharedRideAcceptedCustomer.List_FromJson,
+      toJson: SharedRideAcceptedCustomer.List_ToJson)
   List<SharedRideAcceptedCustomer>? accepted_customers;
 
+  @JsonKey(
+      fromJson: SharedRideSeparateDropoff.List_FromJson,
+      toJson: SharedRideSeparateDropoff.List_ToJson)
   List<SharedRideSeparateDropoff>? separate_dropoffs;
 
-  /**
-   * This is a computed value, not stored ANYWHERE. but useful in comparing different broadcasts
-   */
-  double? distance_to_broadcast;
-
-  bool isValidOrderToConsider() {
-    if ((is_broadcast_launched ?? false) != true) {
-      return false;
-    }
-
-    if ((is_stale_order ?? false) == true ||
-        (is_trip_cancelled ?? false) == true ||
-        (is_trip_started ?? false) == true ||
-        (is_fully_booked ?? false) == true) {
-      return false;
-    }
-
-    return true;
-  }
-
-  SharedRideBroadcast();
-
-  factory SharedRideBroadcast.fromSnapshot(DataSnapshot snapshot) {
-    var data = snapshot.value as Map;
-
-    return SharedRideBroadcast.fromMap(data, snapshot.key!);
-  }
-
-  factory SharedRideBroadcast.fromMap(Map data, String ride_id) {
-    return SharedRideBroadcast()
-      ..ride_id = ride_id ?? null
-      ..place_name = data["place_name"] ?? null
-      ..place_id = data["place_id"] ?? null
-      ..place_loc = LatLng.fromJson(data["place_loc"]) ?? null
-      ..initial_loc = LatLng.fromJson(data["initial_loc"]) ?? null
-      ..created_timestamp = data["created_timestamp"] ?? null
-      ..ping_timestamp = data["ping_timestamp"] ?? null
-      ..trip_started_timestamp = data["trip_started_timestamp"] ?? null
-      ..driver_name = data["driver_name"] ?? null
-      ..driver_phone = data["driver_phone"] ?? null
-      ..car_plate = data["car_plate"] ?? null
-      ..car_details = data["car_details"] ?? null
-      ..is_six_seater = data["is_six_seater"] ?? null
-      ..est_price = (data["est_price"] ?? 0) + 0.0 ?? null
-      ..distance_km = (data["distance_km"] ?? 0) + 0.0 ?? null
-      ..duration_minutes = (data["duration_minutes"] ?? 0) + 0.0 ?? null
-      ..is_price_calculated = data["is_price_calculated"] ?? null
-      ..is_order_confirmed = data["is_order_confirmed"] ?? null
-      ..is_broadcast_launched = data["is_broadcast_launched"] ?? null
-      ..is_trip_cancelled = data["is_trip_cancelled"] ?? null
-      ..is_stale_order = data["is_stale_order"] ?? null
-      ..is_fully_booked = data["is_fully_booked"] ?? null
-      ..is_trip_started = data["is_trip_started"] ?? null
-      ..is_trip_completed = data["is_trip_completed"] ?? null
-      ..is_forcefully_filled = data["is_forcefully_filled"] ?? null
-      ..num_forceful_filled = data["num_forceful_filled"] ?? null
-      ..seats_remaining = data["seats_remaining"] ?? null
-      ..reached_out_customers =
-          (data['reached_out_customers'] as List<dynamic>?)
-              ?.map((e) => SharedRideReachOutCustomer()
-                ..customer_phone = e['customer_phone'] as String
-                ..customer_id = e['customer_id'] as String)
-              .toList()
-      ..accepted_customers = (data['accepted_customers'] as List<dynamic>?)
-          ?.map((e) => SharedRideAcceptedCustomer()
-            ..customer_phone = e['customer_phone'] as String
-            ..customer_id = e['customer_id'] as String
-            ..num_customers = e['num_customers'] as int)
-          .toList()
-      ..separate_dropoffs = (data['separate_dropoffs'] as List<dynamic>?)
-          ?.map((e) => SharedRideSeparateDropoff()
-            ..customer_phone = e['customer_phone'] as String
-            ..customer_id = e['customer_id'] as String
-            ..num_customers = e['num_customers'] as int
-            ..dropoff_loc = (e['dropoff_loc'] as List<dynamic>)
-                .map((e) => (e as num).toDouble())
-                .toList())
-          .toList();
-  }
-
-  static List<dynamic> SharedRideReachOutCustomers_ToJson(
-      List<SharedRideReachOutCustomer> list) {
-    return list
-        .map((customer) => {
-              'customer_phone': customer.customer_phone,
-              'customer_id': customer.customer_id,
-            })
-        .toList();
-  }
-
-  static List<dynamic> SharedRideAcceptedCustomer_ToJson(
-      List<SharedRideAcceptedCustomer> list) {
-    return list
-        .map((customer) => {
-              'customer_phone': customer.customer_phone,
-              'customer_id': customer.customer_id,
-              'num_customers': customer.num_customers,
-            })
-        .toList();
-  }
-
-  static List<dynamic> SharedRideSeparateDropoff_ToJson(
-      List<SharedRideSeparateDropoff> list) {
-    return list
-        .map((customer) => {
-              'customer_phone': customer.customer_phone,
-              'customer_id': customer.customer_id,
-              'num_customers': customer.num_customers,
-              'dropoff_loc': [customer.dropoff_loc[0], customer.dropoff_loc[1]]
-            })
-        .toList();
-  }
+  SharedRideDetails();
 }
 
+List<dynamic> _ListToJson<T>(List<T>? list, Map Function(T val) converter) {
+  return list?.map((e) => converter(e)).toList() as List<dynamic>;
+}
+
+dynamic _ListFromJson<T>(
+    dynamic json, T Function(Map<String, dynamic>) converter) {
+  if (json == null) return null;
+  return (json as List<dynamic>?)?.map((e) => converter(e)).toList();
+}
+
+@JsonSerializable()
 class SharedRideReachOutCustomer {
   late String customer_phone;
   late String customer_id;
 
   SharedRideReachOutCustomer();
+
+  static List<dynamic> List_ToJson(List<SharedRideReachOutCustomer>? list) =>
+      _ListToJson(list, _$SharedRideReachOutCustomerToJson);
+
+  static dynamic List_FromJson(List<SharedRideReachOutCustomer>? list) =>
+      _ListFromJson(list, _$SharedRideReachOutCustomerFromJson);
 }
 
+@JsonSerializable()
 class SharedRideAcceptedCustomer {
   late String customer_phone;
   late String customer_id;
@@ -222,8 +204,15 @@ class SharedRideAcceptedCustomer {
   late int num_customers;
 
   SharedRideAcceptedCustomer();
+
+  static List<dynamic> List_ToJson(List<SharedRideAcceptedCustomer>? list) =>
+      _ListToJson(list, _$SharedRideAcceptedCustomerToJson);
+
+  static dynamic List_FromJson(List<SharedRideAcceptedCustomer>? list) =>
+      _ListFromJson(list, _$SharedRideAcceptedCustomerFromJson);
 }
 
+@JsonSerializable()
 class SharedRideSeparateDropoff {
   late String customer_phone;
   late String customer_id;
@@ -231,8 +220,15 @@ class SharedRideSeparateDropoff {
   late int num_customers;
 
   late List<double> dropoff_loc;
+
+  static List<dynamic> List_ToJson(List<SharedRideSeparateDropoff>? list) =>
+      _ListToJson(list, _$SharedRideSeparateDropoffToJson);
+
+  static dynamic List_FromJson(List<SharedRideSeparateDropoff>? list) =>
+      _ListFromJson(list, _$SharedRideSeparateDropoffFromJson);
 }
 
+@JsonSerializable()
 class SharedRideDropoffPrice {
   late String customer_phone;
   late String customer_id;
@@ -246,61 +242,4 @@ class SharedRideDropoffPrice {
   late double total_price;
 
   late int dropoff_timestamp;
-}
-
-class SharedRideLocation {
-  String? ride_id;
-
-  // these 2 fields are filled from another place
-  double? latitude;
-  double? longitude;
-
-  SharedRideLocation({
-    this.ride_id,
-    this.latitude,
-    this.longitude,
-  });
-
-  factory SharedRideLocation.fromSnapshot(DataSnapshot snapshot) {
-    String rideId = snapshot.key!;
-
-    var data = snapshot.value as Map;
-
-    var coords = data["l"] as List;
-    double lat = coords[0];
-    double lng = coords[1];
-
-    return SharedRideLocation(
-      ride_id: rideId,
-      latitude: lat,
-      longitude: lng,
-    );
-  }
-}
-
-class SharedRidePlaceAggregate {
-  String place_id;
-  String place_name;
-
-  double? four_seater_est_price;
-  double? six_seater_est_price;
-
-  Set<String> all_four_seater_rides;
-  Set<String> all_six_seater_rides;
-
-  List<String> nearby_four_seater_rides;
-  List<String> nearby_six_seater_rides;
-
-  Set<String> prev_seen_nearby_four_seater_rides;
-  Set<String> prev_seen_nearby_six_seater_rides;
-
-  SharedRidePlaceAggregate({
-    required this.place_id,
-    required this.place_name,
-  })  : all_four_seater_rides = Set(),
-        all_six_seater_rides = Set(),
-        prev_seen_nearby_four_seater_rides = Set(),
-        prev_seen_nearby_six_seater_rides = Set(),
-        nearby_four_seater_rides = [],
-        nearby_six_seater_rides = [];
 }
