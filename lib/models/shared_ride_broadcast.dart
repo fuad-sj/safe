@@ -38,14 +38,14 @@ class SharedRideBroadcast {
         data.containsKey(KEY_LOCATION) ? (data[KEY_LOCATION] as List) : null;
     var broadcast_loc = coords != null ? LatLng(coords[0], coords[1]) : null;
 
-    var details =
-        data.containsKey(KEY_DETAILS) ? (data[KEY_DETAILS] as Map) : Map();
+    var details = data.containsKey(KEY_DETAILS)
+        ? (data[KEY_DETAILS] as Map<Object?, Object?>).cast<String, dynamic>()
+        : Map<String, dynamic>();
 
     return SharedRideBroadcast()
       ..ride_id = ride_id
       ..broadcast_loc = broadcast_loc
-      ..ride_details =
-          _$SharedRideDetailsFromJson(details as Map<String, dynamic>);
+      ..ride_details = _$SharedRideDetailsFromJson(details);
   }
 
   bool isValidOrderToConsider() {
