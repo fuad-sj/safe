@@ -54,9 +54,12 @@ class _SharedRidesListAndCompassScreenState
   static const CameraPosition ADDIS_ABABA_CENTER_LOCATION = CameraPosition(
       target: LatLng(9.00464643580664, 38.767820855962), zoom: 17.0);
 
+  bool? _selectedFourSeater;
+  String? _selectedPlaceId;
   String? _selectedRideId;
-  StreamSubscription? _selectedRideSubscription;
   SharedRideBroadcast? _selectedRideBroadcast;
+
+  bool _isInCompassState = false; // are we in rides list OR compass state
 
   Set<Polyline> _mapPolyLines = Set();
   Set<Marker> _mapMarkers = Set();
@@ -127,14 +130,12 @@ class _SharedRidesListAndCompassScreenState
 
     _compassStreamSub?.cancel();
 
-    _selectedRideSubscription?.cancel();
-
     super.dispose();
   }
 
   Future<bool> onBackBtnHandler(
       bool stopDefaultButtonEvent, RouteInfo routeInfo) async {
-    if (_selectedRideId == null) {
+    if (!_isInCompassState) {
       return false;
     }
 
@@ -143,12 +144,12 @@ class _SharedRidesListAndCompassScreenState
   }
 
   Future<void> resetCompassState() async {
+    _selectedFourSeater = false;
+    _selectedPlaceId = null;
     _selectedRideId = null;
-    await _selectedRideSubscription?.cancel();
-    _selectedRideSubscription = null;
+    _selectedRideBroadcast = null;
 
-    /// get back to getting updates
-    _geofireStream?.resume();
+    _isInCompassState = false;
   }
 
   Future<void> setupNearbyBroadcastsQuery() async {
@@ -171,19 +172,10 @@ class _SharedRidesListAndCompassScreenState
         liveLocation.onLocationChanged.listen((LocationData locData) async {
       currentLocation = new LatLng(locData.latitude!, locData.longitude!);
 
-      if (_selectedRideBroadcast != null) {
-        metersToCar = Geolocator.distanceBetween(
-            currentLocation!.latitude,
-            currentLocation!.longitude,
-            _selectedRideBroadcast!.broadcast_loc!.latitude,
-            _selectedRideBroadcast!.broadcast_loc!.longitude);
-        isCustomerArrivedAtPickup =
-            metersToCar < COMPASS_POINTER_DISAPPEAR_METERS;
-        fontSizeMultiplier = isCustomerArrivedAtPickup ? 2.0 : 1.0;
+      computeMetersToSelectedRide();
 
-        if (mounted) {
-          setState(() {});
-        }
+      if (mounted) {
+        setState(() {});
       }
     });
 
@@ -224,18 +216,62 @@ class _SharedRidesListAndCompassScreenState
 
               _rideBroadcasts[rideId] = broadcast;
 
+              bool shouldBeRemoved = !broadcast.isValidOrderToConsider();
               updatePlaceRideAggregate(rideId,
-                  isRemoveOperation: !broadcast.isValidOrderToConsider());
-
-              if (mounted) {
-                setState(() {
-                  _destinationPlaces = sortedPlaces();
-                });
+                  isRemoveOperation: shouldBeRemoved);
+              if (shouldBeRemoved) {
+                _rideBroadcasts.remove(rideId);
               }
+
+              if (_selectedRideId != null && rideId == _selectedRideId) {
+                if (shouldBeRemoved) {
+                  bool foundReplacement = pickSharedRideForPlaceAndSeater(
+                      _selectedPlaceId!, _selectedFourSeater!,
+                      updateState: false);
+                  if (!foundReplacement) {
+                    resetCompassState();
+                  }
+                } else {
+                  /// get the updated broadcast for the selected ride
+                  _selectedRideBroadcast = broadcast;
+
+                  if (_selectedRideBroadcast!
+                          .ride_details?.accepted_customers !=
+                      null) {
+                    String self_id = FirebaseAuth.instance.currentUser!.uid;
+                    SharedRideAcceptedCustomer? occurrence =
+                        _selectedRideBroadcast!
+                            .ride_details?.accepted_customers
+                            ?.firstWhere(
+                                (customer) => customer.customer_id == self_id,
+                                orElse: () => SharedRideAcceptedCustomer()
+                                  ..customer_id = SEARCH_NOT_FOUND_ID);
+
+                    // we've been selected into accepted customer list
+                    if (occurrence != null &&
+                        occurrence.customer_id != SEARCH_NOT_FOUND_ID) {
+                      customerAcceptedIntoCar = true;
+                    } else {
+                      customerAcceptedIntoCar = false;
+                    }
+                  }
+                }
+              }
+
+              computeMetersToSelectedRide();
+
               break;
 
             case Geofire.onKeyExited:
               updatePlaceRideAggregate(rideId, isRemoveOperation: true);
+              if (_selectedRideId == rideId) {
+                bool foundReplacement = pickSharedRideForPlaceAndSeater(
+                    _selectedPlaceId!, _selectedFourSeater!,
+                    updateState: false);
+                if (!foundReplacement) {
+                  resetCompassState();
+                }
+              }
               _rideBroadcasts.remove(rideId);
 
               break;
@@ -1077,76 +1113,55 @@ class _SharedRidesListAndCompassScreenState
 
   @override
   Widget build(BuildContext context) {
-    if (_selectedRideId == null) {
+    if (!_isInCompassState) {
       return buildRideListScreen(context);
     } else {
       return buildCompassScreen(context);
     }
   }
 
-  void pickSharedRideForPlaceAndSeater(String placeId, bool isFourSeater) {
+  bool pickSharedRideForPlaceAndSeater(String placeId, bool isFourSeater,
+      {bool updateState = true}) {
+    if (!_placeRideAggregate.containsKey(placeId)) {
+      return false;
+    }
     SharedRidePlaceAggregate aggregate = _placeRideAggregate[placeId]!;
 
     List<String> nearbyRides = isFourSeater
         ? aggregate.nearby_four_seater_rides
         : aggregate.nearby_six_seater_rides;
 
+    if (nearbyRides.isEmpty) {
+      return false;
+    }
+
+    _selectedFourSeater = isFourSeater;
+    _selectedPlaceId = placeId;
     _selectedRideId = nearbyRides.first;
+    _selectedRideBroadcast = _rideBroadcasts[_selectedRideId];
 
-    setupSelectedRideSubscription();
+    _isInCompassState = true;
 
-    /// stop receiving updates about other rides, as they're not relevant while one ride is being analyzed
-    _geofireStream?.pause();
+    computeMetersToSelectedRide();
 
-    if (mounted) {
+    if (mounted && updateState) {
       setState(() {});
     }
+
+    return true;
   }
 
-  Future<void> setupSelectedRideSubscription() async {
-    if (_selectedRideId == null) return;
-
-    _selectedRideSubscription = FirebaseDatabase.instanceFor(
-            app: Firebase.app(),
-            databaseURL: SharedRideBroadcast.SHARED_RIDE_DATABASE_ROOT)
-        .ref()
-        .child(FIREBASE_DB_PATHS.SHARED_RIDE_BROADCASTS)
-        .child(_selectedRideId!)
-        .onValue
-        .listen((event) async {
-      _selectedRideBroadcast = SharedRideBroadcast.fromSnapshot(event.snapshot);
-      if (_selectedRideBroadcast?.ride_id == null) {
-        _selectedRideBroadcast = null;
-        _selectedRideId = null;
-        _selectedRideSubscription?.cancel();
-        _selectedRideSubscription = null;
-        if (mounted) {
-          setState(() {});
-        }
-        return;
-      }
-
-      if (_selectedRideBroadcast!.ride_details?.accepted_customers != null) {
-        String self_id = FirebaseAuth.instance.currentUser!.uid;
-        SharedRideAcceptedCustomer? occurrence = _selectedRideBroadcast!
-            .ride_details?.accepted_customers
-            ?.firstWhere((customer) => customer.customer_id == self_id,
-                orElse: () => SharedRideAcceptedCustomer()
-                  ..customer_id = SEARCH_NOT_FOUND_ID);
-
-        // we've been selected into accepted customer list
-        if (occurrence != null &&
-            occurrence.customer_id != SEARCH_NOT_FOUND_ID) {
-          customerAcceptedIntoCar = true;
-        } else {
-          customerAcceptedIntoCar = false;
-        }
-      }
-
-      if (mounted) {
-        setState(() {});
-      }
-    });
+  void computeMetersToSelectedRide() {
+    if (_selectedRideBroadcast != null) {
+      metersToCar = Geolocator.distanceBetween(
+          currentLocation!.latitude,
+          currentLocation!.longitude,
+          _selectedRideBroadcast!.broadcast_loc!.latitude,
+          _selectedRideBroadcast!.broadcast_loc!.longitude);
+      isCustomerArrivedAtPickup =
+          metersToCar < COMPASS_POINTER_DISAPPEAR_METERS;
+      fontSizeMultiplier = isCustomerArrivedAtPickup ? 2.0 : 1.0;
+    }
   }
 
   double getAdjustedTurn() {
