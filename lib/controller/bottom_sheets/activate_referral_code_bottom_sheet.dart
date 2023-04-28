@@ -16,7 +16,7 @@ import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
 import 'package:safe/models/customer_referral.dart';
 
-import '../shared_rides_where_to_go_screen.dart';
+import '../shared_rides_list_and_compass_screen.dart';
 
 class ActivateReferralCodeBottomSheet extends BaseBottomSheet {
   static const String KEY = 'ActivateReferralCodeBottomSheet';
@@ -170,7 +170,7 @@ class _ActivateReferralCodeBottomSheetState
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => SharedRidesWhereToGoScreen()),
+                              builder: (context) => SharedRidesListAndCompassScreen()),
                         );
                       },
                       child: Center(

@@ -31,12 +31,14 @@ class PrefUtil {
     return FirebaseAuth.instance.currentUser?.uid ?? '';
   }
 
-  static Future<String> getCurrentUserPhone() async {
+  static String getCurrentUserPhone() {
+    /*
     User firebaseUser = FirebaseAuth.instance.currentUser!;
 
     final idTokenResult = await firebaseUser.getIdTokenResult(true);
     return idTokenResult.claims!["phoneNumber"] ?? '';
-    //return FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
+    */
+    return FirebaseAuth.instance.currentUser?.phoneNumber ?? '';
   }
 
   static const String pref_key_company_id = "pref_key_company_id";
