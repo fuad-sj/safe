@@ -530,45 +530,47 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   void resetTripDetails() {
-    setState(() {
-      _UIState = UI_STATE_NOTHING_STARTED;
-      _isHamburgerDrawerMode = true;
+    if (mounted) {
+      setState(() {
+        _UIState = UI_STATE_NOTHING_STARTED;
+        _isHamburgerDrawerMode = true;
 
-      setBottomMapPadding(
-          WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
+        setBottomMapPadding(
+            WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
 
-      _mapPolyLines.clear();
-      _mapMarkers.clear();
+        _mapPolyLines.clear();
+        _mapMarkers.clear();
 
-      _ignoreGeofireUpdates = false;
+        _ignoreGeofireUpdates = false;
 
-      _selectedDriver = null;
-      _selectedDriverLocationStream?.cancel();
-      _selectedDriverLocationStream = null;
+        _selectedDriver = null;
+        _selectedDriverLocationStream?.cancel();
+        _selectedDriverLocationStream = null;
 
-      _pickupToDropOffRouteDetail = null;
+        _pickupToDropOffRouteDetail = null;
 
-      _isHamburgerVisible = true;
+        _isHamburgerVisible = true;
 
-      _tripStartedLocation = null;
-      _tripStartTimestamp = null;
-      _tripCounterTimer?.cancel();
-      _tripCounterTimer = null;
+        _tripStartedLocation = null;
+        _tripStartTimestamp = null;
+        _tripCounterTimer?.cancel();
+        _tripCounterTimer = null;
 
-      _rideRequestRef = null;
-      _currentRideRequest = null;
+        _rideRequestRef = null;
+        _currentRideRequest = null;
 
-      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-          .updatePickupLocationAddress(null);
-      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-          .updateDropOffLocationAddress(null);
-      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-          .updateScheduledDuration(null);
+        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+            .updatePickupLocationAddress(null);
+        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+            .updateDropOffLocationAddress(null);
+        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+            .updateScheduledDuration(null);
 
-      zoomCameraToCurrentPosition();
+        zoomCameraToCurrentPosition();
 
-      updateAvailableDriversOnMap();
-    });
+        updateAvailableDriversOnMap();
+      });
+    }
   }
 
   Widget _getNavigationItemWidget(
