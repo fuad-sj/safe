@@ -1315,7 +1315,8 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
                       Color(0xff8f0909),
                     ])),
                 child: Center(
-                  child: Text('${widget.placeAggregate.placeNameWithNumRides()}',
+                  child: Text(
+                      '${widget.placeAggregate.placeNameWithNumRides()}',
                       style: TextStyle(
                           fontSize: 45.0 / devicePixelDensity,
                           fontFamily: 'Nokia Pure Headline Bold',
@@ -1413,9 +1414,11 @@ class SharedRidePlaceAggregate {
         prev_seen_nearby_six_seater_rides = Set(),
         nearby_four_seater_rides = [],
         nearby_six_seater_rides = [];
-  
+
   String placeNameWithNumRides() {
-    String count = (all_rides_to_place.length <= 1) ? "" : " (${all_rides_to_place.length})";
+    String count = (all_rides_to_place.length <= 1)
+        ? ""
+        : " (${all_rides_to_place.length})";
     return "$place_name$count";
   }
 }
