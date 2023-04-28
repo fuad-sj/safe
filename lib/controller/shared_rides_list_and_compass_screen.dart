@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:dartx/dartx_io.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -95,6 +96,7 @@ class _SharedRidesListAndCompassScreenState
   @override
   void initState() {
     super.initState();
+    BackButtonInterceptor.add(onBackBtnHandler);
 
     Future.delayed(Duration.zero, () async {
       liveLocation = new Location();
@@ -113,6 +115,8 @@ class _SharedRidesListAndCompassScreenState
 
   @override
   void dispose() {
+    BackButtonInterceptor.remove(onBackBtnHandler);
+
     Future.delayed(Duration.zero, () async {
       await Geofire.stopListener();
     });
@@ -126,6 +130,25 @@ class _SharedRidesListAndCompassScreenState
     _selectedRideSubscription?.cancel();
 
     super.dispose();
+  }
+
+  Future<bool> onBackBtnHandler(
+      bool stopDefaultButtonEvent, RouteInfo routeInfo) async {
+    if (_selectedRideId == null) {
+      return false;
+    }
+
+    await resetCompassState();
+    return true;
+  }
+
+  Future<void> resetCompassState() async {
+    _selectedRideId = null;
+    await _selectedRideSubscription?.cancel();
+    _selectedRideSubscription = null;
+
+    /// get back to getting updates
+    _geofireStream?.resume();
   }
 
   Future<void> setupNearbyBroadcastsQuery() async {
@@ -520,12 +543,7 @@ class _SharedRidesListAndCompassScreenState
                   left: MediaQuery.of(context).size.width * 0.070,
                   child: IconButton(
                     onPressed: () async {
-                      _selectedRideId = null;
-                      await _selectedRideSubscription?.cancel();
-                      _selectedRideSubscription = null;
-
-                      /// get back to getting updates
-                      _geofireStream?.resume();
+                      await resetCompassState();
 
                       if (mounted) {
                         setState(() {});
