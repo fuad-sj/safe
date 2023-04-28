@@ -13,8 +13,10 @@ import 'package:location/location.dart';
 import 'package:safe/driver_location/smooth_compass.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/shared_ride_broadcast.dart';
+import 'package:safe/models/shared_ride_customer_loc.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:safe/utils/hash_generator.dart';
 import 'package:safe/utils/map_style.dart';
 import 'package:safe/utils/phone_call.dart';
 import 'package:safe/utils/pref_util.dart';
@@ -43,6 +45,8 @@ class _SharedRidesListAndCompassScreenState
 
   StreamSubscription? _locationStreamSubscription;
   late Location liveLocation;
+
+  Timer? _customerLocPingUpdaterTimer;
 
   LatLng? currentLocation;
 
@@ -109,7 +113,10 @@ class _SharedRidesListAndCompassScreenState
           is_default: false,
           root: SharedRideBroadcast.SHARED_RIDE_DATABASE_ROOT);
 
-      setupNearbyBroadcastsQuery();
+      if (await setupLocationCallback()) {
+        setupNearbyBroadcastsQuery();
+        setupCompassCallback();
+      }
     });
 
     arrowImage = AssetImage("images/arrow.png");
@@ -122,6 +129,22 @@ class _SharedRidesListAndCompassScreenState
 
     Future.delayed(Duration.zero, () async {
       await Geofire.stopListener();
+
+      /// make shared ride customer loc invalid as we've logged out of this page
+      Map<String, dynamic> locInvalidatorFields = Map();
+
+      locInvalidatorFields[SharedRideCustomerLocDetails.FIELD_IS_LOC_VALID] =
+          false;
+
+      await FirebaseDatabase.instanceFor(
+              app: Firebase.app(),
+              databaseURL:
+                  SharedRideCustomerLoc.SHARED_RIDE_CUSTOMER_LOC_DATABASE_ROOT)
+          .ref()
+          .child(FIREBASE_DB_PATHS.SHARED_RIDE_CUSTOMER_LOCS)
+          .child(FirebaseAuth.instance.currentUser!.uid)
+          .child(SharedRideCustomerLoc.KEY_DETAILS)
+          .update(locInvalidatorFields);
     });
 
     _geofireStream?.cancel();
@@ -129,6 +152,8 @@ class _SharedRidesListAndCompassScreenState
     _locationStreamSubscription?.cancel();
 
     _compassStreamSub?.cancel();
+
+    _customerLocPingUpdaterTimer?.cancel();
 
     super.dispose();
   }
@@ -152,16 +177,12 @@ class _SharedRidesListAndCompassScreenState
     _isInCompassState = false;
   }
 
-  Future<void> setupNearbyBroadcastsQuery() async {
-    final String fieldCallback = 'callBack';
-    final String fieldKey = 'key';
-    final String fieldVal = 'val';
-
+  Future<bool> setupLocationCallback() async {
     PermissionStatus permissionStatus = await liveLocation.hasPermission();
     if (permissionStatus == PermissionStatus.denied) {
       permissionStatus = await liveLocation.requestPermission();
       if (permissionStatus != PermissionStatus.granted) {
-        return;
+        return false;
       }
     }
     var locData = await liveLocation.getLocation();
@@ -177,17 +198,76 @@ class _SharedRidesListAndCompassScreenState
       if (mounted) {
         setState(() {});
       }
+
+      Map<String, dynamic> customerLocDetails = Map();
+
+      customerLocDetails[
+          SharedRideCustomerLocDetails.convertDetailFieldToDeepRideCustomerPath(
+              SharedRideCustomerLocDetails.FIELD_IS_LOC_VALID)] = true;
+      customerLocDetails[
+          SharedRideCustomerLocDetails.convertDetailFieldToDeepRideCustomerPath(
+              SharedRideCustomerLocDetails
+                  .FIELD_LAST_UPDATE_TIMESTAMP)] = ServerValue.timestamp;
+
+      await FirebaseDatabase.instanceFor(
+              app: Firebase.app(),
+              databaseURL:
+                  SharedRideCustomerLoc.SHARED_RIDE_CUSTOMER_LOC_DATABASE_ROOT)
+          .ref()
+          .child(FIREBASE_DB_PATHS.SHARED_RIDE_CUSTOMER_LOCS)
+          .child(FirebaseAuth.instance.currentUser!.uid)
+          .update({
+        SharedRideCustomerLoc.KEY_HASH:
+            HashGenerator.hashForLocation(location: currentLocation!),
+        SharedRideCustomerLoc.KEY_LOCATION: {
+          SharedRideCustomerLoc.KEY_LAT: currentLocation!.latitude,
+          SharedRideCustomerLoc.KEY_LNG: currentLocation!.longitude,
+        },
+        ...customerLocDetails,
+      });
     });
 
-    // once location is acquired, setup compass. having location makes compass more accurate
-    setupCompassCallback();
+    _customerLocPingUpdaterTimer = new Timer.periodic(
+      const Duration(seconds: 60),
+      (Timer timer) async {
+        await sendPingUpdate();
+      },
+    );
+
+    // fire off the first ping update, as the timer above won't fire its first until the set duration has passed
+    await sendPingUpdate();
+
+    return true;
+  }
+
+  Future<void> sendPingUpdate() async {
+    Map<String, dynamic> pingFields = new Map();
+
+    pingFields[SharedRideCustomerLoc.FIELD_PING_TIMESTAMP] =
+        ServerValue.timestamp;
+
+    await FirebaseDatabase.instanceFor(
+            app: Firebase.app(),
+            databaseURL:
+                SharedRideCustomerLoc.SHARED_RIDE_CUSTOMER_LOC_DATABASE_ROOT)
+        .ref()
+        .child(FIREBASE_DB_PATHS.SHARED_RIDE_CUSTOMER_LOCS)
+        .child(FirebaseAuth.instance.currentUser!.uid)
+        .child(SharedRideCustomerLoc.KEY_PING)
+        .update(pingFields);
+  }
+
+  Future<void> setupNearbyBroadcastsQuery() async {
+    final String fieldCallback = 'callBack';
+    final String fieldKey = 'key';
+    final String fieldVal = 'val';
 
     /**
      * TODO: Relaunch the geofire query if the user has moved "too much". the query is a static one
      * i.e: it doesn't accommodate for changes in the user's live position
      */
-    _geofireStream = Geofire.queryAtLocation(
-            locData.latitude!, locData.longitude!, DEFAULT_SEARCH_RADIUS_KMS)
+    _geofireStream = Geofire.queryAtLocation(currentLocation!.latitude,
+            currentLocation!.longitude, DEFAULT_SEARCH_RADIUS_KMS)
         ?.listen(
       (obj) async {
         if (obj == null) {
