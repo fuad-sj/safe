@@ -57,7 +57,8 @@ class SharedRideBroadcast {
     if ((ride_details!.is_stale_order ?? false) == true ||
         (ride_details!.is_trip_cancelled ?? false) == true ||
         (ride_details!.is_trip_started ?? false) == true ||
-        (ride_details!.is_fully_booked ?? false) == true) {
+        (ride_details!.is_fully_booked ?? false) == true ||
+        (ride_details!.seats_remaining ?? 0) == 0) {
       return false;
     }
 
