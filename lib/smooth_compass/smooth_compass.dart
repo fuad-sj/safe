@@ -1,4 +1,47 @@
-part of flutter_sensor_compass;
+import 'dart:async';
+import 'dart:io';
+import 'dart:math';
+
+import 'package:flutter_sensors/flutter_sensors.dart';
+import 'package:vector_math/vector_math.dart';
+
+class SmoothCompass {
+  /// Singleton instance.
+  static final SmoothCompass _instance = SmoothCompass._internal();
+
+  /// Class factory. Init the instance if was not initialized before.
+  factory SmoothCompass() {
+    return _instance;
+  }
+
+  /// Internal private constructor for the singleton.
+  SmoothCompass._internal();
+
+  /// Plugin instance.
+  final _Compass _compass = _Compass();
+
+  ///Returns a stream to receive the compass updates.
+  ///
+  ///Remember to close the stream after using it.
+  Stream<CompassModel> compassUpdates(
+          {Duration? interval, double? azimuthFix, MyLoc? currentLoc}) =>
+      _compass.compassUpdates(interval!, azimuthFix!, myLoc: currentLoc);
+
+  /// Checks if the sensors needed for the compass to work are available.
+  ///
+  /// Returns true if the sensors are available or false otherwise.
+  Future<bool> isCompassAvailable() => _Compass.isCompassAvailable;
+
+  void setAzimuthFix(double fix) => _compass.azimuthFix = fix;
+}
+
+/// model to store the sensor value
+class CompassModel {
+  double turns;
+  double angle;
+
+  CompassModel({required this.turns, required this.angle});
+}
 
 double preValue = 0;
 double turns = 0;
@@ -22,23 +65,22 @@ getCompassValues(double heading, double latitude, double longitude) {
   preValue = direction;
 
   return CompassModel(
-      turns: -1 * turns,
-      angle: heading,
-      driverLocOffset: getDriverDirection(latitude, longitude, heading));
+    turns: -1 * turns,
+    angle: heading,
+  );
 }
 
 class _Compass {
   final List<double> _rotationMatrix = List.filled(9, 0.0);
   double _azimuth = 0.0;
   double azimuthFix = 0.0;
-  double x = 0,
-      y = 0;
+  double x = 0, y = 0;
   final List<_CompassStreamSubscription> _updatesSubscriptions = [];
 
   // ignore: cancel_subscriptions
   StreamSubscription<SensorEvent>? _rotationSensorStream;
   final StreamController<double> _internalUpdateController =
-  StreamController.broadcast();
+      StreamController.broadcast();
 
   /// Starts the compass updates.
   Stream<CompassModel> compassUpdates(Duration? interval, double azimuthFix,
@@ -49,7 +91,7 @@ class _Compass {
     _CompassStreamSubscription? compassStreamSubscription;
     // ignore: cancel_subscriptions
     StreamSubscription<double> compassSubscription =
-    _internalUpdateController.stream.listen((value) {
+        _internalUpdateController.stream.listen((value) {
       if (interval != null) {
         DateTime instant = DateTime.now();
         int difference = instant
@@ -193,70 +235,6 @@ class _CompassStreamSubscription {
 
   _CompassStreamSubscription(this.subscription) {
     lastUpdated = DateTime.now();
-  }
-}
-
-///to get Qibla direction
-double getDriverDirection(double latitude, double longitude,
-    double headingValue) {
-  if (latitude != 0 && longitude != 0) {
-    final offSet = Utils.getOffsetFromNorth(latitude, longitude);
-
-    // Adjust Qiblah direction based on North direction
-    return offSet;
-  } else {
-    return 0;
-  }
-}
-
-class Utils {
-  Utils._();
-
-  static final _deLa = radians(9.422487);
-  static final _deLo = radians(39.826206);
-
-  /// returns the qiblah offset for the current location
-  static double getOffsetFromNorth(double currentLatitude,
-      double currentLongitude,) {
-    /// converting current lat & lang to radians
-    var laRad = radians(currentLatitude);
-    var loRad = radians(currentLongitude);
-
-    /// converting current lat & lang to Degrees
-    var toDegrees = degrees(atan(sin(_deLo - loRad) /
-        ((cos(laRad) * tan(_deLa)) - (sin(laRad) * cos(_deLo - loRad)))));
-    if (laRad > _deLa) {
-      if ((loRad > _deLo || loRad < radians(-180.0) + _deLo) &&
-          toDegrees > 0.0 &&
-          toDegrees <= 90.0) {
-        toDegrees += 180.0;
-      } else if (loRad <= _deLo &&
-          loRad >= radians(-180.0) + _deLo &&
-          toDegrees > -90.0 &&
-          toDegrees < 0.0) {
-        toDegrees += 180.0;
-      }
-    }
-
-    /// check if the latRadian is less than the destination lat
-    if (laRad < _deLa) {
-      if ((loRad > _deLo || loRad < radians(-180.0) + _deLo) &&
-          toDegrees > 0.0 &&
-          toDegrees < 90.0) {
-        toDegrees += 180.0;
-      }
-
-      /// check if the loRadian is less than or equal to the destination long
-      if (loRad <= _deLo &&
-          loRad >= radians(-180.0) + _deLo &&
-          toDegrees > -90.0 &&
-          toDegrees <= 0.0) {
-        toDegrees += 180.0;
-      }
-    }
-
-    /// returns the qiblah direction in degrees
-    return toDegrees;
   }
 }
 

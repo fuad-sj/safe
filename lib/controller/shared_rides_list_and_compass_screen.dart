@@ -10,7 +10,7 @@ import 'package:flutter_geofire/flutter_geofire.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
-import 'package:safe/driver_location/smooth_compass.dart';
+import 'package:safe/smooth_compass/smooth_compass.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/shared_ride_broadcast.dart';
 import 'package:safe/models/shared_ride_customer_loc.dart';
@@ -368,9 +368,9 @@ class _SharedRidesListAndCompassScreenState
   }
 
   Future<void> setupCompassCallback() async {
-    isCompassAvailable = await Compass().isCompassAvailable();
+    isCompassAvailable = await SmoothCompass().isCompassAvailable();
     if (isCompassAvailable) {
-      _compassStreamSub = Compass()
+      _compassStreamSub = SmoothCompass()
           .compassUpdates(
               interval: const Duration(
                 milliseconds: 150,
