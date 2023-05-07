@@ -35,7 +35,7 @@ class _SharedRidesListAndCompassScreenState
   static const SEARCH_NOT_FOUND_ID = "search_not_found_id";
 
   static const double DEFAULT_SEARCH_RADIUS_KMS = 10.5;
-  static const double COMPASS_POINTER_DISAPPEAR_METERS = 0.001;
+  static const double COMPASS_POINTER_DISAPPEAR_METERS = 10;
 
   StreamSubscription<dynamic>? _geofireStream;
 
@@ -133,8 +133,7 @@ class _SharedRidesListAndCompassScreenState
       /// make shared ride customer loc invalid as we've logged out of this page
       Map<String, dynamic> locInvalidatorFields = Map();
 
-      locInvalidatorFields[SharedRideCustomerLocDetails.FIELD_IS_LOC_VALID] =
-          false;
+      locInvalidatorFields[SharedRideCustomerLocDetails.F_IS_LOC_VALID] = false;
 
       await FirebaseDatabase.instanceFor(
               app: Firebase.app(),
@@ -169,6 +168,8 @@ class _SharedRidesListAndCompassScreenState
   }
 
   Future<void> resetCompassState() async {
+    updateCustomerLocEvaluatingPlaceAndRide(reset: true);
+
     _selectedFourSeater = false;
     _selectedPlaceId = null;
     _selectedRideId = null;
@@ -203,11 +204,11 @@ class _SharedRidesListAndCompassScreenState
 
       customerLocDetails[
           SharedRideCustomerLocDetails.convertDetailFieldToDeepRideCustomerPath(
-              SharedRideCustomerLocDetails.FIELD_IS_LOC_VALID)] = true;
+              SharedRideCustomerLocDetails.F_IS_LOC_VALID)] = true;
       customerLocDetails[
           SharedRideCustomerLocDetails.convertDetailFieldToDeepRideCustomerPath(
               SharedRideCustomerLocDetails
-                  .FIELD_LAST_UPDATE_TIMESTAMP)] = ServerValue.timestamp;
+                  .F_LAST_UPDATE_TIMESTAMP)] = ServerValue.timestamp;
 
       await FirebaseDatabase.instanceFor(
               app: Firebase.app(),
@@ -1228,7 +1229,33 @@ class _SharedRidesListAndCompassScreenState
       setState(() {});
     }
 
+    /// once a place and ride is selected, update the customer loc tracker so drivers can check against it in their radar state
+    updateCustomerLocEvaluatingPlaceAndRide();
+
     return true;
+  }
+
+  Future<void> updateCustomerLocEvaluatingPlaceAndRide(
+      {bool reset = false}) async {
+    if (_selectedPlaceId == null || _selectedRideId == null) return;
+
+    /// make shared ride customer loc invalid as we've logged out of this page
+    Map<String, dynamic> locInvalidatorFields = Map();
+
+    locInvalidatorFields[SharedRideCustomerLocDetails.F_EVALUATING_RIDE_ID] =
+        reset ? "" : _selectedRideId;
+    locInvalidatorFields[SharedRideCustomerLocDetails
+        .F_EVALUATING_DEST_PLACE_ID] = reset ? "" : _selectedPlaceId;
+
+    await FirebaseDatabase.instanceFor(
+            app: Firebase.app(),
+            databaseURL:
+                SharedRideCustomerLoc.SHARED_RIDE_CUSTOMER_LOC_DATABASE_ROOT)
+        .ref()
+        .child(FIREBASE_DB_PATHS.SHARED_RIDE_CUSTOMER_LOCS)
+        .child(FirebaseAuth.instance.currentUser!.uid)
+        .child(SharedRideCustomerLoc.KEY_DETAILS)
+        .update(locInvalidatorFields);
   }
 
   void computeMetersToSelectedRide() {

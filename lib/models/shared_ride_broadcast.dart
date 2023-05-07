@@ -11,14 +11,19 @@ class SharedRideBroadcast {
   static const String SHARED_RIDE_DATABASE_ROOT =
       "https://safetransports-et-2995d.firebaseio.com/";
 
+  static const KEY_HASH = "g";
   static const KEY_LOCATION = "l";
+  static const KEY_LAT = "0";
+  static const KEY_LNG = "1";
   static const KEY_DETAILS = "dt";
+  static const KEY_PING = "p";
 
-  static const FIELD_BROADCAST_LOC = "broadcast_loc";
+  static const FIELD_PING_TIMESTAMP = "pt";
 
   String? ride_id;
 
   LatLng? broadcast_loc;
+  int? ping_timestamp;
 
   SharedRideDetails? ride_details;
 
@@ -38,27 +43,33 @@ class SharedRideBroadcast {
         data.containsKey(KEY_LOCATION) ? (data[KEY_LOCATION] as List) : null;
     var broadcast_loc = coords != null ? LatLng(coords[0], coords[1]) : null;
 
-    var details = data.containsKey(KEY_DETAILS)
-        ? (data[KEY_DETAILS] as Map<Object?, Object?>).cast<String, dynamic>()
-        : Map<String, dynamic>();
+    var ping = data.containsKey(KEY_PING) ? (data[KEY_PING] as Map) : Map();
+
+    var details =
+        data.containsKey(KEY_DETAILS) ? (data[KEY_DETAILS] as Map) : Map();
 
     return SharedRideBroadcast()
       ..ride_id = ride_id
       ..broadcast_loc = broadcast_loc
-      ..ride_details = _$SharedRideDetailsFromJson(details);
+      ..ping_timestamp = ping[FIELD_PING_TIMESTAMP] ?? null
+      ..ride_details =
+          _$SharedRideDetailsFromJson(details.cast<String, dynamic>());
   }
 
   bool isValidOrderToConsider() {
-    if (ride_details == null ||
-        (ride_details!.is_broadcast_launched ?? false) != true) {
+    if (ride_details == null || ride_details?.order_state == null) {
       return false;
     }
 
-    if ((ride_details!.is_stale_order ?? false) == true ||
-        (ride_details!.is_trip_cancelled ?? false) == true ||
-        (ride_details!.is_trip_started ?? false) == true ||
-        (ride_details!.is_fully_booked ?? false) == true ||
-        (ride_details!.seats_remaining ?? 0) == 0) {
+    return SharedRideDetails.isBoardingState(ride_details!.order_state!);
+  }
+
+  bool isBroadcastOngoing() {
+    if (!isValidOrderToConsider()) {
+      return false;
+    }
+
+    if ((ride_details!.seats_remaining ?? 0) == 0) {
       return false;
     }
 
@@ -68,109 +79,172 @@ class SharedRideBroadcast {
 
 @JsonSerializable()
 class SharedRideDetails {
-  static const FIELD_PLACE_NAME = "place_name";
-  static const FIELD_PLACE_ID = "place_id";
-  static const FIELD_PLACE_LOC = "place_loc";
-  static const FIELD_INITIAL_LOC = "initial_loc";
+  //#region ORDER_STATE's
+  static const int STATUS_STALE = -2; // didn't receive pings in a long time
+  static const int STATUS_CANCELLED = -1; // was manually cancelled
 
-  static const FIELD_CREATED_TIMESTAMP = "created_timestamp";
-  static const FIELD_PING_TIMESTAMP = "ping_timestamp";
-  static const FIELD_TRIP_STARTED_TIMESTAMP = "trip_started_timestamp";
+  static const int STATUS_NEW_CREATED = 1;
+  static const int STATUS_ESTIMATE_CALCULATED = 2;
+  static const int STATUS_ORDER_CONFIRMED = 3;
+  static const int STATUS_BROADCAST_LAUNCHED = 4;
+  static const int STATUS_CUSTOMERS_STARTED_BOARDING = 5;
+  static const int STATUS_FULLY_BOOKED = 6;
+  static const int STATUS_READY_TO_START = 7;
+  static const int STATUS_TRIP_STARTED = 8;
 
-  static const FIELD_DRIVER_NAME = "driver_name";
-  static const FIELD_DRIVER_PHONE = "driver_phone";
-  static const FIELD_CAR_PLATE = "car_plate";
-  static const FIELD_CAR_DETAILS = "car_details";
-  static const FIELD_IS_SIX_SEATER = "is_six_seater";
+  /**
+   * to intercept customer dropoff off events(not all dropped; but a single customer). have DROP_A_CUSTOMER
+   * state. driver app sets this state; backend does any necessary logging. then returns state back to TRIP_ONGOING.
+   * It will cycle through this until all customers have dropped.
+   */
+  static const int STATUS_DROP_A_CUSTOMER = 9;
+  static const int STATUS_TRIP_ONGOING = 10;
 
-  static const FIELD_EST_PRICE = "est_price";
-  static const FIELD_DISTANCE_KM = "distance_km";
-  static const FIELD_DURATION_MINUTES = "duration_minutes";
+  static const int STATUS_DROPPED_ALL_CUSTOMERS = 11;
+  static const int STATUS_TRIP_COMPLETED = 12;
 
-  static const FIELD_IS_PRICE_CALCULATED = "is_price_calculated";
-  static const FIELD_IS_ORDER_CONFIRMED = "is_order_confirmed";
-  static const FIELD_IS_BROADCAST_LAUNCHED = "is_broadcast_launched";
-  static const FIELD_IS_TRIP_CANCELLED = "is_trip_cancelled";
-  static const FIELD_IS_STALE_ORDER = "is_stale_order";
-  static const FIELD_IS_FULLY_BOOKED = "is_fully_booked";
-  static const FIELD_IS_TRIP_STARTED = "is_trip_started";
-  static const FIELD_IS_TRIP_COMPLETED = "is_trip_completed";
+  //#endregion
 
-  static const FIELD_IS_FORCEFULLY_FILLED = "is_forcefully_filled";
-  static const FIELD_NUM_FORCEFUL_FILLED = "num_forceful_filled";
+  static bool isBoardingState(int rideState) {
+    switch (rideState) {
+      case STATUS_BROADCAST_LAUNCHED:
+      case STATUS_CUSTOMERS_STARTED_BOARDING:
+        return true;
+      default:
+        return false;
+    }
+  }
 
-  static const FIELD_SEATS_REMAINING = "seats_remaining";
-
-  static const FIELD_REACHED_OUT_CUSTOMERS = "reached_out_customers";
-
-  static const FIELD_ACCEPTED_CUSTOMERS = "accepted_customers";
-
-  static const FIELD_SEPARATE_DROPOFFS = "separate_dropoffs";
-
-  //
-
+  /// this is what drives the event loop, goes through the different states throughout the order lifecycle
+  //#region order state and order source checking for server
+  static const F_ORDER_STATE = "os";
+  @JsonKey(name: F_ORDER_STATE)
+  int? order_state;
+  static const F_CLIENT_TRIGGERED_EVENT = "cte";
+  @JsonKey(name: F_CLIENT_TRIGGERED_EVENT)
   bool? client_triggered_event;
-  bool? is_unread_data;
 
+  //#endregion
+
+  //#region place details, i.e: destination
+  static const F_PLACE_NAME = "pn";
+  @JsonKey(name: F_PLACE_NAME)
   String? place_name;
+  static const F_PLACE_ID = "pi";
+  @JsonKey(name: F_PLACE_ID)
   String? place_id;
-
+  static const F_PLACE_LOC = "plc";
   @JsonKey(
+      name: F_PLACE_LOC,
       fromJson: FirebaseDocument.LatLngFromJson,
       toJson: FirebaseDocument.LatLngToJson)
   LatLng? place_loc;
+
+  //#endregion
+
+  static const F_INITIAL_LOC = "il";
   @JsonKey(
+      name: F_INITIAL_LOC,
       fromJson: FirebaseDocument.LatLngFromJson,
       toJson: FirebaseDocument.LatLngToJson)
   LatLng? initial_loc;
 
+  //#region timestamps for create and trip start
+  static const F_CREATED_TIMESTAMP = "cts";
+  @JsonKey(name: F_CREATED_TIMESTAMP)
   int? created_timestamp;
-  int? ping_timestamp;
+  static const F_TRIP_STARTED_TIMESTAMP = "tsts";
+  @JsonKey(name: F_TRIP_STARTED_TIMESTAMP)
   int? trip_started_timestamp;
 
+  //#endregion
+
+  //#region driver details
+  static const F_DRIVER_NAME = "dn";
+  @JsonKey(name: F_DRIVER_NAME)
   String? driver_name;
+  static const F_DRIVER_PHONE = "dp";
+  @JsonKey(name: F_DRIVER_PHONE)
   String? driver_phone;
+  static const F_CAR_PLATE = "cp";
+  @JsonKey(name: F_CAR_PLATE)
   String? car_plate;
+  static const F_CAR_DETAILS = "cd";
+  @JsonKey(name: F_CAR_DETAILS)
   String? car_details;
+  static const F_IS_SIX_SEATER = "iss";
+  @JsonKey(name: F_IS_SIX_SEATER)
   bool? is_six_seater;
 
-  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
+  //#endregion
+
+  //#region time, km + price estimates
+  static const F_EST_PRICE = "ep";
+  @JsonKey(name: F_EST_PRICE, fromJson: FirebaseDocument.DoubleFromJson)
   double? est_price;
-  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
+  static const F_DISTANCE_KM = "dk";
+  @JsonKey(name: F_DISTANCE_KM, fromJson: FirebaseDocument.DoubleFromJson)
   double? distance_km;
-  @JsonKey(fromJson: FirebaseDocument.DoubleFromJson)
+  static const F_DURATION_MINUTES = "dm";
+  @JsonKey(name: F_DURATION_MINUTES, fromJson: FirebaseDocument.DoubleFromJson)
   double? duration_minutes;
 
-  bool? is_price_calculated;
-  bool? is_order_confirmed;
-  bool? is_broadcast_launched;
-  bool? is_trip_cancelled;
-  bool? is_stale_order;
-  bool? is_fully_booked;
-  bool? is_trip_started;
-  bool? is_trip_completed;
+  //#endregion
 
+  static const F_IS_FORCEFULLY_FILLED = "iff";
+  @JsonKey(name: F_IS_FORCEFULLY_FILLED)
   bool? is_forcefully_filled;
+  static const F_NUM_FORCEFUL_FILLED = "nff";
+  @JsonKey(name: F_NUM_FORCEFUL_FILLED)
   int? num_forceful_filled;
 
+  static const F_SEATS_REMAINING = "sr";
+  @JsonKey(name: F_SEATS_REMAINING)
   int? seats_remaining;
 
+  static const F_REACHED_OUT_CUSTOMERS = "roc";
   @JsonKey(
+      name: F_REACHED_OUT_CUSTOMERS,
       fromJson: SharedRideReachOutCustomer.List_FromJson,
       toJson: SharedRideReachOutCustomer.List_ToJson)
   List<SharedRideReachOutCustomer>? reached_out_customers;
 
+  static const F_VETTED_REACHOUT_CUSTOMERS = "vrc";
   @JsonKey(
+      name: F_VETTED_REACHOUT_CUSTOMERS,
+      fromJson: SharedRideVettedReachoutCustomer.List_FromJson,
+      toJson: SharedRideVettedReachoutCustomer.List_ToJson)
+  List<SharedRideVettedReachoutCustomer>? vetted_reachout_customers;
+
+  static const F_ACCEPTED_CUSTOMERS = "ac";
+  @JsonKey(
+      name: F_ACCEPTED_CUSTOMERS,
       fromJson: SharedRideAcceptedCustomer.List_FromJson,
       toJson: SharedRideAcceptedCustomer.List_ToJson)
   List<SharedRideAcceptedCustomer>? accepted_customers;
 
+  static const F_SEPARATE_DROPOFFS = "sd";
   @JsonKey(
+      name: F_SEPARATE_DROPOFFS,
       fromJson: SharedRideSeparateDropoff.List_FromJson,
       toJson: SharedRideSeparateDropoff.List_ToJson)
   List<SharedRideSeparateDropoff>? separate_dropoffs;
 
   SharedRideDetails();
+
+  /**
+   * Use this when u want to selectively update a detail field while the update is happening a node above at the broadcast level.
+   * e.g:
+   *
+   *    if you wanna update the
+   *        g: "hash"
+   *        l: "location"
+   *        dt:
+   *            <- some field here
+   */
+  static String convertDetailFieldToDeepBroadcastPath(String field) {
+    return SharedRideBroadcast.KEY_DETAILS + '/' + field;
+  }
 }
 
 List<dynamic> _ListToJson<T>(List<T>? list, Map Function(T val) converter) {
@@ -180,28 +254,63 @@ List<dynamic> _ListToJson<T>(List<T>? list, Map Function(T val) converter) {
 dynamic _ListFromJson<T>(
     dynamic json, T Function(Map<String, dynamic>) converter) {
   if (json == null) return null;
-  return (json as List<dynamic>?)?.map((e) => converter(e)).toList();
+  return (json as List<dynamic>?)?.map((e) => converter((e as Map).cast<String, dynamic>())).toList();
+}
+
+dynamic _ServerTimeStampFiller(int? timestamp) {
+  return timestamp ?? ServerValue.timestamp;
 }
 
 @JsonSerializable()
 class SharedRideReachOutCustomer {
+  @JsonKey(name: "cp")
   late String customer_phone;
+  @JsonKey(name: "ci")
   late String customer_id;
+
+  @JsonKey(name: "rt", toJson: _ServerTimeStampFiller)
+  int? reachout_timestamp;
 
   SharedRideReachOutCustomer();
 
   static List<dynamic> List_ToJson(List<SharedRideReachOutCustomer>? list) =>
       _ListToJson(list, _$SharedRideReachOutCustomerToJson);
 
-  static dynamic List_FromJson(List<SharedRideReachOutCustomer>? list) =>
+  static dynamic List_FromJson(dynamic list) =>
       _ListFromJson(list, _$SharedRideReachOutCustomerFromJson);
 }
 
 @JsonSerializable()
-class SharedRideAcceptedCustomer {
+class SharedRideVettedReachoutCustomer {
+  @JsonKey(name: "cp")
   late String customer_phone;
+  @JsonKey(name: "ci")
   late String customer_id;
 
+  @JsonKey(name: "rt", toJson: _ServerTimeStampFiller)
+  int? reachout_timestamp;
+
+  SharedRideVettedReachoutCustomer();
+
+  static List<dynamic> List_ToJson(
+          List<SharedRideVettedReachoutCustomer>? list) =>
+      _ListToJson(list, _$SharedRideVettedReachoutCustomerToJson);
+
+  static dynamic List_FromJson(List<SharedRideVettedReachoutCustomer>? list) =>
+      _ListFromJson(list, _$SharedRideVettedReachoutCustomerFromJson);
+}
+
+@JsonSerializable()
+class SharedRideAcceptedCustomer {
+  @JsonKey(name: "cp")
+  late String customer_phone;
+  @JsonKey(name: "ci")
+  late String customer_id;
+
+  @JsonKey(name: "at", toJson: _ServerTimeStampFiller)
+  int? accepted_timestamp;
+
+  @JsonKey(name: "nc")
   late int num_customers;
 
   SharedRideAcceptedCustomer();
@@ -215,11 +324,15 @@ class SharedRideAcceptedCustomer {
 
 @JsonSerializable()
 class SharedRideSeparateDropoff {
+  @JsonKey(name: "cp")
   late String customer_phone;
+  @JsonKey(name: "ci")
   late String customer_id;
 
+  @JsonKey(name: "nc")
   late int num_customers;
 
+  @JsonKey(name: "dl")
   late List<double> dropoff_loc;
 
   static List<dynamic> List_ToJson(List<SharedRideSeparateDropoff>? list) =>
@@ -231,16 +344,24 @@ class SharedRideSeparateDropoff {
 
 @JsonSerializable()
 class SharedRideDropoffPrice {
+  @JsonKey(name: "cp")
   late String customer_phone;
+  @JsonKey(name: "ci")
   late String customer_id;
 
+  @JsonKey(name: "nc")
   late int num_customers;
 
+  @JsonKey(name: "tk")
   late double travelled_km;
+  @JsonKey(name: "tt")
   late double travelled_time;
 
+  @JsonKey(name: "ep")
   late double each_price;
+  @JsonKey(name: "tp")
   late double total_price;
 
-  late int dropoff_timestamp;
+  @JsonKey(name: "dt", toJson: _ServerTimeStampFiller)
+  int? dropoff_timestamp;
 }

@@ -16,7 +16,7 @@ class SharedRideCustomerLoc {
   static const KEY_DETAILS = "dt";
   static const KEY_PING = "p";
 
-  static const FIELD_PING_TIMESTAMP = "ping_timestamp";
+  static const FIELD_PING_TIMESTAMP = "pt";
 
   String? customer_id;
 
@@ -55,12 +55,19 @@ class SharedRideCustomerLoc {
 
 @JsonSerializable()
 class SharedRideCustomerLocDetails {
-  static const FIELD_EVALUATING_RIDE_ID = "evaluating_ride_id";
-  static const FIELD_IS_LOC_VALID = "is_loc_valid";
-  static const FIELD_LAST_UPDATE_TIMESTAMP = "last_update_timestamp";
+  static const F_EVALUATING_RIDE_ID = "eri";
+  static const F_EVALUATING_DEST_PLACE_ID = "edpi";
+  static const F_IS_LOC_VALID = "ilv";
+  static const F_COMPASS_ORIENTATION = "co";
+  static const F_LAST_UPDATE_TIMESTAMP = "lut";
 
   String? evaluating_ride_id;
+
+  String? evaluating_dest_place_id;
+
   bool? is_loc_valid;
+
+  double? compass_orientation;
 
   int? last_update_timestamp;
 
