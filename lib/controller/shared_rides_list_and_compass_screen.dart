@@ -905,48 +905,60 @@ class _SharedRidesListAndCompassScreenState
                         child: SliderButton(
                           sliderKey: 'Arrived at Pickup',
                           action: () async {
-                            customerSwipedToEnter = true;
+                            var result = await FirebaseDatabase.instanceFor(
+                                    app: Firebase.app(),
+                                    databaseURL: SharedRideBroadcast
+                                        .SHARED_RIDE_DATABASE_ROOT)
+                                .ref()
+                                .child(FIREBASE_DB_PATHS.SHARED_RIDE_BROADCASTS)
+                                .child(_selectedRideId!)
+                                .child(SharedRideBroadcast.KEY_DETAILS)
+                                .child(
+                                    SharedRideDetails.F_REACHED_OUT_CUSTOMERS)
+                                .runTransaction(
+                              (obj) {
+                                List<SharedRideReachOutCustomer>
+                                    reachedOutCustomers =
+                                    SharedRideReachOutCustomer.List_FromJson(
+                                            obj) ??
+                                        [];
 
-                            String self_id =
-                                FirebaseAuth.instance.currentUser!.uid;
-                            String self_phone = formatPhone(_selfPhone);
+                                String selfId =
+                                    FirebaseAuth.instance.currentUser!.uid;
 
-                            Map<String, dynamic> rideDetails = new Map();
+                                SharedRideReachOutCustomer occurrence =
+                                    reachedOutCustomers.firstWhere(
+                                        (customer) =>
+                                            customer.customer_id == selfId,
+                                        orElse: () =>
+                                            SharedRideReachOutCustomer()
+                                              ..customer_id =
+                                                  SEARCH_NOT_FOUND_ID);
 
-                            List<SharedRideReachOutCustomer> prev_reached_out =
-                                _selectedRideBroadcast!
-                                        .ride_details!.reached_out_customers ??
-                                    [];
-                            SharedRideReachOutCustomer occurrence =
-                                prev_reached_out.firstWhere(
-                                    (customer) =>
-                                        customer.customer_id == self_id,
-                                    orElse: () => SharedRideReachOutCustomer()
-                                      ..customer_id = SEARCH_NOT_FOUND_ID);
+                                // add to the reached-out list if it wasn't already on it
+                                if (occurrence.customer_id ==
+                                    SEARCH_NOT_FOUND_ID) {
+                                  reachedOutCustomers.add(
+                                      SharedRideReachOutCustomer()
+                                        ..customer_id = selfId
+                                        ..customer_phone =
+                                            formatPhone(_selfPhone));
+                                }
 
-                            // current customer existed before, can't do anything about it
-                            if (occurrence.customer_id == SEARCH_NOT_FOUND_ID) {
-                              prev_reached_out.add(SharedRideReachOutCustomer()
-                                ..customer_id = self_id
-                                ..customer_phone = self_phone);
-                              rideDetails[SharedRideDetails
-                                      .FIELD_REACHED_OUT_CUSTOMERS] =
-                                  SharedRideReachOutCustomer.List_ToJson(
-                                      prev_reached_out);
+                                return Transaction.success(
+                                    SharedRideReachOutCustomer.List_ToJson(
+                                        reachedOutCustomers));
+                              },
+                              // to prevent against race conditions, the transaction should ONLY be run on the server
+                              applyLocally: false,
+                            );
 
-                              await FirebaseDatabase.instanceFor(
-                                      app: Firebase.app(),
-                                      databaseURL: SharedRideBroadcast
-                                          .SHARED_RIDE_DATABASE_ROOT)
-                                  .ref()
-                                  .child(
-                                      FIREBASE_DB_PATHS.SHARED_RIDE_BROADCASTS)
-                                  .child(_selectedRideId!)
-                                  .child(SharedRideBroadcast.KEY_DETAILS)
-                                  .update(rideDetails);
+                            if (result.committed) {
+                              customerSwipedToEnter = true;
+                              if (mounted) {
+                                setState(() {});
+                              }
                             }
-
-                            setState(() {});
                           },
                           boxShadow: BoxShadow(
                             color: Colors.grey.shade500,
