@@ -118,23 +118,24 @@ class SharedRideDetails {
   /// this is what drives the event loop, goes through the different states throughout the order lifecycle
   //#region order state and order source checking for server
   static const F_ORDER_STATE = "os";
-  @JsonKey(name: F_ORDER_STATE)
+  @JsonKey(includeIfNull: false, name: F_ORDER_STATE)
   int? order_state;
   static const F_CLIENT_TRIGGERED_EVENT = "cte";
-  @JsonKey(name: F_CLIENT_TRIGGERED_EVENT)
+  @JsonKey(includeIfNull: false, name: F_CLIENT_TRIGGERED_EVENT)
   bool? client_triggered_event;
 
   //#endregion
 
   //#region place details, i.e: destination
   static const F_PLACE_NAME = "pn";
-  @JsonKey(name: F_PLACE_NAME)
+  @JsonKey(includeIfNull: false, name: F_PLACE_NAME)
   String? place_name;
   static const F_PLACE_ID = "pi";
-  @JsonKey(name: F_PLACE_ID)
+  @JsonKey(includeIfNull: false, name: F_PLACE_ID)
   String? place_id;
   static const F_PLACE_LOC = "plc";
   @JsonKey(
+      includeIfNull: false,
       name: F_PLACE_LOC,
       fromJson: FirebaseDocument.LatLngFromJson,
       toJson: FirebaseDocument.LatLngToJson)
@@ -144,6 +145,7 @@ class SharedRideDetails {
 
   static const F_INITIAL_LOC = "il";
   @JsonKey(
+      includeIfNull: false,
       name: F_INITIAL_LOC,
       fromJson: FirebaseDocument.LatLngFromJson,
       toJson: FirebaseDocument.LatLngToJson)
@@ -151,59 +153,69 @@ class SharedRideDetails {
 
   //#region timestamps for create and trip start
   static const F_CREATED_TIMESTAMP = "cts";
-  @JsonKey(name: F_CREATED_TIMESTAMP)
+  @JsonKey(includeIfNull: false, name: F_CREATED_TIMESTAMP)
   int? created_timestamp;
   static const F_TRIP_STARTED_TIMESTAMP = "tsts";
-  @JsonKey(name: F_TRIP_STARTED_TIMESTAMP)
+  @JsonKey(includeIfNull: false, name: F_TRIP_STARTED_TIMESTAMP)
   int? trip_started_timestamp;
 
   //#endregion
 
   //#region driver details
   static const F_DRIVER_NAME = "dn";
-  @JsonKey(name: F_DRIVER_NAME)
+  @JsonKey(includeIfNull: false, name: F_DRIVER_NAME)
   String? driver_name;
   static const F_DRIVER_PHONE = "dp";
-  @JsonKey(name: F_DRIVER_PHONE)
+  @JsonKey(includeIfNull: false, name: F_DRIVER_PHONE)
   String? driver_phone;
   static const F_CAR_PLATE = "cp";
-  @JsonKey(name: F_CAR_PLATE)
+  @JsonKey(includeIfNull: false, name: F_CAR_PLATE)
   String? car_plate;
   static const F_CAR_DETAILS = "cd";
-  @JsonKey(name: F_CAR_DETAILS)
+  @JsonKey(includeIfNull: false, name: F_CAR_DETAILS)
   String? car_details;
   static const F_IS_SIX_SEATER = "iss";
-  @JsonKey(name: F_IS_SIX_SEATER)
+  @JsonKey(includeIfNull: false, name: F_IS_SIX_SEATER)
   bool? is_six_seater;
 
   //#endregion
 
   //#region time, km + price estimates
   static const F_EST_PRICE = "ep";
-  @JsonKey(name: F_EST_PRICE, fromJson: FirebaseDocument.DoubleFromJson)
+  @JsonKey(
+      includeIfNull: false,
+      name: F_EST_PRICE,
+      fromJson: FirebaseDocument.DoubleFromJson)
   double? est_price;
   static const F_DISTANCE_KM = "dk";
-  @JsonKey(name: F_DISTANCE_KM, fromJson: FirebaseDocument.DoubleFromJson)
+  @JsonKey(
+      includeIfNull: false,
+      name: F_DISTANCE_KM,
+      fromJson: FirebaseDocument.DoubleFromJson)
   double? distance_km;
   static const F_DURATION_MINUTES = "dm";
-  @JsonKey(name: F_DURATION_MINUTES, fromJson: FirebaseDocument.DoubleFromJson)
+  @JsonKey(
+      includeIfNull: false,
+      name: F_DURATION_MINUTES,
+      fromJson: FirebaseDocument.DoubleFromJson)
   double? duration_minutes;
 
   //#endregion
 
   static const F_IS_FORCEFULLY_FILLED = "iff";
-  @JsonKey(name: F_IS_FORCEFULLY_FILLED)
+  @JsonKey(includeIfNull: false, name: F_IS_FORCEFULLY_FILLED)
   bool? is_forcefully_filled;
   static const F_NUM_FORCEFUL_FILLED = "nff";
-  @JsonKey(name: F_NUM_FORCEFUL_FILLED)
+  @JsonKey(includeIfNull: false, name: F_NUM_FORCEFUL_FILLED)
   int? num_forceful_filled;
 
   static const F_SEATS_REMAINING = "sr";
-  @JsonKey(name: F_SEATS_REMAINING)
+  @JsonKey(includeIfNull: false, name: F_SEATS_REMAINING)
   int? seats_remaining;
 
   static const F_REACHED_OUT_CUSTOMERS = "roc";
   @JsonKey(
+      includeIfNull: false,
       name: F_REACHED_OUT_CUSTOMERS,
       fromJson: SharedRideReachOutCustomer.List_FromJson,
       toJson: SharedRideReachOutCustomer.List_ToJson)
@@ -211,6 +223,7 @@ class SharedRideDetails {
 
   static const F_VETTED_REACHOUT_CUSTOMERS = "vrc";
   @JsonKey(
+      includeIfNull: false,
       name: F_VETTED_REACHOUT_CUSTOMERS,
       fromJson: SharedRideVettedReachoutCustomer.List_FromJson,
       toJson: SharedRideVettedReachoutCustomer.List_ToJson)
@@ -218,6 +231,7 @@ class SharedRideDetails {
 
   static const F_ACCEPTED_CUSTOMERS = "ac";
   @JsonKey(
+      includeIfNull: false,
       name: F_ACCEPTED_CUSTOMERS,
       fromJson: SharedRideAcceptedCustomer.List_FromJson,
       toJson: SharedRideAcceptedCustomer.List_ToJson)
@@ -225,6 +239,7 @@ class SharedRideDetails {
 
   static const F_SEPARATE_DROPOFFS = "sd";
   @JsonKey(
+      includeIfNull: false,
       name: F_SEPARATE_DROPOFFS,
       fromJson: SharedRideSeparateDropoff.List_FromJson,
       toJson: SharedRideSeparateDropoff.List_ToJson)
@@ -245,16 +260,24 @@ class SharedRideDetails {
   static String convertDetailFieldToDeepBroadcastPath(String field) {
     return SharedRideBroadcast.KEY_DETAILS + '/' + field;
   }
+
+  factory SharedRideDetails.fromJson(Map json) =>
+      _$SharedRideDetailsFromJson(json.cast<String, dynamic>());
+
+  Map<String, dynamic> toJson() => _$SharedRideDetailsToJson(this);
 }
 
-List<dynamic> _ListToJson<T>(List<T>? list, Map Function(T val) converter) {
-  return list?.map((e) => converter(e)).toList() as List<dynamic>;
+List<dynamic>? _ListToJson<T>(List<T>? list, Map Function(T val) converter) {
+  if (list == null) return null;
+  return list.map((e) => converter(e)).toList() as List<dynamic>;
 }
 
 dynamic _ListFromJson<T>(
     dynamic json, T Function(Map<String, dynamic>) converter) {
   if (json == null) return null;
-  return (json as List<dynamic>?)?.map((e) => converter((e as Map).cast<String, dynamic>())).toList();
+  return (json as List<dynamic>?)
+      ?.map((e) => converter((e as Map).cast<String, dynamic>()))
+      .toList();
 }
 
 dynamic _ServerTimeStampFiller(int? timestamp) {
@@ -263,9 +286,9 @@ dynamic _ServerTimeStampFiller(int? timestamp) {
 
 @JsonSerializable()
 class SharedRideReachOutCustomer {
-  @JsonKey(name: "cp")
+  @JsonKey(includeIfNull: false, name: "cp")
   late String customer_phone;
-  @JsonKey(name: "ci")
+  @JsonKey(includeIfNull: false, name: "ci")
   late String customer_id;
 
   @JsonKey(name: "rt", toJson: _ServerTimeStampFiller)
@@ -273,7 +296,7 @@ class SharedRideReachOutCustomer {
 
   SharedRideReachOutCustomer();
 
-  static List<dynamic> List_ToJson(List<SharedRideReachOutCustomer>? list) =>
+  static List<dynamic>? List_ToJson(List<SharedRideReachOutCustomer>? list) =>
       _ListToJson(list, _$SharedRideReachOutCustomerToJson);
 
   static dynamic List_FromJson(dynamic list) =>
@@ -282,9 +305,9 @@ class SharedRideReachOutCustomer {
 
 @JsonSerializable()
 class SharedRideVettedReachoutCustomer {
-  @JsonKey(name: "cp")
+  @JsonKey(includeIfNull: false, name: "cp")
   late String customer_phone;
-  @JsonKey(name: "ci")
+  @JsonKey(includeIfNull: false, name: "ci")
   late String customer_id;
 
   @JsonKey(name: "rt", toJson: _ServerTimeStampFiller)
@@ -292,74 +315,74 @@ class SharedRideVettedReachoutCustomer {
 
   SharedRideVettedReachoutCustomer();
 
-  static List<dynamic> List_ToJson(
+  static List<dynamic>? List_ToJson(
           List<SharedRideVettedReachoutCustomer>? list) =>
       _ListToJson(list, _$SharedRideVettedReachoutCustomerToJson);
 
-  static dynamic List_FromJson(List<SharedRideVettedReachoutCustomer>? list) =>
+  static dynamic List_FromJson(dynamic list) =>
       _ListFromJson(list, _$SharedRideVettedReachoutCustomerFromJson);
 }
 
 @JsonSerializable()
 class SharedRideAcceptedCustomer {
-  @JsonKey(name: "cp")
+  @JsonKey(includeIfNull: false, name: "cp")
   late String customer_phone;
-  @JsonKey(name: "ci")
+  @JsonKey(includeIfNull: false, name: "ci")
   late String customer_id;
 
   @JsonKey(name: "at", toJson: _ServerTimeStampFiller)
   int? accepted_timestamp;
 
-  @JsonKey(name: "nc")
+  @JsonKey(includeIfNull: false, name: "nc")
   late int num_customers;
 
   SharedRideAcceptedCustomer();
 
-  static List<dynamic> List_ToJson(List<SharedRideAcceptedCustomer>? list) =>
+  static List<dynamic>? List_ToJson(List<SharedRideAcceptedCustomer>? list) =>
       _ListToJson(list, _$SharedRideAcceptedCustomerToJson);
 
-  static dynamic List_FromJson(List<SharedRideAcceptedCustomer>? list) =>
+  static dynamic List_FromJson(dynamic list) =>
       _ListFromJson(list, _$SharedRideAcceptedCustomerFromJson);
 }
 
 @JsonSerializable()
 class SharedRideSeparateDropoff {
-  @JsonKey(name: "cp")
+  @JsonKey(includeIfNull: false, name: "cp")
   late String customer_phone;
-  @JsonKey(name: "ci")
+  @JsonKey(includeIfNull: false, name: "ci")
   late String customer_id;
 
-  @JsonKey(name: "nc")
+  @JsonKey(includeIfNull: false, name: "nc")
   late int num_customers;
 
-  @JsonKey(name: "dl")
+  @JsonKey(includeIfNull: false, name: "dl")
   late List<double> dropoff_loc;
 
-  static List<dynamic> List_ToJson(List<SharedRideSeparateDropoff>? list) =>
+  static List<dynamic>? List_ToJson(List<SharedRideSeparateDropoff>? list) =>
       _ListToJson(list, _$SharedRideSeparateDropoffToJson);
 
-  static dynamic List_FromJson(List<SharedRideSeparateDropoff>? list) =>
+  static dynamic List_FromJson(dynamic list) =>
       _ListFromJson(list, _$SharedRideSeparateDropoffFromJson);
 }
 
 @JsonSerializable()
 class SharedRideDropoffPrice {
-  @JsonKey(name: "cp")
+  @JsonKey(includeIfNull: false, name: "cp")
   late String customer_phone;
-  @JsonKey(name: "ci")
+  @JsonKey(includeIfNull: false, name: "ci")
   late String customer_id;
 
-  @JsonKey(name: "nc")
+  @JsonKey(includeIfNull: false, name: "nc")
   late int num_customers;
 
-  @JsonKey(name: "tk")
+  @JsonKey(includeIfNull: false, name: "tk")
   late double travelled_km;
-  @JsonKey(name: "tt")
+  @JsonKey(includeIfNull: false, name: "tt")
   late double travelled_time;
 
-  @JsonKey(name: "ep")
+  @JsonKey(includeIfNull: false, name: "ep")
   late double each_price;
-  @JsonKey(name: "tp")
+  @JsonKey(includeIfNull: false, name: "tp")
   late double total_price;
 
   @JsonKey(name: "dt", toJson: _ServerTimeStampFiller)

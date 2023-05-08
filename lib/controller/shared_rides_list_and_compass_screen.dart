@@ -954,6 +954,20 @@ class _SharedRidesListAndCompassScreenState
                             );
 
                             if (result.committed) {
+                              // set the client event state so the server may process it
+                              await FirebaseDatabase.instanceFor(
+                                      app: Firebase.app(),
+                                      databaseURL: SharedRideBroadcast
+                                          .SHARED_RIDE_DATABASE_ROOT)
+                                  .ref()
+                                  .child(
+                                      FIREBASE_DB_PATHS.SHARED_RIDE_BROADCASTS)
+                                  .child(FirebaseAuth.instance.currentUser!.uid)
+                                  .child(SharedRideBroadcast.KEY_DETAILS)
+                                  .update({
+                                SharedRideDetails.F_CLIENT_TRIGGERED_EVENT:
+                                    true,
+                              });
                               customerSwipedToEnter = true;
                               if (mounted) {
                                 setState(() {});

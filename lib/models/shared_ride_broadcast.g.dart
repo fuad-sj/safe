@@ -30,41 +30,51 @@ SharedRideDetails _$SharedRideDetailsFromJson(Map<String, dynamic> json) =>
       ..reached_out_customers =
           SharedRideReachOutCustomer.List_FromJson(json['roc'])
       ..vetted_reachout_customers =
-          SharedRideVettedReachoutCustomer.List_FromJson(
-              json['vrc'] as List<SharedRideVettedReachoutCustomer>?)
-      ..accepted_customers = SharedRideAcceptedCustomer.List_FromJson(
-          json['ac'] as List<SharedRideAcceptedCustomer>?)
-      ..separate_dropoffs = SharedRideSeparateDropoff.List_FromJson(
-          json['sd'] as List<SharedRideSeparateDropoff>?);
+          SharedRideVettedReachoutCustomer.List_FromJson(json['vrc'])
+      ..accepted_customers =
+          SharedRideAcceptedCustomer.List_FromJson(json['ac'])
+      ..separate_dropoffs = SharedRideSeparateDropoff.List_FromJson(json['sd']);
 
-Map<String, dynamic> _$SharedRideDetailsToJson(SharedRideDetails instance) =>
-    <String, dynamic>{
-      'os': instance.order_state,
-      'cte': instance.client_triggered_event,
-      'pn': instance.place_name,
-      'pi': instance.place_id,
-      'plc': FirebaseDocument.LatLngToJson(instance.place_loc),
-      'il': FirebaseDocument.LatLngToJson(instance.initial_loc),
-      'cts': instance.created_timestamp,
-      'tsts': instance.trip_started_timestamp,
-      'dn': instance.driver_name,
-      'dp': instance.driver_phone,
-      'cp': instance.car_plate,
-      'cd': instance.car_details,
-      'iss': instance.is_six_seater,
-      'ep': instance.est_price,
-      'dk': instance.distance_km,
-      'dm': instance.duration_minutes,
-      'iff': instance.is_forcefully_filled,
-      'nff': instance.num_forceful_filled,
-      'sr': instance.seats_remaining,
-      'roc': SharedRideReachOutCustomer.List_ToJson(
-          instance.reached_out_customers),
-      'vrc': SharedRideVettedReachoutCustomer.List_ToJson(
-          instance.vetted_reachout_customers),
-      'ac': SharedRideAcceptedCustomer.List_ToJson(instance.accepted_customers),
-      'sd': SharedRideSeparateDropoff.List_ToJson(instance.separate_dropoffs),
-    };
+Map<String, dynamic> _$SharedRideDetailsToJson(SharedRideDetails instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('os', instance.order_state);
+  writeNotNull('cte', instance.client_triggered_event);
+  writeNotNull('pn', instance.place_name);
+  writeNotNull('pi', instance.place_id);
+  writeNotNull('plc', FirebaseDocument.LatLngToJson(instance.place_loc));
+  writeNotNull('il', FirebaseDocument.LatLngToJson(instance.initial_loc));
+  writeNotNull('cts', instance.created_timestamp);
+  writeNotNull('tsts', instance.trip_started_timestamp);
+  writeNotNull('dn', instance.driver_name);
+  writeNotNull('dp', instance.driver_phone);
+  writeNotNull('cp', instance.car_plate);
+  writeNotNull('cd', instance.car_details);
+  writeNotNull('iss', instance.is_six_seater);
+  writeNotNull('ep', instance.est_price);
+  writeNotNull('dk', instance.distance_km);
+  writeNotNull('dm', instance.duration_minutes);
+  writeNotNull('iff', instance.is_forcefully_filled);
+  writeNotNull('nff', instance.num_forceful_filled);
+  writeNotNull('sr', instance.seats_remaining);
+  writeNotNull('roc',
+      SharedRideReachOutCustomer.List_ToJson(instance.reached_out_customers));
+  writeNotNull(
+      'vrc',
+      SharedRideVettedReachoutCustomer.List_ToJson(
+          instance.vetted_reachout_customers));
+  writeNotNull('ac',
+      SharedRideAcceptedCustomer.List_ToJson(instance.accepted_customers));
+  writeNotNull(
+      'sd', SharedRideSeparateDropoff.List_ToJson(instance.separate_dropoffs));
+  return val;
+}
 
 SharedRideReachOutCustomer _$SharedRideReachOutCustomerFromJson(
         Map<String, dynamic> json) =>
