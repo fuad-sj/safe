@@ -962,7 +962,7 @@ class _SharedRidesListAndCompassScreenState
                                   .ref()
                                   .child(
                                       FIREBASE_DB_PATHS.SHARED_RIDE_BROADCASTS)
-                                  .child(FirebaseAuth.instance.currentUser!.uid)
+                                  .child(_selectedRideId!)
                                   .child(SharedRideBroadcast.KEY_DETAILS)
                                   .update({
                                 SharedRideDetails.F_CLIENT_TRIGGERED_EVENT:
