@@ -34,8 +34,11 @@ class _SharedRidesListAndCompassScreenState
     extends State<SharedRidesListAndCompassScreen> {
   static const SEARCH_NOT_FOUND_ID = "search_not_found_id";
 
-  static const double DEFAULT_SEARCH_RADIUS_KMS = 10.5;
-  static const double COMPASS_POINTER_DISAPPEAR_METERS = 10;
+  static const double DEFAULT_SEARCH_RADIUS_KMS = 0.5;
+  static const double COMPASS_POINTER_DISAPPEAR_METERS = 20;
+
+  /// if we've moved so much from the launch of geoquery, relaunch the query to update the search radius area
+  static const double GEOQUERY_RELAUNCH_MOVED_METERS = 50;
 
   StreamSubscription<dynamic>? _geofireStream;
 
@@ -48,6 +51,7 @@ class _SharedRidesListAndCompassScreenState
 
   Timer? _customerLocPingUpdaterTimer;
 
+  LatLng? previousGeoQueriedLocation;
   LatLng? currentLocation;
 
   List<MapEntry<String, SharedRidePlaceAggregate>> _destinationPlaces = [];
@@ -193,6 +197,19 @@ class _SharedRidesListAndCompassScreenState
     _locationStreamSubscription =
         liveLocation.onLocationChanged.listen((LocationData locData) async {
       currentLocation = new LatLng(locData.latitude!, locData.longitude!);
+      if (previousGeoQueriedLocation == null) {
+        previousGeoQueriedLocation = currentLocation;
+      }
+      double distance_from_previous_query = Geolocator.distanceBetween(
+          previousGeoQueriedLocation!.latitude,
+          previousGeoQueriedLocation!.longitude,
+          currentLocation!.latitude,
+          currentLocation!.longitude);
+      if (distance_from_previous_query > GEOQUERY_RELAUNCH_MOVED_METERS) {
+        previousGeoQueriedLocation = currentLocation;
+        // relaunch the query per updated currentLocation
+        setupNearbyBroadcastsQuery();
+      }
 
       computeMetersToSelectedRide();
 
@@ -258,15 +275,14 @@ class _SharedRidesListAndCompassScreenState
         .update(pingFields);
   }
 
+  /// Setup a Geofire query at {@code currentLocation} looking for nearby shared broadcasts.
+  /// This is also used to update query whenever the initial query location changes
+  ///  i.e: when the customer moves from initial location a substantial amount(e.g: > 50 meters)
   Future<void> setupNearbyBroadcastsQuery() async {
     final String fieldCallback = 'callBack';
     final String fieldKey = 'key';
     final String fieldVal = 'val';
 
-    /**
-     * TODO: Relaunch the geofire query if the user has moved "too much". the query is a static one
-     * i.e: it doesn't accommodate for changes in the user's live position
-     */
     _geofireStream = Geofire.queryAtLocation(currentLocation!.latitude,
             currentLocation!.longitude, DEFAULT_SEARCH_RADIUS_KMS)
         ?.listen(
