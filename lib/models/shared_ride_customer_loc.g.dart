@@ -9,18 +9,26 @@ part of 'shared_ride_customer_loc.dart';
 SharedRideCustomerLocDetails _$SharedRideCustomerLocDetailsFromJson(
         Map<String, dynamic> json) =>
     SharedRideCustomerLocDetails()
-      ..evaluating_ride_id = json['evaluating_ride_id'] as String?
-      ..evaluating_dest_place_id = json['evaluating_dest_place_id'] as String?
-      ..is_loc_valid = json['is_loc_valid'] as bool?
-      ..compass_orientation = (json['compass_orientation'] as num?)?.toDouble()
-      ..last_update_timestamp = json['last_update_timestamp'] as int?;
+      ..evaluating_ride_id = json['eri'] as String?
+      ..evaluating_dest_place_id = json['edpi'] as String?
+      ..is_loc_valid = json['ilv'] as bool?
+      ..compass_orientation = (json['co'] as num?)?.toDouble()
+      ..last_update_timestamp = json['lut'] as int?;
 
 Map<String, dynamic> _$SharedRideCustomerLocDetailsToJson(
-        SharedRideCustomerLocDetails instance) =>
-    <String, dynamic>{
-      'evaluating_ride_id': instance.evaluating_ride_id,
-      'evaluating_dest_place_id': instance.evaluating_dest_place_id,
-      'is_loc_valid': instance.is_loc_valid,
-      'compass_orientation': instance.compass_orientation,
-      'last_update_timestamp': instance.last_update_timestamp,
-    };
+    SharedRideCustomerLocDetails instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('eri', instance.evaluating_ride_id);
+  writeNotNull('edpi', instance.evaluating_dest_place_id);
+  writeNotNull('ilv', instance.is_loc_valid);
+  writeNotNull('co', instance.compass_orientation);
+  writeNotNull('lut', instance.last_update_timestamp);
+  return val;
+}

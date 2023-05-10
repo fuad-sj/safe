@@ -56,19 +56,23 @@ class SharedRideCustomerLoc {
 @JsonSerializable()
 class SharedRideCustomerLocDetails {
   static const F_EVALUATING_RIDE_ID = "eri";
-  static const F_EVALUATING_DEST_PLACE_ID = "edpi";
-  static const F_IS_LOC_VALID = "ilv";
-  static const F_COMPASS_ORIENTATION = "co";
-  static const F_LAST_UPDATE_TIMESTAMP = "lut";
-
+  @JsonKey(includeIfNull: false, name: F_EVALUATING_RIDE_ID)
   String? evaluating_ride_id;
 
+  static const F_EVALUATING_DEST_PLACE_ID = "edpi";
+  @JsonKey(includeIfNull: false, name: F_EVALUATING_DEST_PLACE_ID)
   String? evaluating_dest_place_id;
 
+  static const F_IS_LOC_VALID = "ilv";
+  @JsonKey(includeIfNull: false, name: F_IS_LOC_VALID)
   bool? is_loc_valid;
 
+  static const F_COMPASS_ORIENTATION = "co";
+  @JsonKey(includeIfNull: false, name: F_COMPASS_ORIENTATION)
   double? compass_orientation;
 
+  static const F_LAST_UPDATE_TIMESTAMP = "lut";
+  @JsonKey(includeIfNull: false, name: F_LAST_UPDATE_TIMESTAMP)
   int? last_update_timestamp;
 
   SharedRideCustomerLocDetails();
