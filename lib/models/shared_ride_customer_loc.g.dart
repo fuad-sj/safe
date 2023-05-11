@@ -32,3 +32,23 @@ Map<String, dynamic> _$SharedRideCustomerLocDetailsToJson(
   writeNotNull('lut', instance.last_update_timestamp);
   return val;
 }
+
+SharedRideCustomerRequestNearbyDriver
+    _$SharedRideCustomerRequestNearbyDriverFromJson(
+            Map<String, dynamic> json) =>
+        SharedRideCustomerRequestNearbyDriver()
+          ..customer_device_token = json['cdt'] as String?;
+
+Map<String, dynamic> _$SharedRideCustomerRequestNearbyDriverToJson(
+    SharedRideCustomerRequestNearbyDriver instance) {
+  final val = <String, dynamic>{};
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('cdt', instance.customer_device_token);
+  return val;
+}

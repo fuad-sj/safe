@@ -5,8 +5,10 @@ import 'package:dartx/dartx_io.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
@@ -39,6 +41,8 @@ class _SharedRidesListAndCompassScreenState
 
   /// if we've moved so much from the launch of geoquery, relaunch the query to update the search radius area
   static const double GEOQUERY_RELAUNCH_MOVED_METERS = 50;
+
+  static const int INITIAL_LOAD_PASSED_THRESHOLD_SECONDS = 3;
 
   StreamSubscription<dynamic>? _geofireStream;
 
@@ -100,6 +104,9 @@ class _SharedRidesListAndCompassScreenState
 
   double zoomLevel = 1.0;
 
+  bool initialLoadHasPassed = false;
+  String? device_token;
+
   String _selfPhone = "";
 
   bool get isCorrectHeading => _computedOffsetHeading.abs() < 0.06;
@@ -121,10 +128,24 @@ class _SharedRidesListAndCompassScreenState
         setupNearbyBroadcastsQuery();
         setupCompassCallback();
       }
+
+      device_token = await FirebaseMessaging.instance.getToken();
+      if (mounted) {
+        setState(() {});
+      }
     });
 
     arrowImage = AssetImage("images/arrow.png");
     compassImage = AssetImage("images/compass_base.png");
+
+    Future.delayed(Duration(seconds: INITIAL_LOAD_PASSED_THRESHOLD_SECONDS),
+        () {
+      if (mounted) {
+        setState(() {
+          initialLoadHasPassed = true;
+        });
+      }
+    });
   }
 
   @override
@@ -569,19 +590,100 @@ class _SharedRidesListAndCompassScreenState
             ),
           ),
           if (_destinationPlaces.isEmpty) ...[
-            SliverToBoxAdapter(
-              child: SpinKitFadingCircle(
-                itemBuilder: (_, int index) {
-                  return DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: index.isEven
-                          ? Color.fromRGBO(131, 1, 1, 1.0)
-                          : Color.fromRGBO(255, 0, 0, 1.0),
-                    ),
-                  );
-                },
+            if (!initialLoadHasPassed) ...[
+              SliverToBoxAdapter(
+                child: SpinKitFadingCircle(
+                  itemBuilder: (_, int index) {
+                    return DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: index.isEven
+                            ? Color.fromRGBO(131, 1, 1, 1.0)
+                            : Color.fromRGBO(255, 0, 0, 1.0),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
+            ] else if (device_token != null && currentLocation != null) ...[
+              SliverToBoxAdapter(
+                child: Center(
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () async {
+                      Fluttertoast.showToast(
+                        msg: "በአካባቢዎ ላሉ አሽከርካሪዎች ጥሪዎ ተሰራጭቷል፣ ትንሽ ይጠብቁ",
+                        toastLength: Toast.LENGTH_SHORT,
+                        gravity: ToastGravity.BOTTOM,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.grey.shade700,
+                        textColor: Colors.white,
+                        fontSize: 16.0,
+                      );
+
+                      /// make shared ride customer loc invalid as we've logged out of this page
+                      Map<String, dynamic> nearbyRequest = Map();
+
+                      nearbyRequest[SharedRideCustomerRequestNearbyDriver
+                          .F_CUSTOMER_DEVICE_TOKEN] = device_token!;
+
+                      nearbyRequest[SharedRideCustomerRequestNearbyDriver
+                          .F_REQUEST_LOC] = [
+                        currentLocation!.latitude,
+                        currentLocation!.longitude
+                      ];
+
+                      await FirebaseDatabase.instanceFor(
+                              app: Firebase.app(),
+                              databaseURL: SharedRideCustomerLoc
+                                  .SHARED_RIDE_CUSTOMER_LOC_DATABASE_ROOT)
+                          .ref()
+                          .child(FIREBASE_DB_PATHS.SHARED_RIDE_CUSTOMER_LOCS)
+                          .child(FirebaseAuth.instance.currentUser!.uid)
+                          .child(SharedRideCustomerLoc.KEY_REQUEST_DRIVERS)
+                          .update(nearbyRequest);
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(
+                        top: MediaQuery.of(context).size.height * 0.04,
+                      ),
+                      width: MediaQuery.of(context).size.width * 0.60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          end: Alignment.bottomRight,
+                          begin: Alignment.topRight,
+                          colors: [
+                            Color(0xd3dc0000),
+                            Color(0xffdc0000),
+                          ],
+                        ),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.8),
+                          width: 5.0,
+                        ),
+                        borderRadius: BorderRadius.circular(40.0),
+                      ),
+                      child: Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical:
+                                  MediaQuery.of(context).size.height * 0.02),
+                          child: Text(
+                            'መኪናዎች ያስማሩ',
+                            style: TextStyle(
+                              fontSize: 18.0,
+                              letterSpacing: 1.0,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: "Nokia Pure Headline Bold",
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
           if (_destinationPlaces.isNotEmpty) ...[
             SliverList(

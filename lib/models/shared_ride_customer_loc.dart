@@ -15,6 +15,7 @@ class SharedRideCustomerLoc {
   static const KEY_LNG = "1";
   static const KEY_DETAILS = "dt";
   static const KEY_PING = "p";
+  static const KEY_REQUEST_DRIVERS = "rd";
 
   static const FIELD_PING_TIMESTAMP = "pt";
 
@@ -80,4 +81,19 @@ class SharedRideCustomerLocDetails {
   static String convertDetailFieldToDeepRideCustomerPath(String field) {
     return SharedRideCustomerLoc.KEY_DETAILS + "/" + field;
   }
+}
+
+@JsonSerializable()
+class SharedRideCustomerRequestNearbyDriver {
+  static const F_REQUEST_LOC = "rloc";
+  @JsonKey(
+      includeIfNull: false,
+      name: F_REQUEST_LOC,
+      fromJson: FirebaseDocument.LatLngFromJson,
+      toJson: FirebaseDocument.LatLngToJson)
+  LatLng? request_loc;
+
+  static const F_CUSTOMER_DEVICE_TOKEN = "cdt";
+  @JsonKey(includeIfNull: false, name: F_CUSTOMER_DEVICE_TOKEN)
+  String? customer_device_token;
 }
