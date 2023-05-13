@@ -96,4 +96,12 @@ class SharedRideCustomerRequestNearbyDriver {
   static const F_CUSTOMER_DEVICE_TOKEN = "cdt";
   @JsonKey(includeIfNull: false, name: F_CUSTOMER_DEVICE_TOKEN)
   String? customer_device_token;
+
+  static const F_DESTINATION_PLACE_NAME = "dpn";
+  @JsonKey(includeIfNull: false, name: F_DESTINATION_PLACE_NAME)
+  String? destination_place_name;
+
+  static const F_DESTINATION_PLACE_ID = "dpi";
+  @JsonKey(includeIfNull: false, name: F_DESTINATION_PLACE_ID)
+  String? destination_place_id;
 }

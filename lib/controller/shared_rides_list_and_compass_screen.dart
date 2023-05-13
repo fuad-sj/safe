@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:collection';
+import 'dart:math';
 
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:dartx/dartx_io.dart';
@@ -12,6 +14,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
+import 'package:safe/models/shared_ride_destination_location.dart';
 import 'package:safe/smooth_compass/smooth_compass.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/shared_ride_broadcast.dart';
@@ -58,7 +61,17 @@ class _SharedRidesListAndCompassScreenState
   LatLng? previousGeoQueriedLocation;
   LatLng? currentLocation;
 
-  List<MapEntry<String, SharedRidePlaceAggregate>> _destinationPlaces = [];
+  List<MapEntry<String, SharedRidePlaceAggregate>> _sharedBroadcasts = [];
+
+  bool is_initial_nearby_request_sent = false;
+
+  // for searching destination places
+  Map<String, SharedRideDestLocation> destLocationMap = Map();
+  List<MapEntry<String, SharedRideDestLocation>> destinationList = [];
+  List<MapEntry<String, SharedRideDestLocation>> filteredList = [];
+  String searchQuery = ""; // the search query
+  StreamSubscription? _destinationListStream;
+  TextEditingController _searchController = TextEditingController();
 
   /// Fields **ABOVE** are for listing destinations.
   ///
@@ -124,12 +137,15 @@ class _SharedRidesListAndCompassScreenState
           is_default: false,
           root: SharedRideBroadcast.SHARED_RIDE_DATABASE_ROOT);
 
+      loadDestinationLocations();
+
       if (await setupLocationCallback()) {
         setupNearbyBroadcastsQuery();
         setupCompassCallback();
       }
 
       device_token = await FirebaseMessaging.instance.getToken();
+
       if (mounted) {
         setState(() {});
       }
@@ -143,6 +159,15 @@ class _SharedRidesListAndCompassScreenState
       if (mounted) {
         setState(() {
           initialLoadHasPassed = true;
+        });
+      }
+    });
+
+    _searchController.addListener(() {
+      if (mounted) {
+        setState(() {
+          searchQuery = _searchController.text.trim().toLowerCase();
+          populateDestinationList();
         });
       }
     });
@@ -170,6 +195,8 @@ class _SharedRidesListAndCompassScreenState
           .child(SharedRideCustomerLoc.KEY_DETAILS)
           .update(locInvalidatorFields);
     });
+
+    _destinationListStream?.cancel();
 
     _geofireStream?.cancel();
 
@@ -203,6 +230,48 @@ class _SharedRidesListAndCompassScreenState
     _isInCompassState = false;
   }
 
+  Future<void> sendNearbyLocationRequest(
+      String? placeId, String? placeName) async {
+    if (device_token == null || currentLocation == null) {
+      return;
+    }
+
+    if (placeId == null && placeName == null) {
+      if (is_initial_nearby_request_sent) {
+        return;
+      } else {
+        is_initial_nearby_request_sent = true;
+      }
+    }
+
+    Map<String, dynamic> nearbyRequest = Map();
+
+    nearbyRequest[SharedRideCustomerRequestNearbyDriver
+        .F_CUSTOMER_DEVICE_TOKEN] = device_token!;
+
+    nearbyRequest[SharedRideCustomerRequestNearbyDriver.F_REQUEST_LOC] = [
+      currentLocation!.latitude,
+      currentLocation!.longitude
+    ];
+
+    if (placeId != null && placeName != null) {
+      nearbyRequest[SharedRideCustomerRequestNearbyDriver
+          .F_DESTINATION_PLACE_ID] = placeId;
+      nearbyRequest[SharedRideCustomerRequestNearbyDriver
+          .F_DESTINATION_PLACE_NAME] = placeName;
+    }
+
+    await FirebaseDatabase.instanceFor(
+            app: Firebase.app(),
+            databaseURL:
+                SharedRideCustomerLoc.SHARED_RIDE_CUSTOMER_LOC_DATABASE_ROOT)
+        .ref()
+        .child(FIREBASE_DB_PATHS.SHARED_RIDE_CUSTOMER_LOCS)
+        .child(FirebaseAuth.instance.currentUser!.uid)
+        .child(SharedRideCustomerLoc.KEY_REQUEST_DRIVERS)
+        .update(nearbyRequest);
+  }
+
   Future<bool> setupLocationCallback() async {
     PermissionStatus permissionStatus = await liveLocation.hasPermission();
     if (permissionStatus == PermissionStatus.denied) {
@@ -214,6 +283,9 @@ class _SharedRidesListAndCompassScreenState
     var locData = await liveLocation.getLocation();
 
     currentLocation = new LatLng(locData.latitude!, locData.longitude!);
+
+    /// send the first request with the initial location, with destination place being empty
+    sendNearbyLocationRequest(null, null);
 
     _locationStreamSubscription =
         liveLocation.onLocationChanged.listen((LocationData locData) async {
@@ -398,7 +470,7 @@ class _SharedRidesListAndCompassScreenState
 
         if (mounted) {
           setState(() {
-            _destinationPlaces = sortedPlaces();
+            _sharedBroadcasts = sortedPlaces();
           });
         }
       },
@@ -521,7 +593,185 @@ class _SharedRidesListAndCompassScreenState
       ..sort((a, b) => a.value.place_name.compareTo(b.value.place_name));
   }
 
+  Future<void> loadDestinationLocations() async {
+    var data = await FirebaseDatabase.instance
+        .ref()
+        .child(FIREBASE_DB_PATHS.PATH_SHARED_RIDE_DESTINATION)
+        .get();
+
+    // if there is no document, it is null
+    if (data.value != null) {
+      LinkedHashMap<Object?, Object?> locations = data.value as LinkedHashMap;
+
+      int processedItems = 0;
+      locations.forEach((key, value) {
+        SharedRideDestLocation location =
+            SharedRideDestLocation.fromMap(value as Map, key as String);
+
+        destLocationMap[location.place_id] = location;
+        processedItems++;
+
+        if (mounted && processedItems == locations.length) {
+          populateDestinationList();
+          setState(() {});
+        }
+      });
+    }
+
+    _destinationListStream = FirebaseDatabase.instance
+        .ref()
+        .child(FIREBASE_DB_PATHS.PATH_SHARED_RIDE_DESTINATION)
+        .onValue
+        .listen((event) async {
+      var data = event.snapshot.value;
+      if (data == null) return;
+
+      LinkedHashMap<Object?, Object?> locations = data as LinkedHashMap;
+
+      int processedItems = 0;
+      locations.forEach((key, value) {
+        SharedRideDestLocation location =
+            SharedRideDestLocation.fromMap(value as Map, key as String);
+
+        destLocationMap[location.place_id] = location;
+        processedItems++;
+
+        if (mounted) {
+          if (processedItems == locations.length) {
+            populateDestinationList();
+            setState(() {});
+          }
+        }
+      });
+    });
+  }
+
+  void populateDestinationList() {
+    destinationList = destLocationMap.entries.toList()
+      ..sort((a, b) => a.value.name.compareTo(b.value.name));
+
+    if (searchQuery.isEmpty) {
+      filteredList = destinationList;
+    } else {
+      filteredList = destinationList.where((entry) {
+        double dist = subStringLevenshteinDistance(
+            searchQuery, entry.value.name.toLowerCase());
+        return dist <= 0.4;
+      }).toList();
+    }
+  }
+
+  double subStringLevenshteinDistance(String s, String t) {
+    s = s.trim().toLowerCase();
+    t = t.trim().toLowerCase();
+
+    if (s == t) return 0.0;
+
+    if (s.isEmpty) return t.length + 0.0;
+
+    if (t.isEmpty) return s.length + 0.0;
+
+    double levenshteinDistance(String s1, String s2) {
+      var m = s1.length, n = s2.length;
+      var d = List.generate(m + 1, (i) => List.generate(n + 1, (j) => 0.0));
+      for (var i = 1; i <= m; i++) {
+        d[i][0] = i + 0.0;
+      }
+      for (var j = 1; j <= n; j++) {
+        d[0][j] = j + 0.0;
+      }
+      for (var j = 1; j <= n; j++) {
+        for (var i = 1; i <= m; i++) {
+          var cost = s1[i - 1] == s2[j - 1] ? 0.0 : 1.0;
+          d[i][j] = [d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + cost]
+              .reduce((a, b) => a < b ? a : b);
+        }
+      }
+
+      double normFactor = n > m ? n.toDouble() : m.toDouble();
+      return d[m][n] / normFactor;
+    }
+
+    int maxLength = s.length > t.length ? s.length : t.length;
+    double maxEditDistance = maxLength.toDouble();
+
+    double distance = maxEditDistance;
+    for (int i = 0; i <= t.length - s.length; i++) {
+      String substring = t.substring(i, i + s.length);
+      double currentDistance = levenshteinDistance(s, substring);
+      if (currentDistance < distance) {
+        distance = currentDistance;
+      }
+      if (distance == 0) {
+        return 0;
+      }
+    }
+
+    return distance;
+  }
+
+  Widget getSearchFieldWidget(double vHeight, double hWidth) {
+    return Container(
+      height: vHeight * 0.04,
+      margin: EdgeInsets.symmetric(
+          horizontal: hWidth * 0.08, vertical: vHeight * 0.01),
+      decoration: BoxDecoration(
+        color: Color.fromRGBO(240, 240, 240, 1),
+        borderRadius: BorderRadius.circular(20.0),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: "Search for destination?",
+                hintStyle: TextStyle(color: Colors.grey[600]),
+                alignLabelWithHint: true,
+                contentPadding: EdgeInsets.fromLTRB(0, 10, 0, 10),
+                prefixIcon: Padding(
+                  padding: EdgeInsets.only(left: 18, right: 8),
+                  child: Icon(
+                    Icons.search,
+                    color: Colors.red,
+                  ),
+                ),
+                suffixIcon: searchQuery.isNotEmpty
+                    ? GestureDetector(
+                        onTap: () {
+                          String searchDestinationText = _searchController.text;
+                          if (searchDestinationText.isNotEmpty) {
+                            String searchUpdateText = searchDestinationText
+                                .substring(0, searchDestinationText.length - 1);
+                            _searchController.text = searchUpdateText;
+                            _searchController.selection =
+                                TextSelection.fromPosition(
+                              TextPosition(offset: searchUpdateText.length),
+                            );
+                          }
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.only(left: 8, right: 16),
+                          child: Icon(
+                            Icons.cancel,
+                            color: Colors.red,
+                          ),
+                        ),
+                      )
+                    : null,
+                border: InputBorder.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget buildRideListScreen(BuildContext context) {
+    double vHeight = MediaQuery.of(context).size.height;
+    double hWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       body: CustomScrollView(
         slivers: <Widget>[
@@ -584,13 +834,9 @@ class _SharedRidesListAndCompassScreenState
               ],
             ),
           ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 15,
-            ),
-          ),
-          if (_destinationPlaces.isEmpty) ...[
+          if (_sharedBroadcasts.isEmpty) ...[
             if (!initialLoadHasPassed) ...[
+              SliverToBoxAdapter(child: SizedBox(height: 15)),
               SliverToBoxAdapter(
                 child: SpinKitFadingCircle(
                   itemBuilder: (_, int index) {
@@ -605,98 +851,95 @@ class _SharedRidesListAndCompassScreenState
                 ),
               ),
             ] else if (device_token != null && currentLocation != null) ...[
-              SliverToBoxAdapter(
-                child: Center(
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () async {
-                      Fluttertoast.showToast(
-                        msg: "በአካባቢዎ ላሉ አሽከርካሪዎች ጥሪዎ ተሰራጭቷል፣ ትንሽ ይጠብቁ",
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                        timeInSecForIosWeb: 1,
-                        backgroundColor: Colors.grey.shade700,
-                        textColor: Colors.white,
-                        fontSize: 16.0,
-                      );
+              // the search bar
+              SliverToBoxAdapter(child: getSearchFieldWidget(vHeight, hWidth)),
 
-                      /// make shared ride customer loc invalid as we've logged out of this page
-                      Map<String, dynamic> nearbyRequest = Map();
-
-                      nearbyRequest[SharedRideCustomerRequestNearbyDriver
-                          .F_CUSTOMER_DEVICE_TOKEN] = device_token!;
-
-                      nearbyRequest[SharedRideCustomerRequestNearbyDriver
-                          .F_REQUEST_LOC] = [
-                        currentLocation!.latitude,
-                        currentLocation!.longitude
-                      ];
-
-                      await FirebaseDatabase.instanceFor(
-                              app: Firebase.app(),
-                              databaseURL: SharedRideCustomerLoc
-                                  .SHARED_RIDE_CUSTOMER_LOC_DATABASE_ROOT)
-                          .ref()
-                          .child(FIREBASE_DB_PATHS.SHARED_RIDE_CUSTOMER_LOCS)
-                          .child(FirebaseAuth.instance.currentUser!.uid)
-                          .child(SharedRideCustomerLoc.KEY_REQUEST_DRIVERS)
-                          .update(nearbyRequest);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(
-                        top: MediaQuery.of(context).size.height * 0.04,
-                      ),
-                      width: MediaQuery.of(context).size.width * 0.60,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          end: Alignment.bottomRight,
-                          begin: Alignment.topRight,
-                          colors: [
-                            Color(0xd3dc0000),
-                            Color(0xffdc0000),
-                          ],
-                        ),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.8),
-                          width: 5.0,
-                        ),
-                        borderRadius: BorderRadius.circular(40.0),
-                      ),
-                      child: Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                              vertical:
-                                  MediaQuery.of(context).size.height * 0.02),
-                          child: Text(
-                            'መኪናዎች ያስማሩ',
-                            style: TextStyle(
-                              fontSize: 18.0,
-                              letterSpacing: 1.0,
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: "Nokia Pure Headline Bold",
-                            ),
+              // the list of destination
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (BuildContext context, int index) {
+                    SharedRideDestLocation destLocation =
+                        filteredList[index].value;
+                    return GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () async {
+                        Fluttertoast.showToast(
+                          msg: "የ ${destLocation.name} ጥሪዎ ተሰራጭቷል፣ ትንሽ ይጠብቁ",
+                          toastLength: Toast.LENGTH_SHORT,
+                          gravity: ToastGravity.BOTTOM,
+                          timeInSecForIosWeb: 1,
+                          backgroundColor: Colors.grey.shade700,
+                          textColor: Colors.white,
+                          fontSize: 16.0,
+                        );
+                        sendNearbyLocationRequest(
+                            destLocation.place_id, destLocation.name);
+                      },
+                      child: Container(
+                        //height: vHeight * 0.064,
+                        margin: EdgeInsets.only(
+                            bottom: vHeight * 0.01,
+                            left: hWidth * 0.07,
+                            right: hWidth * 0.1),
+                        child: Container(
+                          height: vHeight * 0.06,
+                          decoration: BoxDecoration(
+                              border: Border.all(
+                                color: Colors.black12,
+                                width: 1.0,
+                              ),
+                              color: index % 2 == 0
+                                  ? Color.fromRGBO(230, 230, 230, 1)
+                                  : Color.fromRGBO(245, 245, 245, 1)),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: vHeight * 0.009,
+                                height: vHeight * 0.009,
+                                margin: EdgeInsets.only(
+                                    left: hWidth * 0.03, right: hWidth * 0.05),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.red,
+                                ),
+                              ),
+                              Container(
+                                width: hWidth * 0.6,
+                                child: Text(
+                                  destLocation.name.trim() ?? "",
+                                  overflow: TextOverflow.clip,
+                                  maxLines: 2,
+                                  style: TextStyle(
+                                    fontSize: 15.0,
+                                    letterSpacing: 1.0,
+                                    color: Color.fromRGBO(12, 12, 12, 1.0),
+                                    fontFamily: "Nokia Pure Headline Bold",
+                                  ),
+                                ),
+                              )
+                            ],
                           ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
+                  childCount: filteredList.length,
                 ),
               ),
             ],
-          ],
-          if (_destinationPlaces.isNotEmpty) ...[
+          ] else if (_sharedBroadcasts.isNotEmpty) ...[
+            SliverToBoxAdapter(child: SizedBox(height: 15)),
             SliverList(
               delegate: SliverChildBuilderDelegate(
                 (BuildContext context, int index) {
                   return _AvailableDriverListItem(
-                    placeId: _destinationPlaces[index].key,
-                    placeAggregate: _destinationPlaces[index].value,
+                    placeId: _sharedBroadcasts[index].key,
+                    placeAggregate: _sharedBroadcasts[index].value,
                     onFourSeaterSelected: pickSharedRideForPlaceAndSeater,
                     onSixSeaterSelected: pickSharedRideForPlaceAndSeater,
                   );
                 },
-                childCount: _destinationPlaces.length,
+                childCount: _sharedBroadcasts.length,
               ),
             ),
           ],
