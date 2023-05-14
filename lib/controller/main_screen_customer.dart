@@ -936,13 +936,22 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             context: context,
             barrierDismissible: false,
             builder: (_) {
-              return UpdateAvailableDialog(
-                isUpdateForceful: forcefulUpdateAvailable,
-                //updateVersionNumber: availableUpdateVersionNumber ?? '',
-                updateBtnClicked: () {
-                  startUpdater();
-                  //setState(() {});
+              return WillPopScope(
+                onWillPop: () async {
+                  // disable dismissing the dialog by swiping back button
+                  return false;
                 },
+                child: UpdateAvailableDialog(
+                  isUpdateForceful: forcefulUpdateAvailable,
+                  updateBtnClicked: () async {
+                    startUpdater();
+                    return true;
+                  },
+                  cancelBtnClicked: () async {
+                    // TODO: handle dismissing dialog
+                    return true;
+                  },
+                ),
               );
             },
           );
