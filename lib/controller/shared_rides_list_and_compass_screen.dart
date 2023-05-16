@@ -398,6 +398,12 @@ class _SharedRidesListAndCompassScreenState
               SharedRideBroadcast broadcast =
                   SharedRideBroadcast.fromMap(body, rideId);
 
+              /// can't do anything with an empty ride, don't bother
+              if (broadcast.ride_details == null ||
+                  broadcast.ride_details?.order_state == null) {
+                return;
+              }
+
               broadcast.distance_to_broadcast = Geolocator.distanceBetween(
                   broadcast.broadcast_loc!.latitude,
                   broadcast.broadcast_loc!.longitude,
