@@ -33,7 +33,8 @@ SharedRideDetails _$SharedRideDetailsFromJson(Map<String, dynamic> json) =>
           SharedRideVettedReachoutCustomer.List_FromJson(json['vrc'])
       ..accepted_customers =
           SharedRideAcceptedCustomer.List_FromJson(json['ac'])
-      ..separate_dropoffs = SharedRideSeparateDropoff.List_FromJson(json['sd']);
+      ..dropoff_requests = SharedRideDropoffRequest.List_FromJson(json['dr'])
+      ..dropoff_customers = SharedRideCustomerDropoff.List_FromJson(json['dc']);
 
 Map<String, dynamic> _$SharedRideDetailsToJson(SharedRideDetails instance) {
   final val = <String, dynamic>{};
@@ -72,7 +73,9 @@ Map<String, dynamic> _$SharedRideDetailsToJson(SharedRideDetails instance) {
   writeNotNull('ac',
       SharedRideAcceptedCustomer.List_ToJson(instance.accepted_customers));
   writeNotNull(
-      'sd', SharedRideSeparateDropoff.List_ToJson(instance.separate_dropoffs));
+      'dr', SharedRideDropoffRequest.List_ToJson(instance.dropoff_requests));
+  writeNotNull(
+      'dc', SharedRideCustomerDropoff.List_ToJson(instance.dropoff_customers));
   return val;
 }
 
@@ -88,7 +91,8 @@ Map<String, dynamic> _$SharedRideReachOutCustomerToJson(
     <String, dynamic>{
       'cp': instance.customer_phone,
       'ci': instance.customer_id,
-      'rt': _ServerTimeStampFiller(instance.reachout_timestamp),
+      'rt': FirebaseDocument.EmptyServerTimeStampFiller(
+          instance.reachout_timestamp),
     };
 
 SharedRideVettedReachoutCustomer _$SharedRideVettedReachoutCustomerFromJson(
@@ -103,7 +107,8 @@ Map<String, dynamic> _$SharedRideVettedReachoutCustomerToJson(
     <String, dynamic>{
       'cp': instance.customer_phone,
       'ci': instance.customer_id,
-      'rt': _ServerTimeStampFiller(instance.reachout_timestamp),
+      'rt': FirebaseDocument.EmptyServerTimeStampFiller(
+          instance.reachout_timestamp),
     };
 
 SharedRideAcceptedCustomer _$SharedRideAcceptedCustomerFromJson(
@@ -119,32 +124,43 @@ Map<String, dynamic> _$SharedRideAcceptedCustomerToJson(
     <String, dynamic>{
       'cp': instance.customer_phone,
       'ci': instance.customer_id,
-      'at': _ServerTimeStampFiller(instance.accepted_timestamp),
+      'at': FirebaseDocument.EmptyServerTimeStampFiller(
+          instance.accepted_timestamp),
       'nc': instance.num_customers,
     };
 
-SharedRideSeparateDropoff _$SharedRideSeparateDropoffFromJson(
+SharedRideDropoffRequest _$SharedRideDropoffRequestFromJson(
         Map<String, dynamic> json) =>
-    SharedRideSeparateDropoff()
+    SharedRideDropoffRequest()
       ..customer_phone = json['cp'] as String
       ..customer_id = json['ci'] as String
       ..num_customers = json['nc'] as int
-      ..dropoff_loc = (json['dl'] as List<dynamic>)
-          .map((e) => (e as num).toDouble())
-          .toList();
+      ..dropoff_loc = FirebaseDocument.LatLngFromJson(json['dl'])
+      ..requested_timestamp = json['rt'] as int?;
 
-Map<String, dynamic> _$SharedRideSeparateDropoffToJson(
-        SharedRideSeparateDropoff instance) =>
-    <String, dynamic>{
-      'cp': instance.customer_phone,
-      'ci': instance.customer_id,
-      'nc': instance.num_customers,
-      'dl': instance.dropoff_loc,
-    };
+Map<String, dynamic> _$SharedRideDropoffRequestToJson(
+    SharedRideDropoffRequest instance) {
+  final val = <String, dynamic>{
+    'cp': instance.customer_phone,
+    'ci': instance.customer_id,
+    'nc': instance.num_customers,
+  };
 
-SharedRideDropoffPrice _$SharedRideDropoffPriceFromJson(
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('dl', FirebaseDocument.LatLngToJson(instance.dropoff_loc));
+  val['rt'] =
+      FirebaseDocument.EmptyServerTimeStampFiller(instance.requested_timestamp);
+  return val;
+}
+
+SharedRideCustomerDropoff _$SharedRideCustomerDropoffFromJson(
         Map<String, dynamic> json) =>
-    SharedRideDropoffPrice()
+    SharedRideCustomerDropoff()
       ..customer_phone = json['cp'] as String
       ..customer_id = json['ci'] as String
       ..num_customers = json['nc'] as int
@@ -154,15 +170,24 @@ SharedRideDropoffPrice _$SharedRideDropoffPriceFromJson(
       ..total_price = (json['tp'] as num).toDouble()
       ..dropoff_timestamp = json['dt'] as int?;
 
-Map<String, dynamic> _$SharedRideDropoffPriceToJson(
-        SharedRideDropoffPrice instance) =>
-    <String, dynamic>{
-      'cp': instance.customer_phone,
-      'ci': instance.customer_id,
-      'nc': instance.num_customers,
-      'tk': instance.travelled_km,
-      'tt': instance.travelled_time,
-      'ep': instance.each_price,
-      'tp': instance.total_price,
-      'dt': _ServerTimeStampFiller(instance.dropoff_timestamp),
-    };
+Map<String, dynamic> _$SharedRideCustomerDropoffToJson(
+    SharedRideCustomerDropoff instance) {
+  final val = <String, dynamic>{
+    'cp': instance.customer_phone,
+    'ci': instance.customer_id,
+    'nc': instance.num_customers,
+    'tk': instance.travelled_km,
+    'tt': instance.travelled_time,
+    'ep': instance.each_price,
+    'tp': instance.total_price,
+  };
+
+  void writeNotNull(String key, dynamic value) {
+    if (value != null) {
+      val[key] = value;
+    }
+  }
+
+  writeNotNull('dt', instance.dropoff_timestamp);
+  return val;
+}

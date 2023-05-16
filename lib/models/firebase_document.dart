@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -50,5 +51,9 @@ abstract class FirebaseDocument {
   static dynamic PositionToJson(Position? position) {
     if (position == null) return null;
     return [position.latitude, position.longitude];
+  }
+
+  static dynamic EmptyServerTimeStampFiller(int? timestamp) {
+    return timestamp ?? ServerValue.timestamp;
   }
 }

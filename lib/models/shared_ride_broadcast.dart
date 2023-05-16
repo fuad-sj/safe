@@ -75,6 +75,14 @@ class SharedRideBroadcast {
 
     return true;
   }
+
+  bool isNotCancelledOrder() {
+    if (ride_details == null || ride_details?.order_state == null) {
+      return false;
+    }
+
+    return SharedRideDetails.isNotCancelledOrder(ride_details!.order_state!);
+  }
 }
 
 @JsonSerializable()
@@ -88,22 +96,16 @@ class SharedRideDetails {
   static const int STATUS_ORDER_CONFIRMED = 3;
   static const int STATUS_BROADCAST_LAUNCHED = 4;
   static const int STATUS_CUSTOMERS_STARTED_BOARDING = 5;
-  static const int STATUS_FULLY_BOOKED = 6;
-  static const int STATUS_READY_TO_START = 7;
-  static const int STATUS_TRIP_STARTED = 8;
-
-  /**
-   * to intercept customer dropoff off events(not all dropped; but a single customer). have DROP_A_CUSTOMER
-   * state. driver app sets this state; backend does any necessary logging. then returns state back to TRIP_ONGOING.
-   * It will cycle through this until all customers have dropped.
-   */
-  static const int STATUS_DROP_A_CUSTOMER = 9;
-  static const int STATUS_TRIP_ONGOING = 10;
-
-  static const int STATUS_DROPPED_ALL_CUSTOMERS = 11;
-  static const int STATUS_TRIP_COMPLETED = 12;
+  static const int STATUS_READY_TO_START = 6;
+  static const int STATUS_TRIP_STARTED = 7;
+  static const int STATUS_DROP_A_CUSTOMER = 8;
+  static const int STATUS_TRIP_COMPLETED = 9;
 
   //#endregion
+
+  static bool isNotCancelledOrder(int rideState) {
+    return rideState > STATUS_CANCELLED;
+  }
 
   static bool isBoardingState(int rideState) {
     switch (rideState) {
@@ -237,13 +239,21 @@ class SharedRideDetails {
       toJson: SharedRideAcceptedCustomer.List_ToJson)
   List<SharedRideAcceptedCustomer>? accepted_customers;
 
-  static const F_SEPARATE_DROPOFFS = "sd";
+  static const F_DROPOFF_REQUESTS = "dr";
   @JsonKey(
       includeIfNull: false,
-      name: F_SEPARATE_DROPOFFS,
-      fromJson: SharedRideSeparateDropoff.List_FromJson,
-      toJson: SharedRideSeparateDropoff.List_ToJson)
-  List<SharedRideSeparateDropoff>? separate_dropoffs;
+      name: F_DROPOFF_REQUESTS,
+      fromJson: SharedRideDropoffRequest.List_FromJson,
+      toJson: SharedRideDropoffRequest.List_ToJson)
+  List<SharedRideDropoffRequest>? dropoff_requests;
+
+  static const F_DROPOFF_CUSTOMERS = "dc";
+  @JsonKey(
+      includeIfNull: false,
+      name: F_DROPOFF_CUSTOMERS,
+      fromJson: SharedRideCustomerDropoff.List_FromJson,
+      toJson: SharedRideCustomerDropoff.List_ToJson)
+  List<SharedRideCustomerDropoff>? dropoff_customers;
 
   SharedRideDetails();
 
@@ -280,10 +290,6 @@ dynamic _ListFromJson<T>(
       .toList();
 }
 
-dynamic _ServerTimeStampFiller(int? timestamp) {
-  return timestamp ?? ServerValue.timestamp;
-}
-
 @JsonSerializable()
 class SharedRideReachOutCustomer {
   @JsonKey(includeIfNull: false, name: "cp")
@@ -291,7 +297,7 @@ class SharedRideReachOutCustomer {
   @JsonKey(includeIfNull: false, name: "ci")
   late String customer_id;
 
-  @JsonKey(name: "rt", toJson: _ServerTimeStampFiller)
+  @JsonKey(name: "rt", toJson: FirebaseDocument.EmptyServerTimeStampFiller)
   int? reachout_timestamp;
 
   SharedRideReachOutCustomer();
@@ -310,7 +316,7 @@ class SharedRideVettedReachoutCustomer {
   @JsonKey(includeIfNull: false, name: "ci")
   late String customer_id;
 
-  @JsonKey(name: "rt", toJson: _ServerTimeStampFiller)
+  @JsonKey(name: "rt", toJson: FirebaseDocument.EmptyServerTimeStampFiller)
   int? reachout_timestamp;
 
   SharedRideVettedReachoutCustomer();
@@ -330,7 +336,7 @@ class SharedRideAcceptedCustomer {
   @JsonKey(includeIfNull: false, name: "ci")
   late String customer_id;
 
-  @JsonKey(name: "at", toJson: _ServerTimeStampFiller)
+  @JsonKey(name: "at", toJson: FirebaseDocument.EmptyServerTimeStampFiller)
   int? accepted_timestamp;
 
   @JsonKey(includeIfNull: false, name: "nc")
@@ -346,7 +352,7 @@ class SharedRideAcceptedCustomer {
 }
 
 @JsonSerializable()
-class SharedRideSeparateDropoff {
+class SharedRideDropoffRequest {
   @JsonKey(includeIfNull: false, name: "cp")
   late String customer_phone;
   @JsonKey(includeIfNull: false, name: "ci")
@@ -355,18 +361,25 @@ class SharedRideSeparateDropoff {
   @JsonKey(includeIfNull: false, name: "nc")
   late int num_customers;
 
-  @JsonKey(includeIfNull: false, name: "dl")
-  late List<double> dropoff_loc;
+  @JsonKey(
+      includeIfNull: false,
+      name: "dl",
+      fromJson: FirebaseDocument.LatLngFromJson,
+      toJson: FirebaseDocument.LatLngToJson)
+  LatLng? dropoff_loc;
 
-  static List<dynamic>? List_ToJson(List<SharedRideSeparateDropoff>? list) =>
-      _ListToJson(list, _$SharedRideSeparateDropoffToJson);
+  @JsonKey(name: "rt", toJson: FirebaseDocument.EmptyServerTimeStampFiller)
+  int? requested_timestamp;
+
+  static List<dynamic>? List_ToJson(List<SharedRideDropoffRequest>? list) =>
+      _ListToJson(list, _$SharedRideDropoffRequestToJson);
 
   static dynamic List_FromJson(dynamic list) =>
-      _ListFromJson(list, _$SharedRideSeparateDropoffFromJson);
+      _ListFromJson(list, _$SharedRideDropoffRequestFromJson);
 }
 
 @JsonSerializable()
-class SharedRideDropoffPrice {
+class SharedRideCustomerDropoff {
   @JsonKey(includeIfNull: false, name: "cp")
   late String customer_phone;
   @JsonKey(includeIfNull: false, name: "ci")
@@ -385,6 +398,12 @@ class SharedRideDropoffPrice {
   @JsonKey(includeIfNull: false, name: "tp")
   late double total_price;
 
-  @JsonKey(name: "dt", toJson: _ServerTimeStampFiller)
+  @JsonKey(includeIfNull: false, name: "dt")
   int? dropoff_timestamp;
+
+  static List<dynamic>? List_ToJson(List<SharedRideCustomerDropoff>? list) =>
+      _ListToJson(list, _$SharedRideCustomerDropoffToJson);
+
+  static dynamic List_FromJson(dynamic list) =>
+      _ListFromJson(list, _$SharedRideCustomerDropoffFromJson);
 }
