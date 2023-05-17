@@ -122,7 +122,24 @@ class _SharedRidesListAndCompassScreenState
 
   String _selfPhone = "";
 
+  bool isBroadcastLoading = false;
+
   bool get isCorrectHeading => _computedOffsetHeading.abs() < 0.06;
+
+
+
+  String getEstPriceText() {
+    double estPrice = _selectedRideBroadcast?.ride_details?.est_price ?? 0.0;
+    bool isSixSeater = _selectedRideBroadcast?.ride_details?.is_six_seater ?? false;
+
+    if (isSixSeater) {
+      estPrice /= 6;
+    } else {
+      estPrice /= 4;
+    }
+
+    return 'ድምር ዋጋ  $estPrice';
+  }
 
   @override
   void initState() {
@@ -863,6 +880,11 @@ class _SharedRidesListAndCompassScreenState
                     return GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () async {
+                        setState(() {
+                          isBroadcastLoading = true;
+
+                        });
+                        /*
                         Fluttertoast.showToast(
                           msg: "የ ${destLocation.name} ጥሪዎ ተሰራጭቷል፣ ትንሽ ይጠብቁ",
                           toastLength: Toast.LENGTH_SHORT,
@@ -872,6 +894,10 @@ class _SharedRidesListAndCompassScreenState
                           textColor: Colors.white,
                           fontSize: 16.0,
                         );
+
+
+                         */
+                        print('<<<<<<<<<<<<<<< this is clicked');
                         sendNearbyLocationRequest(
                             destLocation.place_id, destLocation.name);
                       },
@@ -927,7 +953,9 @@ class _SharedRidesListAndCompassScreenState
                 ),
               ),
             ],
-          ] else if (_sharedBroadcasts.isNotEmpty) ...[
+          ]
+
+          else if (_sharedBroadcasts.isNotEmpty) ...[
             SliverToBoxAdapter(child: SizedBox(height: 15)),
             SliverList(
               delegate: SliverChildBuilderDelegate(
@@ -943,6 +971,22 @@ class _SharedRidesListAndCompassScreenState
               ),
             ),
           ],
+
+          if(isBroadcastLoading) ...[
+            SliverToBoxAdapter(
+              child: SpinKitFadingCircle(
+                itemBuilder: (_, int index) {
+                  return DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: index.isEven
+                          ? Color.fromRGBO(131, 1, 1, 1.0)
+                          : Color.fromRGBO(255, 0, 0, 1.0),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ]
         ],
       ),
     );
@@ -1533,9 +1577,7 @@ class _SharedRidesListAndCompassScreenState
                 ],
 
                 if (isTripCompleted) ...[
-                  /**
-                   * TODO: update finished trip details with actual values
-                   */
+
                   Positioned(
                     top: MediaQuery.of(context).size.height * 0.35,
                     left: MediaQuery.of(context).size.width * 0.16,
@@ -1554,16 +1596,16 @@ class _SharedRidesListAndCompassScreenState
                             ),
                           ),
                           SizedBox(height: 10.0),
-                          Text(
-                            'ድምር ዋጋ : 65 ብር',
+                          Text( getEstPriceText(),
                             style: driverDetailTextStyleBig,
                           ),
                           Text(
-                            'ርቀት: 10 ኪ ሜ',
+                            'ርቀት:${_selectedRideBroadcast?.ride_details?.distance_km } 10 ኪ ሜ',
                             style: driverDetailTextStyleBig,
                           ),
                           Text(
-                            'የፈጀው ሰዓት : 30 ደቂቃ ',
+                            'የፈጀው ሰዓት :${_selectedRideBroadcast?.ride_details?.duration_minutes} ደቂቃ ',
+
                             style: driverDetailTextStyleBig,
                           ),
                         ],
