@@ -3,6 +3,8 @@ import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +17,7 @@ import 'package:safe/controller/otp_text_field/style.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
 import 'package:safe/models/customer_referral.dart';
+import 'package:safe/models/token_version_and_update_info.dart';
 
 import '../shared_rides_list_and_compass_screen.dart';
 
@@ -121,9 +124,9 @@ class _ActivateReferralCodeBottomSheetState
         break;
       case REFERRAL_STATE_INVALID_REFERRAL:
       default:
-      bkgndColorValLeft = 0xff990000;
-      bkgndColorValRight = 0xffDE0000;
-      break;
+        bkgndColorValLeft = 0xff990000;
+        bkgndColorValRight = 0xffDE0000;
+        break;
     }
 
     return Padding(
@@ -163,14 +166,30 @@ class _ActivateReferralCodeBottomSheetState
                         ),
                       ),
                     ),
-
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () async {
+                        TokenVersionAndUpdateInfo tokenAndVersionNumber =
+                            new TokenVersionAndUpdateInfo();
+
+                        tokenAndVersionNumber.client_triggered_event = true;
+                        tokenAndVersionNumber.is_referral_active = true;
+
+                        await FirebaseDatabase.instanceFor(
+                                app: Firebase.app(),
+                                databaseURL:
+                                    TokenVersionAndUpdateInfo.DATABASE_ROOT)
+                            .ref()
+                            .child(FIREBASE_DB_PATHS
+                                .PATH_CUSTOMER_TOKEN_VERSION_AND_UPDATE)
+                            .child(FirebaseAuth.instance.currentUser!.uid)
+                            .update(tokenAndVersionNumber.toJson());
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => SharedRidesListAndCompassScreen()),
+                              builder: (context) =>
+                                  SharedRidesListAndCompassScreen()),
                         );
                       },
                       child: Center(

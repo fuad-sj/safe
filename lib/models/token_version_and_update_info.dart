@@ -10,12 +10,12 @@ class TokenVersionAndUpdateInfo {
   static final String DATABASE_ROOT = "https://safetransports-et-cb6a3.firebaseio.com/";
 
   @JsonKey(includeIfNull: false, name: "dt")
-  late String device_token;
+  String? device_token;
 
   @JsonKey(includeIfNull: false, name: "vn")
-  late String version_number;
+  String? version_number;
   @JsonKey(includeIfNull: false, name: "bn")
-  late int build_number;
+  int? build_number;
 
   @JsonKey(name: "lu", toJson: FirebaseDocument.EmptyServerTimeStampFiller)
   int? last_update_timestamp;
@@ -29,6 +29,9 @@ class TokenVersionAndUpdateInfo {
 
   @JsonKey(includeIfNull: false, name: "fua")
   bool? forceful_update_available;
+
+  @JsonKey(includeIfNull: false, name: "ira")
+  bool? is_referral_active;
 
   TokenVersionAndUpdateInfo();
 

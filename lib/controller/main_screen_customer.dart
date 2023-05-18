@@ -195,6 +195,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   bool updateDialogShown = false;
   bool updateDialogVisible = false;
 
+  bool isReferralComplete = false;
+  bool isReferralForSureNotComplete = false;
+
   /// We ONLY want to show the referral dialog IF we know for SURE referral is NOT complete
   bool get isReferralSurelyIncomplete {
     if (_currentCustomer == null || !_isInternetWorking) {
@@ -233,7 +236,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       loadCurrentPosition();
 
-      await _loadPhoneNumber();
+      _loadPhoneNumber();
 
       await updateTokenVersionAndUpdateInfoInRealtimeDb();
 
@@ -267,8 +270,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _currentPosition = position;
   }
 
-  Future<void> _loadPhoneNumber() async {
-    String phone = await PrefUtil.getCurrentUserPhone();
+  void _loadPhoneNumber() {
+    String phone = PrefUtil.getCurrentUserPhone();
     if (phone.startsWith('+251')) {
       String prefix = phone.substring(4, 7);
       String suffix = phone.substring(10);
@@ -454,6 +457,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       updateAvailable = info.optional_update_available ?? false;
       forcefulUpdateAvailable = info.forceful_update_available ?? false;
+      isReferralForSureNotComplete = (info.is_referral_active ?? true) == false;
+      isReferralComplete = info.is_referral_active ?? false;
+
       if (!updateDialogVisible) {
         updateDialogShown = false;
       }
@@ -1043,7 +1049,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               _getHamburgerBtnWidget(),
             ],
 
-            if (_isReferralActivationComplete) ...[
+            if (isReferralComplete) ...[
               //
               WhereToBottomSheet(
                 tickerProvider: this,
@@ -1250,7 +1256,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             ],
 
             /// Only show referral dialog if referral is NOT complete, for SURE
-            if (isReferralSurelyIncomplete) ...[
+            //if (isReferralSurelyIncomplete) ...[
+            if (isReferralForSureNotComplete) ...[
               // grey background
               Container(
                 height: MediaQuery.of(context).size.height,
