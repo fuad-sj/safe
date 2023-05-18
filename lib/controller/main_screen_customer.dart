@@ -193,6 +193,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   bool updateAvailable = false;
   bool forcefulUpdateAvailable = false;
   bool updateDialogShown = false;
+  bool updateDialogVisible = false;
 
   /// We ONLY want to show the referral dialog IF we know for SURE referral is NOT complete
   bool get isReferralSurelyIncomplete {
@@ -453,6 +454,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       updateAvailable = info.optional_update_available ?? false;
       forcefulUpdateAvailable = info.forceful_update_available ?? false;
+      if (!updateDialogVisible) {
+        updateDialogShown = false;
+      }
+
       startupInfoLoadComplete = true;
 
       if (mounted) {
@@ -904,6 +909,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
     if (!updateDialogShown && (updateAvailable || forcefulUpdateAvailable)) {
       updateDialogShown = true;
+      updateDialogVisible = true;
       Future.delayed(
         Duration.zero,
         () async {
@@ -934,6 +940,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                     /// dismiss update dialog till next boot
 
                     updateAvailable = false;
+                    updateDialogVisible = false;
                     setState(() {});
 
                     return true;
