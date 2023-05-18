@@ -5,6 +5,8 @@ class FIREBASE_DB_PATHS {
   static final SHARED_RIDE_BROADCASTS = 'ride_broadcasts';
 
   static final SHARED_RIDE_CUSTOMER_LOCS = 'shared_ride_customer_locs';
+
+  static final PATH_CUSTOMER_TOKEN_VERSION_AND_UPDATE = 'customer_token_version_and_update';
 }
 
 class FIRESTORE_PATHS {

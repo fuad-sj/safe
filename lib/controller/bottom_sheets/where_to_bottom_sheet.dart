@@ -17,6 +17,7 @@ class WhereToBottomSheet extends BaseBottomSheet {
   static const double HEIGHT_WHERE_TO_PERCENT = 0.35;
   static const double TOP_CORNER_BORDER_RADIUS = 25.0;
 
+  bool showSharedRideOption;
   bool enableButtonSelection;
   bool enabledBottomToggle;
   VoidCallback onDisabledCallback;
@@ -24,6 +25,7 @@ class WhereToBottomSheet extends BaseBottomSheet {
   String? customerName;
 
   WhereToBottomSheet({
+    required this.showSharedRideOption,
     required TickerProvider tickerProvider,
     required bool showBottomSheet,
     required VoidCallback actionCallback,
@@ -116,25 +118,27 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               ],
             ),
           ),
-          SizedBox(height: VSpace(0.005)),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () async {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => SharedRidesListAndCompassScreen()),
-              );
-            },
-            child: Center(
-              child: Container(
-                height: MediaQuery.of(context).size.height * 0.085,
-                child: Image(
-                  image: AssetImage('images/yegna.png'),
+          if (widget.showSharedRideOption) ...[
+            SizedBox(height: VSpace(0.005)),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () async {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => SharedRidesListAndCompassScreen()),
+                );
+              },
+              child: Center(
+                child: Container(
+                  height: MediaQuery.of(context).size.height * 0.085,
+                  child: Image(
+                    image: AssetImage('images/yegna.png'),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
           SizedBox(height: VSpace(0.020)),
           GestureDetector(
             behavior: HitTestBehavior.opaque,

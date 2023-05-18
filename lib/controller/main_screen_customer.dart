@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -41,6 +42,7 @@ import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/language_selector_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
+import 'package:safe/models/token_version_and_update_info.dart';
 import 'package:safe/models/driver.dart';
 import 'package:safe/models/firebase_document.dart';
 import 'package:safe/models/google_place_description.dart';
@@ -76,7 +78,7 @@ class MainScreenCustomer extends StatefulWidget {
 }
 
 class _MainScreenCustomerState extends State<MainScreenCustomer>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   static const double DEFAULT_SEARCH_RADIUS = 3.0;
 
   static const CameraPosition ADDIS_ABABA_CENTER_LOCATION = CameraPosition(
@@ -175,12 +177,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   bool _isInternetWorking = false;
 
-  bool updateAvailable = false;
-  bool forcefulUpdateAvailable = false;
-  bool showUpdateDialog = false;
-  String? availableUpdateVersionNumber;
-  int? availableUpdateBuildNumber;
-
   bool get _isCustomerActive {
     return _currentCustomer?.is_active ?? false;
   }
@@ -190,6 +186,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   late Location liveLocation;
+
+  StreamSubscription? _tokenVersionUpdateSubscription;
+  bool startupInfoLoadComplete = false;
+
+  bool updateAvailable = false;
+  bool forcefulUpdateAvailable = false;
+  bool updateDialogShown = false;
 
   /// We ONLY want to show the referral dialog IF we know for SURE referral is NOT complete
   bool get isReferralSurelyIncomplete {
@@ -229,7 +232,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       loadCurrentPosition();
 
+      await _loadPhoneNumber();
+
+      await updateTokenVersionAndUpdateInfoInRealtimeDb();
+
       await attachCustomerListener();
+
+      await loadNetworkProfileImage();
 
       setBottomMapPadding(
           WhereToBottomSheet.HEIGHT_WHERE_TO_RECOMMENDED_HEIGHT);
@@ -240,6 +249,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       //await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
       _geoFireInitialized = true;
     });
+
+    WidgetsBinding.instance.addObserver(this);
   }
 
   Future<void> loadCurrentPosition() async {
@@ -276,13 +287,27 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       Geofire.stopListener();
     }
     */
+    _tokenVersionUpdateSubscription?.cancel();
 
     _connectivitySubscription.cancel();
     _currentCustomerSubscription?.cancel();
 
     _geofireLocationStream?.cancel();
 
+    WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) async {
+    if (state == AppLifecycleState.resumed) {
+      await updateTokenVersionAndUpdateInfoInRealtimeDb();
+
+      if (mounted) {
+        setState(() {});
+      }
+    }
   }
 
   Future<void> attachCustomerListener() async {
@@ -305,25 +330,22 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         return;
       }
 
-      if (!_initLogicAlreadyRun) {
-        try {
-          _initLogicAlreadyRun = true;
-          await updateLoginCredentials();
-          await checkVersionUpdateDetails();
-        } catch (e) {}
-      }
+      /**
+       * TODO: update customer state resumption
+       *
 
-      if ((_currentCustomer?.current_trip_id ?? '').trim().isEmpty &&
+          if ((_currentCustomer?.current_trip_id ?? '').trim().isEmpty &&
           ((_currentCustomer!.is_trip_completed ?? false) == false)) {
-        resetTripDetails();
-      } else {
-        _rideRequestRef = FirebaseFirestore.instance
-            .collection(FIRESTORE_PATHS.COL_RIDES)
-            .doc(_currentCustomer?.current_trip_id);
+          resetTripDetails();
+          } else {
+          _rideRequestRef = FirebaseFirestore.instance
+          .collection(FIRESTORE_PATHS.COL_RIDES)
+          .doc(_currentCustomer?.current_trip_id);
 
-        // Will update UI when either driver is assigned OR trip is cancelled
-        await listenToRideStatusUpdates();
-      }
+          // Will update UI when either driver is assigned OR trip is cancelled
+          await listenToRideStatusUpdates();
+          }
+       */
 
       if (mounted) {
         // reload UI once we've successfully loaded customer info
@@ -366,124 +388,77 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     return _updateConnectionStatus(result);
   }
 
-  Future<void> updateLoginCredentials() async {
+  Future<void> updateTokenVersionAndUpdateInfoInRealtimeDb() async {
+    startupInfoLoadComplete = false;
+
     int loginStatus = PrefUtil.getLoginStatus();
     if (loginStatus == PrefUtil.LOGIN_STATUS_SIGNED_OUT) {
       return;
     }
 
-    await _loadPhoneNumber();
-    await loadNetworkProfileImage();
-
-    if (_currentCustomer == null || !_currentCustomer!.documentExists()) {
-      Future.delayed(Duration.zero).then((_) {
-        Navigator.pushNamedAndRemoveUntil(
-            context, LoginPage.idScreen, (route) => false);
-      });
-    } else {
-      Map<String, dynamic> updatedFields = Map();
-
-      updatedFields[Customer.FIELD_DATE_LAST_LOGIN] =
-          FieldValue.serverTimestamp();
-      updatedFields[Customer.FIELD_IS_LOGGED_IN] = true;
-
-      if (loginStatus == PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW) {
-        await PrefUtil.setLoginStatus(
-            PrefUtil.LOGIN_STATUS_PREVIOUSLY_LOGGED_IN);
-      }
-
-      List<String> deviceTokens =
-          _currentCustomer!.device_registration_tokens ?? [];
-
-      String? newToken = await FirebaseMessaging.instance.getToken();
-
-      if (newToken != null && !deviceTokens.contains(newToken)) {
-        deviceTokens.add(newToken);
-
-        updatedFields[Customer.FIELD_DEVICE_REGISTRATION_TOKENS] = deviceTokens;
-      }
-
-      PackageInfo info = await PackageInfo.fromPlatform();
-
-      updatedFields[Customer.FIELD_VERSION_NUMBER] = info.version;
-      updatedFields[Customer.FIELD_VERSION_BUILD_NUMBER] =
-          AlphaNumericUtil.parseInt(info.buildNumber, -1);
-
-      if (updatedFields.isNotEmpty) {
-        await FirebaseFirestore.instance
-            .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
-            .doc(PrefUtil.getCurrentUserID())
-            .set(updatedFields, SetOptions(merge: true));
-      }
+    if (loginStatus == PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW) {
+      await PrefUtil.setLoginStatus(PrefUtil.LOGIN_STATUS_PREVIOUSLY_LOGGED_IN);
     }
-  }
 
-  Future<void> checkVersionUpdateDetails() async {
-    if (_currentCustomer == null) {
-      // TODO: check what to do with no customer
+    String? newToken;
+    try {
+      newToken = await FirebaseMessaging.instance.getToken();
+      if (newToken == null) return;
+    } catch (err) {
       return;
     }
 
     PackageInfo info = await PackageInfo.fromPlatform();
 
-    Map<String, dynamic> customerUpdateFields = Map();
-    bool shouldUpdateCurrentCustomer = false;
+    TokenVersionAndUpdateInfo tokenAndVersionNumber =
+        new TokenVersionAndUpdateInfo();
 
-    int installedBuildNumber = AlphaNumericUtil.parseInt(info.buildNumber, -1);
-    int lastCheckedBuildNumber =
-        _currentCustomer!.last_checked_build_number ?? installedBuildNumber;
+    tokenAndVersionNumber.client_triggered_event = true;
+    tokenAndVersionNumber.device_token = newToken;
+    tokenAndVersionNumber.version_number = info.version;
+    tokenAndVersionNumber.build_number =
+        AlphaNumericUtil.parseInt(info.buildNumber, -1);
 
-    var laterVersionSnapshots = await FirebaseFirestore.instance
-        .collection(FIRESTORE_PATHS.COL_UPDATE_VERSIONS)
-        .doc(FIRESTORE_PATHS.DOC_UPDATE_VERSIONS_CUSTOMERS)
-        .collection(FIRESTORE_PATHS.SUB_COL_UPDATE_VERSION_CUSTOMERS)
-        .where(UpdateVersion.FIELD_BUILD_NUMBER,
-            isGreaterThan: lastCheckedBuildNumber)
-        .orderBy(UpdateVersion.FIELD_BUILD_NUMBER, descending: true)
-        .get();
+    await FirebaseDatabase.instanceFor(
+            app: Firebase.app(),
+            databaseURL: TokenVersionAndUpdateInfo.DATABASE_ROOT)
+        .ref()
+        .child(FIREBASE_DB_PATHS.PATH_CUSTOMER_TOKEN_VERSION_AND_UPDATE)
+        .child(_getCustomerID)
+        .update(tokenAndVersionNumber.toJson());
 
-    updateAvailable = laterVersionSnapshots.docs.isNotEmpty;
+    _tokenVersionUpdateSubscription = FirebaseDatabase.instanceFor(
+            app: Firebase.app(),
+            databaseURL: TokenVersionAndUpdateInfo.DATABASE_ROOT)
+        .ref()
+        .child(FIREBASE_DB_PATHS.PATH_CUSTOMER_TOKEN_VERSION_AND_UPDATE)
+        .child(_getCustomerID)
+        .onValue
+        .listen((event) {
+      var data = event.snapshot.value;
 
-    // If update available, update the customer's last seen update number, so won't bother again with same version
-    if (laterVersionSnapshots.docs.isNotEmpty) {
-      UpdateVersion versionInfo =
-          UpdateVersion.fromSnapshot(laterVersionSnapshots.docs.first);
+      if (data == null) {
+        return;
+      }
 
-      customerUpdateFields[Customer.FIELD_LAST_CHECKED_VERSION_NUMBER] =
-          versionInfo.version_number;
-      customerUpdateFields[Customer.FIELD_LAST_CHECKED_BUILD_NUMBER] =
-          versionInfo.build_number;
-      customerUpdateFields[Customer.FIELD_LAST_CHECKED_VERSION_DATETIME] =
-          versionInfo.date_version_created;
+      TokenVersionAndUpdateInfo info =
+          TokenVersionAndUpdateInfo.fromJson(data as Map);
+      // the server hasn't yet responded
+      if (info.client_triggered_event != false) {
+        return;
+      }
 
-      availableUpdateVersionNumber = versionInfo.version_number;
-      availableUpdateBuildNumber = versionInfo.build_number;
+      _tokenVersionUpdateSubscription!.cancel();
+      _tokenVersionUpdateSubscription = null;
 
-      shouldUpdateCurrentCustomer = true;
-    }
+      updateAvailable = info.optional_update_available ?? false;
+      forcefulUpdateAvailable = info.forceful_update_available ?? false;
+      startupInfoLoadComplete = true;
 
-    if (shouldUpdateCurrentCustomer) {
-      await FirebaseFirestore.instance
-          .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
-          .doc(_getCustomerID)
-          .set(customerUpdateFields, SetOptions(merge: true));
-    }
-
-    var forcefulUpdateVersions = await FirebaseFirestore.instance
-        .collection(FIRESTORE_PATHS.COL_UPDATE_VERSIONS)
-        .doc(FIRESTORE_PATHS.DOC_UPDATE_VERSIONS_CUSTOMERS)
-        .collection(FIRESTORE_PATHS.SUB_COL_UPDATE_VERSION_CUSTOMERS)
-        .where(UpdateVersion.FIELD_IS_FORCEFUL_UPDATE, isEqualTo: true)
-        .where(UpdateVersion.FIELD_BUILD_NUMBER,
-            isGreaterThan: installedBuildNumber)
-        .get();
-
-    forcefulUpdateAvailable = forcefulUpdateVersions.docs.isNotEmpty;
-    showUpdateDialog = true;
-
-    if (mounted) {
-      setState(() {});
-    }
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   Future<void> loadNetworkProfileImage() async {
@@ -927,8 +902,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   Widget build(BuildContext context) {
     const double TOP_MAP_PADDING = 40;
 
-    if ((updateAvailable || forcefulUpdateAvailable) && showUpdateDialog) {
-      showUpdateDialog = false;
+    if (!updateDialogShown && (updateAvailable || forcefulUpdateAvailable)) {
+      updateDialogShown = true;
       Future.delayed(
         Duration.zero,
         () async {
@@ -937,18 +912,30 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             barrierDismissible: false,
             builder: (_) {
               return WillPopScope(
+                // prevent the dialog from being dismissed by back button
                 onWillPop: () async {
-                  // disable dismissing the dialog by swiping back button
                   return false;
                 },
                 child: UpdateAvailableDialog(
                   isUpdateForceful: forcefulUpdateAvailable,
                   updateBtnClicked: () async {
                     startUpdater();
-                    return true;
+                    Future.delayed(Duration.zero, () {
+                      updateDialogShown = false;
+                    });
+                    return !forcefulUpdateAvailable;
                   },
                   cancelBtnClicked: () async {
-                    // TODO: handle dismissing dialog
+                    // if it is a forceful update, don't allow dismissing it. no do cancel it
+                    if (forcefulUpdateAvailable) {
+                      return false;
+                    }
+
+                    /// dismiss update dialog till next boot
+
+                    updateAvailable = false;
+                    setState(() {});
+
                     return true;
                   },
                 ),
@@ -1053,6 +1040,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               //
               WhereToBottomSheet(
                 tickerProvider: this,
+                showSharedRideOption: startupInfoLoadComplete &&
+                    (!updateAvailable && !forcefulUpdateAvailable),
                 showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
                 enableButtonSelection: _isInternetWorking,
                 customerName: _currentCustomer?.user_name,
