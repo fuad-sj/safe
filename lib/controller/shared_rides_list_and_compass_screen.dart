@@ -39,7 +39,7 @@ class _SharedRidesListAndCompassScreenState
     extends State<SharedRidesListAndCompassScreen> {
   static const SEARCH_NOT_FOUND_ID = "search_not_found_id";
 
-  static const double DEFAULT_SEARCH_RADIUS_KMS = 0.5;
+  static const double DEFAULT_SEARCH_RADIUS_KMS = 0.95;
   static const double COMPASS_POINTER_DISAPPEAR_METERS = 20;
 
   /// if we've moved so much from the launch of geoquery, relaunch the query to update the search radius area
