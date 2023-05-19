@@ -104,4 +104,8 @@ class SharedRideCustomerRequestNearbyDriver {
   static const F_DESTINATION_PLACE_ID = "dpi";
   @JsonKey(includeIfNull: false, name: F_DESTINATION_PLACE_ID)
   String? destination_place_id;
+
+  static const F_LAST_UPDATE_TIMESTAMP = "lut";
+  @JsonKey(includeIfNull: false, name: F_LAST_UPDATE_TIMESTAMP)
+  int? last_update_timestamp;
 }

@@ -270,12 +270,13 @@ class _SharedRidesListAndCompassScreenState
       currentLocation!.longitude
     ];
 
-    if (placeId != null && placeName != null) {
-      nearbyRequest[SharedRideCustomerRequestNearbyDriver
-          .F_DESTINATION_PLACE_ID] = placeId;
-      nearbyRequest[SharedRideCustomerRequestNearbyDriver
-          .F_DESTINATION_PLACE_NAME] = placeName;
-    }
+    nearbyRequest[SharedRideCustomerRequestNearbyDriver
+        .F_LAST_UPDATE_TIMESTAMP] = ServerValue.timestamp;
+
+    nearbyRequest[
+        SharedRideCustomerRequestNearbyDriver.F_DESTINATION_PLACE_ID] = placeId;
+    nearbyRequest[SharedRideCustomerRequestNearbyDriver
+        .F_DESTINATION_PLACE_NAME] = placeName;
 
     await FirebaseDatabase.instanceFor(
             app: Firebase.app(),
