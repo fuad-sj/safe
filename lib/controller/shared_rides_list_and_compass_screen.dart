@@ -155,12 +155,12 @@ class _SharedRidesListAndCompassScreenState
 
       loadDestinationLocations();
 
+      device_token = await FirebaseMessaging.instance.getToken();
+
       if (await setupLocationCallback()) {
         setupNearbyBroadcastsQuery();
         setupCompassCallback();
       }
-
-      device_token = await FirebaseMessaging.instance.getToken();
 
       if (mounted) {
         setState(() {});
