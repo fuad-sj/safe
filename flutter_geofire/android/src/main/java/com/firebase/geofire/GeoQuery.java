@@ -269,20 +269,44 @@ public class GeoQuery {
     }
 
     private void childAdded(DataSnapshot dataSnapshot) {
-        GeoLocation location = GeoFire.getLocationValue(dataSnapshot);
-        if (location != null) {
-            this.updateLocationInfo(dataSnapshot, location);
-        } else {
-            throw new AssertionError("Got Datasnapshot without location with key " + dataSnapshot.getKey());
+        boolean errorOccured = false;
+        String errMsg = "";
+        try {
+            GeoLocation location = GeoFire.getLocationValue(dataSnapshot);
+            if (location != null) {
+                this.updateLocationInfo(dataSnapshot, location);
+            } else {
+                errorOccured = true;
+            }
+        } catch (Exception e) {
+            errorOccured = true;
+            errMsg = e.getMessage();
+        } finally {
+            if (errorOccured) {
+                // TODO: do not throw exception just b/c the node doesn't have a valid location. maybe have a (dev | prod) version so the dev can crash and we can see what is happening
+                //throw new AssertionError("childAdded: Got Datasnapshot without location with key " + dataSnapshot.getKey() + " with error " + errMsg);
+            }
         }
     }
 
     private void childChanged(DataSnapshot dataSnapshot) {
-        GeoLocation location = GeoFire.getLocationValue(dataSnapshot);
-        if (location != null) {
-            this.updateLocationInfo(dataSnapshot, location);
-        } else {
-            throw new AssertionError("Got Datasnapshot without location with key " + dataSnapshot.getKey());
+        boolean errorOccured = false;
+        String errMsg = "";
+        try {
+            GeoLocation location = GeoFire.getLocationValue(dataSnapshot);
+            if (location != null) {
+                this.updateLocationInfo(dataSnapshot, location);
+            } else {
+                errorOccured = true;
+            }
+        } catch (Exception e) {
+            errorOccured = true;
+            errMsg = e.getMessage();
+        } finally {
+            if (errorOccured) {
+                // TODO: do not throw exception just b/c the node doesn't have a valid location. maybe have a (dev | prod) version so the dev can crash and we can see what is happening
+                //throw new AssertionError("childChanged: Got Datasnapshot without location with key " + dataSnapshot.getKey() + " with error " + errMsg);
+            }
         }
     }
 
@@ -294,7 +318,12 @@ public class GeoQuery {
                 @Override
                 public void onDataChange(@NonNull final DataSnapshot dataSnapshot) {
                     synchronized (GeoQuery.this) {
-                        GeoLocation location = GeoFire.getLocationValue(dataSnapshot);
+                        GeoLocation location;
+                        try {
+                            location = GeoFire.getLocationValue(dataSnapshot);
+                        } catch (Exception e) {
+                            location = null;
+                        }
                         GeoHash hash = (location != null) ? new GeoHash(location) : null;
                         if (hash == null || !GeoQuery.this.geoHashQueriesContainGeoHash(hash)) {
                             final LocationInfo info = locationInfos.remove(key);

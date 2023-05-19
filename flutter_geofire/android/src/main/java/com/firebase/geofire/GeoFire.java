@@ -23,7 +23,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseException;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.database.GenericTypeIndicator;
+//import com.google.firebase.database.GenericTypeIndicator;
 import java.lang.Throwable;
 import java.util.*;
 import java.util.logging.Logger;
@@ -83,24 +83,22 @@ public class GeoFire {
     }
 
     public static GeoLocation getLocationValue(DataSnapshot dataSnapshot) {
-        try {
-            GenericTypeIndicator<Map<String, Object>> typeIndicator = new GenericTypeIndicator<Map<String, Object>>() {};
-            Map<String, Object> data = dataSnapshot.getValue(typeIndicator);
-            List<?> location = (List<?>) data.get("l");
-            Number latitudeObj = (Number) location.get(0);
-            Number longitudeObj = (Number) location.get(1);
-            double latitude = latitudeObj.doubleValue();
-            double longitude = longitudeObj.doubleValue();
-            if (location.size() == 2 && GeoLocation.coordinatesValid(latitude, longitude)) {
-                return new GeoLocation(latitude, longitude);
-            } else {
-                return null;
-            }
-        } catch (NullPointerException e) {
-            return null;
-        } catch (ClassCastException e) {
-            return null;
-        } catch (DatabaseException e) {
+        /**
+         * NOTE: this has been editted to not rely on reflection as that was causing issues with compile time proguard rules. Simple cast does the same job
+         *
+         * these are references
+         *      1) https://stackoverflow.com/a/71305942
+         *      2) https://stackoverflow.com/questions/37688031/class-java-util-map-has-generic-type-parameters-please-use-generictypeindicator
+         */
+        Map<String, Object> data = (Map<String, Object>) dataSnapshot.getValue();
+        List<?> location = (List<?>) data.get("l");
+        Number latitudeObj = (Number) location.get(0);
+        Number longitudeObj = (Number) location.get(1);
+        double latitude = latitudeObj.doubleValue();
+        double longitude = longitudeObj.doubleValue();
+        if (location.size() == 2 && GeoLocation.coordinatesValid(latitude, longitude)) {
+            return new GeoLocation(latitude, longitude);
+        } else {
             return null;
         }
     }
@@ -225,7 +223,7 @@ public class GeoFire {
      *
      * @param center The center of the query
      * @param radius The radius of the query, in kilometers. The maximum radius that is
-     * supported is about 8587km. If a radius bigger than this is passed we'll cap it.
+     *               supported is about 8587km. If a radius bigger than this is passed we'll cap it.
      * @return The new GeoQuery object
      */
     public GeoQuery queryAtLocation(GeoLocation center, double radius) {
