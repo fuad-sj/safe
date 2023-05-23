@@ -23,6 +23,7 @@ class WhereToBottomSheet extends BaseBottomSheet {
   VoidCallback onDisabledCallback;
   String? referralCode;
   String? customerName;
+  String? versionNumber;
 
   WhereToBottomSheet({
     required this.showSharedRideOption,
@@ -35,6 +36,7 @@ class WhereToBottomSheet extends BaseBottomSheet {
     required this.enabledBottomToggle,
     this.referralCode,
     this.customerName,
+    this.versionNumber,
   }) : super(
           tickerProvider: tickerProvider,
           showBottomSheet: showBottomSheet,
@@ -73,7 +75,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: HSpace(0.07)),
-      height: VSpace(0.45),
+      //height: VSpace(0.45),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -307,6 +309,16 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               ),
             ),
           ),
+          if (widget.versionNumber != null) ...[
+            SizedBox(height: VSpace(0.01)),
+            Center(
+              child: Text("V-" + widget.versionNumber!,
+                  style: TextStyle(
+                      fontSize: 12.0,
+                      fontFamily: 'Lato',
+                      color: Color.fromRGBO(221, 0, 0, 1))),
+            ),
+          ],
           SizedBox(height: VSpace(0.01)),
           Container(
             width: HSpace(0.9),

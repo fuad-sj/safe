@@ -198,6 +198,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   bool isReferralComplete = false;
   bool isReferralForSureNotComplete = false;
 
+  String? versionNumber;
+
   /// We ONLY want to show the referral dialog IF we know for SURE referral is NOT complete
   bool get isReferralSurelyIncomplete {
     if (_currentCustomer == null || !_isInternetWorking) {
@@ -413,6 +415,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     }
 
     PackageInfo info = await PackageInfo.fromPlatform();
+
+    versionNumber = info.version;
 
     TokenVersionAndUpdateInfo tokenAndVersionNumber =
         new TokenVersionAndUpdateInfo();
@@ -1059,6 +1063,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 enableButtonSelection: _isInternetWorking,
                 customerName: _currentCustomer?.user_name,
                 referralCode: _currentCustomer?.referral_code,
+                versionNumber: versionNumber,
                 enabledBottomToggle: _isBottomToggleOn,
                 actionCallback: () {
                   Provider.of<PickUpAndDropOffLocations>(context, listen: false)
