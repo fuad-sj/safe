@@ -66,6 +66,8 @@ dependencies:
   dartx: ^1.1.0
   back_button_interceptor:
     path: ./back_button_interceptor
+  sms_autofill:
+    path: ./sms_autofill
 
 dev_dependencies:
   flutter_test:

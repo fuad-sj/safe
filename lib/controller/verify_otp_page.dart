@@ -18,6 +18,7 @@ import 'package:safe/models/customer.dart';
 import 'package:safe/models/safe_otp_request.dart';
 import 'package:safe/utils/http_util.dart';
 import 'package:safe/utils/pref_util.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 
 import 'login_page.dart';
 
@@ -66,11 +67,22 @@ class _VerifyOTPState extends State<VerifyOTP> {
         }
 
         _isOnPingRequest = true;
-        var statusResponse = await HttpUtil.getHttpsRequest(
-            "us-central1-safetransports-et.cloudfunctions.net",
-            "/OTPEndpoint${widget.instNo}/api/v1/otp_status", {
-          "otp_id": widget.otpID,
-        });
+
+        bool retry_request = true;
+        var statusResponse;
+
+        while (retry_request) {
+          try {
+            statusResponse = await HttpUtil.getHttpsRequest(
+                "us-central1-safetransports-et.cloudfunctions.net",
+                "/OTPEndpoint${widget.instNo}/api/v1/otp_status", {
+              "otp_id": widget.otpID,
+            });
+            retry_request = false;
+          } catch (err) {
+            retry_request = true;
+          }
+        }
         _isOnPingRequest = false;
 
         bool expired = statusResponse["expired"];
@@ -146,25 +158,29 @@ class _VerifyOTPState extends State<VerifyOTP> {
                       style: TextStyle(
                           color: Color(0xff000000), fontFamily: 'Open Sans'),
                     )),
-                OTPTextField(
-                  length: OTP_LENGTH,
-                  width: MediaQuery.of(context).size.width,
-                  textFieldAlignment: MainAxisAlignment.spaceAround,
-                  fieldWidth: 50,
-                  fieldStyle: FieldStyle.box,
-                  otpFieldStyle: OtpFieldStyle(
-                    focusBorderColor: Color(0xff990000),
-                    borderColor: Color(0xffDE0000),
+                Container(
+                  margin: EdgeInsets.symmetric(
+                      horizontal: MediaQuery.of(context).size.width * 0.07),
+                  child: PinFieldAutoFill(
+                    decoration: CirclePinDecoration(
+                      strokeWidth: 1.5,
+                      strokeColorBuilder: PinListenColorBuilder(
+                          Color(0xff990000), Color(0xff990000)),
+                      bgColorBuilder: PinListenColorBuilder(
+                          Colors.white, Colors.white.withOpacity(0.9)),
+                    ),
+                    onCodeChanged: (code) async {
+                      if (mounted) {
+                        setState(() {
+                          _otpCode = code;
+                          if (_otpCode.trim().length == OTP_LENGTH) {
+                            _verificationBtnController.start();
+                          }
+                        });
+                      }
+                    },
+                    codeLength: OTP_LENGTH,
                   ),
-                  outlineBorderRadius: 15,
-                  style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-                  keyboardType: TextInputType.number,
-                  onCompleted: (pin) {
-                    //    print("Completed: " + pin);
-                    setState(() {
-                      _otpCode = pin;
-                    });
-                  },
                 ),
                 Padding(
                     padding: EdgeInsets.only(

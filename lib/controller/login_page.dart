@@ -20,6 +20,7 @@ import 'package:safe/utils/http_util.dart';
 import 'package:safe/utils/pref_util.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:sms_autofill/sms_autofill.dart';
 
 class LoginPage extends StatefulWidget {
   static const String idScreen = 'LoginPage';
@@ -270,6 +271,8 @@ class _LoginPageState extends State<LoginPage> {
                               controller: _loginBtnController,
                               onPressed: () async {
                                 if (_loginBtnActive) {
+                                  /// the SMS listener should be on the look out for messages. As per the docs: https://github.com/jaumard/sms_autofill#usage
+                                  await SmsAutoFill().listenForCode();
                                   sendOTPRequest(context);
                                   setState(() {
                                     _isVerifyClicked = true;
@@ -318,11 +321,22 @@ class _LoginPageState extends State<LoginPage> {
           }
 
           _isOnPingRequest = true;
-          var statusResponse = await HttpUtil.getHttpsRequest(
-              "us-central1-safetransports-et.cloudfunctions.net",
-              "/OTPEndpoint${_instNo}/api/v1/otp_status", {
-            "otp_id": OTP_ID,
-          });
+
+          bool retry_request = true;
+          var statusResponse;
+          // sometime the request fails, don't know why. retry it
+          while (retry_request) {
+            try {
+              statusResponse = await HttpUtil.getHttpsRequest(
+                  "us-central1-safetransports-et.cloudfunctions.net",
+                  "/OTPEndpoint${_instNo}/api/v1/otp_status", {
+                "otp_id": OTP_ID,
+              });
+              retry_request = false;
+            } catch (err) {
+              retry_request = true;
+            }
+          }
           _isOnPingRequest = false;
 
           bool success = statusResponse["success"];
