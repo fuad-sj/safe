@@ -24,6 +24,7 @@ SharedRideDetails _$SharedRideDetailsFromJson(Map<String, dynamic> json) =>
       ..est_price = FirebaseDocument.DoubleFromJson(json['ep'])
       ..distance_km = FirebaseDocument.DoubleFromJson(json['dk'])
       ..duration_minutes = FirebaseDocument.DoubleFromJson(json['dm'])
+      ..is_female_only = json['ifo'] as bool?
       ..is_forcefully_filled = json['iff'] as bool?
       ..num_forceful_filled = json['nff'] as int?
       ..seats_remaining = json['sr'] as int?
@@ -61,6 +62,7 @@ Map<String, dynamic> _$SharedRideDetailsToJson(SharedRideDetails instance) {
   writeNotNull('ep', instance.est_price);
   writeNotNull('dk', instance.distance_km);
   writeNotNull('dm', instance.duration_minutes);
+  writeNotNull('ifo', instance.is_female_only);
   writeNotNull('iff', instance.is_forcefully_filled);
   writeNotNull('nff', instance.num_forceful_filled);
   writeNotNull('sr', instance.seats_remaining);

@@ -204,6 +204,13 @@ class SharedRideDetails {
 
   //#endregion
 
+  //#region female only ride selector
+  static const F_IS_FEMALE_ONLY = "ifo";
+  @JsonKey(includeIfNull: false, name: F_IS_FEMALE_ONLY)
+  bool? is_female_only;
+
+  //#endregion
+
   static const F_IS_FORCEFULLY_FILLED = "iff";
   @JsonKey(includeIfNull: false, name: F_IS_FORCEFULLY_FILLED)
   bool? is_forcefully_filled;

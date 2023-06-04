@@ -45,13 +45,14 @@ class _SharedRidesListAndCompassScreenState
   /// if we've moved so much from the launch of geoquery, relaunch the query to update the search radius area
   static const double GEOQUERY_RELAUNCH_MOVED_METERS = 50;
 
-  static const int INITIAL_LOAD_PASSED_THRESHOLD_SECONDS = 3;
+  static const int INITIAL_LOAD_PASSED_THRESHOLD_SECONDS = 6;
 
   StreamSubscription<dynamic>? _geofireStream;
 
   Map<String, SharedRideBroadcast> _rideBroadcasts = Map();
 
-  Map<String, SharedRidePlaceAggregate> _placeRideAggregate = Map();
+  Map<String, SharedRidePlaceAggregate> _combinedPlaceGenderRideAggregate =
+      Map();
 
   StreamSubscription? _locationStreamSubscription;
   late Location liveLocation;
@@ -82,6 +83,7 @@ class _SharedRidesListAndCompassScreenState
   bool? _selectedFourSeater;
   String? _selectedPlaceId;
   String? _selectedRideId;
+  bool? _selectedIsFemaleOnlyRide;
   SharedRideBroadcast? _selectedRideBroadcast;
 
   bool _isInCompassState = false; // are we in rides list OR compass state
@@ -439,7 +441,9 @@ class _SharedRidesListAndCompassScreenState
               if (_selectedRideId != null && rideId == _selectedRideId) {
                 if (shouldBeRemoved) {
                   bool foundReplacement = pickSharedRideForPlaceAndSeater(
-                      _selectedPlaceId!, _selectedFourSeater!,
+                      _selectedPlaceId!,
+                      _selectedIsFemaleOnlyRide!,
+                      _selectedFourSeater!,
                       updateState: false);
                   if (!foundReplacement) {
                     resetCompassState();
@@ -479,7 +483,9 @@ class _SharedRidesListAndCompassScreenState
               updatePlaceRideAggregate(rideId, isRemoveOperation: true);
               if (_selectedRideId == rideId) {
                 bool foundReplacement = pickSharedRideForPlaceAndSeater(
-                    _selectedPlaceId!, _selectedFourSeater!,
+                    _selectedPlaceId!,
+                    _selectedIsFemaleOnlyRide!,
+                    _selectedFourSeater!,
                     updateState: false);
                 if (!foundReplacement) {
                   resetCompassState();
@@ -524,24 +530,32 @@ class _SharedRidesListAndCompassScreenState
     }
   }
 
+  String getCombinedPlaceIDAndGender(String placeId, bool isFemaleOnly) {
+    return '${placeId}_$isFemaleOnly';
+  }
+
   /// Aggregate destinations based on place, so multiple broadcasts to the same place appear as one in a list
   void updatePlaceRideAggregate(String rideId,
       {bool isRemoveOperation = false}) {
     SharedRideBroadcast broadcast = _rideBroadcasts[rideId]!;
     String placeId = broadcast.ride_details!.place_id!;
+    bool isFemaleOnly = broadcast.ride_details?.is_female_only ?? false;
+
+    String combinedPlaceId = getCombinedPlaceIDAndGender(placeId, isFemaleOnly);
 
     if (isRemoveOperation) {
       // if the an aggregate already doesn't exist for a place, good riddance
-      if (!_placeRideAggregate.containsKey(placeId)) {
+      if (!_combinedPlaceGenderRideAggregate.containsKey(combinedPlaceId)) {
         return;
       }
 
-      SharedRidePlaceAggregate aggregate = _placeRideAggregate[placeId]!;
+      SharedRidePlaceAggregate aggregate =
+          _combinedPlaceGenderRideAggregate[combinedPlaceId]!;
 
       aggregate.all_rides_to_place.remove(rideId);
       // if the ride was the only one to that place, remove place aggregate altogether
       if (aggregate.all_rides_to_place.isEmpty) {
-        _placeRideAggregate.remove(placeId);
+        _combinedPlaceGenderRideAggregate.remove(combinedPlaceId);
         return;
       }
 
@@ -557,14 +571,18 @@ class _SharedRidesListAndCompassScreenState
         aggregate.nearby_four_seater_rides.remove(rideId);
       }
     } else {
-      if (!_placeRideAggregate.containsKey(placeId)) {
-        _placeRideAggregate[placeId] = SharedRidePlaceAggregate(
+      if (!_combinedPlaceGenderRideAggregate.containsKey(combinedPlaceId)) {
+        _combinedPlaceGenderRideAggregate[combinedPlaceId] =
+            SharedRidePlaceAggregate(
+          is_female_only: isFemaleOnly,
           place_id: placeId,
+          combined_place_gender_id: combinedPlaceId,
           place_name: broadcast.ride_details!.place_name!,
         );
       }
 
-      SharedRidePlaceAggregate aggregate = _placeRideAggregate[placeId]!;
+      SharedRidePlaceAggregate aggregate =
+          _combinedPlaceGenderRideAggregate[combinedPlaceId]!;
       aggregate.all_rides_to_place.add(rideId);
 
       if (broadcast.ride_details!.is_six_seater!) {
@@ -607,13 +625,18 @@ class _SharedRidesListAndCompassScreenState
      * Picks place aggregates where either 4 or 6 seaters is available.
      * Then sorts that based on the place name
      */
-    return _placeRideAggregate
+    return _combinedPlaceGenderRideAggregate
         .filter((e) =>
             e.value.nearby_four_seater_rides.isNotEmpty ||
             e.value.nearby_six_seater_rides.isNotEmpty)
         .entries
         .toList()
-      ..sort((a, b) => a.value.place_name.compareTo(b.value.place_name));
+      ..sort((a, b) {
+        if (a.value.place_id == b.value.place_id) {
+          return a.value.is_female_only ? -1 : 1;
+        }
+        return a.value.place_name.compareTo(b.value.place_name);
+      });
   }
 
   Future<void> loadDestinationLocations() async {
@@ -961,7 +984,8 @@ class _SharedRidesListAndCompassScreenState
               delegate: SliverChildBuilderDelegate(
                 (BuildContext context, int index) {
                   return _AvailableDriverListItem(
-                    placeId: _sharedBroadcasts[index].key,
+                    /// can't use {@code _sharedBroadcasts[index].key} as it is the combined key here, not just the place id
+                    placeId: _sharedBroadcasts[index].value.place_id,
                     placeAggregate: _sharedBroadcasts[index].value,
                     onFourSeaterSelected: pickSharedRideForPlaceAndSeater,
                     onSixSeaterSelected: pickSharedRideForPlaceAndSeater,
@@ -1037,8 +1061,8 @@ class _SharedRidesListAndCompassScreenState
                 end: Alignment.bottomRight,
                 begin: Alignment.topRight,
                 colors: [
-                  Color(0xC7DC0000),
-                  Color(0xd3dc0000),
+                  Color(_selectedIsFemaleOnlyRide ?? false ? 0xC7FC2085 : 0xC7DC0000),
+                  Color(_selectedIsFemaleOnlyRide ?? false ? 0xFFFC2085 : 0xd3dc0000),
                 ],
               ),
             ),
@@ -1613,12 +1637,16 @@ class _SharedRidesListAndCompassScreenState
     }
   }
 
-  bool pickSharedRideForPlaceAndSeater(String placeId, bool isFourSeater,
+  bool pickSharedRideForPlaceAndSeater(
+      String placeId, bool isFemaleOnly, bool isFourSeater,
       {bool updateState = true}) {
-    if (!_placeRideAggregate.containsKey(placeId)) {
+    String combinedPlaceId = getCombinedPlaceIDAndGender(placeId, isFemaleOnly);
+
+    if (!_combinedPlaceGenderRideAggregate.containsKey(combinedPlaceId)) {
       return false;
     }
-    SharedRidePlaceAggregate aggregate = _placeRideAggregate[placeId]!;
+    SharedRidePlaceAggregate aggregate =
+        _combinedPlaceGenderRideAggregate[combinedPlaceId]!;
 
     List<String> nearbyRides = isFourSeater
         ? aggregate.nearby_four_seater_rides
@@ -1630,6 +1658,7 @@ class _SharedRidesListAndCompassScreenState
 
     _selectedFourSeater = isFourSeater;
     _selectedPlaceId = placeId;
+    _selectedIsFemaleOnlyRide = isFemaleOnly;
     _selectedRideId = nearbyRides.first;
     _selectedRideBroadcast = _rideBroadcasts[_selectedRideId];
 
@@ -1727,8 +1756,10 @@ class _SharedRidesListAndCompassScreenState
 class _AvailableDriverListItem extends StatefulWidget {
   final String placeId;
   final SharedRidePlaceAggregate placeAggregate;
-  final Function(String placeId, bool isFourSeater) onFourSeaterSelected;
-  final Function(String placeId, bool isFourSeater) onSixSeaterSelected;
+  final Function(String placeId, bool isFemaleOnly, bool isFourSeater)
+      onFourSeaterSelected;
+  final Function(String placeId, bool isFemaleOnly, bool isFourSeater)
+      onSixSeaterSelected;
 
   const _AvailableDriverListItem({
     Key? key,
@@ -1751,9 +1782,11 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
       behavior: HitTestBehavior.opaque,
       onTap: () async {
         if (isFourSeater) {
-          widget.onFourSeaterSelected(widget.placeId, true);
+          widget.onFourSeaterSelected(
+              widget.placeId, widget.placeAggregate.is_female_only, true);
         } else {
-          widget.onSixSeaterSelected(widget.placeId, false);
+          widget.onSixSeaterSelected(
+              widget.placeId, widget.placeAggregate.is_female_only, false);
         }
       },
       child: Container(
@@ -1813,9 +1846,11 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
         }
 
         if (widget.placeAggregate.nearby_four_seater_rides.isNotEmpty) {
-          widget.onFourSeaterSelected(widget.placeId, true);
+          widget.onFourSeaterSelected(
+              widget.placeId, widget.placeAggregate.is_female_only, true);
         } else {
-          widget.onSixSeaterSelected(widget.placeId, false);
+          widget.onSixSeaterSelected(
+              widget.placeId, widget.placeAggregate.is_female_only, false);
         }
       },
       child: Padding(
@@ -1840,22 +1875,51 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
             children: [
               Container(
                 height: vHeight * 0.050,
+                padding: EdgeInsets.symmetric(horizontal: hWidth * 0.03),
                 decoration: BoxDecoration(
                     gradient: LinearGradient(
                         begin: Alignment.topRight,
                         end: Alignment.bottomLeft,
                         colors: [
-                      Color(0xFFDC0000),
-                      Color(0xff8f0909),
+                      Color(widget.placeAggregate.is_female_only
+                          ? 0xC7FC2085
+                          : 0xFFDC0000),
+                      Color(widget.placeAggregate.is_female_only
+                          ? 0xFFFC2085
+                          : 0xff8f0909),
                     ])),
-                child: Center(
-                  child: Text(
-                      '${widget.placeAggregate.placeNameWithNumRides()}',
-                      style: TextStyle(
-                          fontSize: 45.0 / devicePixelDensity,
-                          fontFamily: 'Nokia Pure Headline Bold',
-                          color: Color.fromRGBO(255, 255, 255, 1.0))),
-                ),
+                child: !widget.placeAggregate.is_female_only
+                    ? Center(
+                        child: Text(
+                            '${widget.placeAggregate.placeNameWithNumRides()}',
+                            style: TextStyle(
+                                fontSize: 45.0 / devicePixelDensity,
+                                fontFamily: 'Nokia Pure Headline Bold',
+                                color: Color.fromRGBO(255, 255, 255, 1.0))))
+                    : Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('(የሴቶች ብቻ)',
+                              style: TextStyle(
+                                  fontSize: 35.0 / devicePixelDensity,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Nokia Pure Headline Bold',
+                                  color: Color.fromRGBO(255, 255, 255, 1.0))),
+                          Text(
+                              '${widget.placeAggregate.placeNameWithNumRides()}',
+                              style: TextStyle(
+                                  fontSize: 45.0 / devicePixelDensity,
+                                  fontFamily: 'Nokia Pure Headline Bold',
+                                  color: Color.fromRGBO(255, 255, 255, 1.0))),
+                          Text('(የሴቶች ብቻ)',
+                              style: TextStyle(
+                                  fontSize: 35.0 / devicePixelDensity,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'Nokia Pure Headline Bold',
+                                  color: Color.fromRGBO(255, 255, 255, 1.0))),
+                        ],
+                      ),
               ),
               Container(
                 height: vHeight * 0.090,
@@ -1920,7 +1984,12 @@ class _AvailableRideListState extends State<_AvailableDriverListItem> {
 }
 
 class SharedRidePlaceAggregate {
+  bool is_female_only;
+
   String place_id;
+
+  String combined_place_gender_id;
+
   String place_name;
 
   double? four_seater_est_price;
@@ -1939,7 +2008,9 @@ class SharedRidePlaceAggregate {
   Set<String> prev_seen_nearby_six_seater_rides;
 
   SharedRidePlaceAggregate({
+    required this.is_female_only,
     required this.place_id,
+    required this.combined_place_gender_id,
     required this.place_name,
   })  : all_rides_to_place = Set(),
         all_four_seater_rides = Set(),
