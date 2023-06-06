@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:disable_battery_optimization/disable_battery_optimization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:launch_review/launch_review.dart';
@@ -38,6 +41,7 @@ import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:safe/controller/payment_screen.dart';
 import 'package:safe/controller/settings_screen.dart';
+import 'package:safe/controller/shared_rides_list_and_compass_screen.dart';
 import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/language_selector_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
@@ -48,6 +52,7 @@ import 'package:safe/models/firebase_document.dart';
 import 'package:safe/models/google_place_description.dart';
 import 'package:safe/models/ride_request.dart';
 import 'package:safe/models/update_version.dart';
+import 'package:safe/notification_service.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:safe/utils/google_api_util.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
@@ -200,6 +205,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   String? versionNumber;
 
+  bool isPermissionNotificationGranted = false;
+
   /// We ONLY want to show the referral dialog IF we know for SURE referral is NOT complete
   bool get isReferralSurelyIncomplete {
     if (_currentCustomer == null || !_isInternetWorking) {
@@ -240,6 +247,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       _loadPhoneNumber();
 
+      FirebaseMessaging.onMessage
+          .listen((message) => notificationHandlerCallback(message));
+
       await updateTokenVersionAndUpdateInfoInRealtimeDb();
 
       await attachCustomerListener();
@@ -254,6 +264,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       //await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
       _geoFireInitialized = true;
+
+      isPermissionNotificationGranted =
+          await DisableBatteryOptimization.isNotificationPermissionGranted;
+
+      if (!isPermissionNotificationGranted) {
+        await DisableBatteryOptimization.askNotificationPermission();
+      }
     });
 
     WidgetsBinding.instance.addObserver(this);
@@ -310,8 +327,26 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     if (state == AppLifecycleState.resumed) {
       await updateTokenVersionAndUpdateInfoInRealtimeDb();
 
+      checkIfNotificationClickLaunchedApp();
+
       if (mounted) {
         setState(() {});
+      }
+    }
+  }
+
+  Future<void> checkIfNotificationClickLaunchedApp() async {
+    NotificationAppLaunchDetails? appLaunchDetails = await NotificationService
+        .flutterLocalNotificationsPlugin
+        .getNotificationAppLaunchDetails();
+    if (appLaunchDetails != null && appLaunchDetails.didNotificationLaunchApp) {
+      String? payload = appLaunchDetails.payload;
+      if (payload != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => SharedRidesListAndCompassScreen()),
+        );
       }
     }
   }

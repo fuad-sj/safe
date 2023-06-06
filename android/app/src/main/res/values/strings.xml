@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nearby_shared_ride_notif_channel_id">nearby_shared_ride_notif_channel</string>
+</resources>

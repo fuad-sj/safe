@@ -1,0 +1,3 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.safeet.disable_battery_optimization">
+</manifest>

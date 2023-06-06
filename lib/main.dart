@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:safe/controller/login_page.dart';
@@ -8,6 +11,7 @@ import 'package:safe/controller/registration_screen.dart';
 import 'package:safe/controller/customer_profile_screen.dart';
 import 'package:safe/controller/welcome_screen.dart';
 import 'package:safe/current_locale.dart';
+import 'package:safe/notification_service.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
 import 'package:safe/utils/pref_util.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -19,6 +23,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await PrefUtil.getInstance(); // load SharedPreferences
+
+  await NotificationService.init();
+
+  if (Platform.isAndroid) {
+    FirebaseMessaging.onBackgroundMessage(firebaseFCMBackgroundHandler);
+  }
 
   String previousLocale = PrefUtil.getUserLanguageLocale();
 
@@ -54,7 +64,8 @@ class MainApp extends StatelessWidget {
             RegistrationScreen.idScreen: (_) => RegistrationScreen(),
             LoginPage.idScreen: (_) => LoginPage(),
             MainScreenCustomer.idScreen: (_) => MainScreenCustomer(),
-            CustomerProfileScreenNew.idScreen: (_) => CustomerProfileScreenNew(),
+            CustomerProfileScreenNew.idScreen: (_) =>
+                CustomerProfileScreenNew(),
           },
           debugShowCheckedModeBanner: false,
         );

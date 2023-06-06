@@ -40,7 +40,8 @@ SharedRideCustomerRequestNearbyDriver
           ..request_loc = FirebaseDocument.LatLngFromJson(json['rloc'])
           ..customer_device_token = json['cdt'] as String?
           ..destination_place_name = json['dpn'] as String?
-          ..destination_place_id = json['dpi'] as String?;
+          ..destination_place_id = json['dpi'] as String?
+          ..last_update_timestamp = json['lut'] as int?;
 
 Map<String, dynamic> _$SharedRideCustomerRequestNearbyDriverToJson(
     SharedRideCustomerRequestNearbyDriver instance) {
@@ -56,5 +57,6 @@ Map<String, dynamic> _$SharedRideCustomerRequestNearbyDriverToJson(
   writeNotNull('cdt', instance.customer_device_token);
   writeNotNull('dpn', instance.destination_place_name);
   writeNotNull('dpi', instance.destination_place_id);
+  writeNotNull('lut', instance.last_update_timestamp);
   return val;
 }
