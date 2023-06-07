@@ -1312,6 +1312,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 onReferralErrorCallback: () {},
                 onInvalidReferralCallback: () {},
                 onSuccessfulReferralCallback: () async {
+                  await updateTokenVersionAndUpdateInfoInRealtimeDb();
                   setState(() {});
                 },
                 actionCallback: () {},
