@@ -62,7 +62,16 @@ class _SharedRidesListAndCompassScreenState
   LatLng? previousGeoQueriedLocation;
 
   LatLng? currentLocation;
-  LatLng? prevLocation;
+
+  static const int LOCATIONS_SMOOTHING_WINDOW = 6;
+  static const SMOOTHING_FACTOR_ALPHA_CURRENT = 0.90;
+  static const SMOOTHING_FACTOR_ALPHA_PREV = 0.85;
+  static const SMOOTHING_FACTOR_CURRENT_POWER_MULTIPLIER = 2.9;
+
+  List<LatLng> arrSmoothingLocations = [];
+  LatLng? smoothedCurrentLocation;
+  LatLng? smoothedPreviousLocation;
+  int arrLocIndex = 0;
 
   List<MapEntry<String, SharedRidePlaceAggregate>> _sharedBroadcasts = [];
 
@@ -310,7 +319,6 @@ class _SharedRidesListAndCompassScreenState
 
     _locationStreamSubscription =
         liveLocation.onLocationChanged.listen((LocationData locData) async {
-      prevLocation = currentLocation;
       currentLocation = new LatLng(locData.latitude!, locData.longitude!);
       if (previousGeoQueriedLocation == null) {
         previousGeoQueriedLocation = currentLocation;
@@ -327,6 +335,11 @@ class _SharedRidesListAndCompassScreenState
       }
 
       computeMetersToSelectedRide();
+
+      // do smoothing only if compass isn't available, its a fall back
+      if (!isCompassAvailable) {
+        computeSmoothedLocation(currentLocation!);
+      }
 
       if (mounted) {
         setState(() {});
@@ -371,6 +384,67 @@ class _SharedRidesListAndCompassScreenState
     await sendPingUpdate();
 
     return true;
+  }
+
+  void computeSmoothedLocation(LatLng new_loc) {
+    if (LOCATIONS_SMOOTHING_WINDOW > arrSmoothingLocations.length) {
+      arrSmoothingLocations.add(new_loc);
+    } else {
+      arrSmoothingLocations[arrLocIndex] = new_loc;
+    }
+
+    int counter = 0;
+    int i = arrLocIndex;
+
+    double lat_current = 0.0, lng_current = 0.0;
+    double lat_prev = 0.0, lng_prev = 0.0;
+
+    double totalWeightCurrent = 0.0, totalWeightPrev = 0.0;
+
+    while (counter < arrSmoothingLocations.length) {
+      double weight_current = pow(SMOOTHING_FACTOR_ALPHA_CURRENT,
+              counter * SMOOTHING_FACTOR_CURRENT_POWER_MULTIPLIER)
+          .toDouble();
+
+      totalWeightCurrent += weight_current;
+
+      lat_current += arrSmoothingLocations[i].latitude * weight_current;
+      lng_current += arrSmoothingLocations[i].longitude * weight_current;
+
+      if (counter > 0) {
+        // loop has gone once, so we can start doing prev location
+        double weight_prev = pow(SMOOTHING_FACTOR_ALPHA_PREV,
+                (counter - 1) * SMOOTHING_FACTOR_ALPHA_PREV)
+            .toDouble();
+
+        totalWeightPrev += weight_prev;
+
+        lat_prev += arrSmoothingLocations[i].latitude * weight_prev;
+        lng_prev += arrSmoothingLocations[i].longitude * weight_prev;
+      }
+
+      // if you hit left most part, cycle back to far right
+      if (--i < 0) {
+        i = arrSmoothingLocations.length - 1;
+      }
+      counter++;
+    }
+
+    if (totalWeightCurrent > 0) {
+      lat_current /= totalWeightCurrent;
+      lng_current /= totalWeightCurrent;
+
+      smoothedCurrentLocation = LatLng(lat_current, lng_current);
+    }
+
+    if (totalWeightPrev > 0) {
+      lat_prev /= totalWeightPrev;
+      lng_prev /= totalWeightPrev;
+
+      smoothedPreviousLocation = LatLng(lat_prev, lng_prev);
+    }
+
+    arrLocIndex = (arrLocIndex + 1) % LOCATIONS_SMOOTHING_WINDOW;
   }
 
   Future<void> sendPingUpdate() async {
@@ -1739,12 +1813,12 @@ class _SharedRidesListAndCompassScreenState
           : (adjustedBearing - 360.0);
       _computedOffsetHeading = finalBearing / 360.0;
     } else {
-      if (prevLocation != null) {
+      if (smoothedPreviousLocation != null && smoothedCurrentLocation != null) {
         double phoneOrientation = Geolocator.bearingBetween(
-            prevLocation!.latitude,
-            prevLocation!.longitude,
-            currentLocation!.latitude,
-            currentLocation!.longitude);
+            smoothedPreviousLocation!.latitude,
+            smoothedPreviousLocation!.longitude,
+            smoothedCurrentLocation!.latitude,
+            smoothedCurrentLocation!.longitude);
 
         double adjustedBearing = bearing - phoneOrientation;
         if (adjustedBearing < -180.0) {
