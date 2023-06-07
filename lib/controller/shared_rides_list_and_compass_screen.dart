@@ -60,7 +60,9 @@ class _SharedRidesListAndCompassScreenState
   Timer? _customerLocPingUpdaterTimer;
 
   LatLng? previousGeoQueriedLocation;
+
   LatLng? currentLocation;
+  LatLng? prevLocation;
 
   List<MapEntry<String, SharedRidePlaceAggregate>> _sharedBroadcasts = [];
 
@@ -308,6 +310,7 @@ class _SharedRidesListAndCompassScreenState
 
     _locationStreamSubscription =
         liveLocation.onLocationChanged.listen((LocationData locData) async {
+      prevLocation = currentLocation;
       currentLocation = new LatLng(locData.latitude!, locData.longitude!);
       if (previousGeoQueriedLocation == null) {
         previousGeoQueriedLocation = currentLocation;
@@ -1061,8 +1064,12 @@ class _SharedRidesListAndCompassScreenState
                 end: Alignment.bottomRight,
                 begin: Alignment.topRight,
                 colors: [
-                  Color(_selectedIsFemaleOnlyRide ?? false ? 0xC7FC2085 : 0xC7DC0000),
-                  Color(_selectedIsFemaleOnlyRide ?? false ? 0xFFFC2085 : 0xd3dc0000),
+                  Color(_selectedIsFemaleOnlyRide ?? false
+                      ? 0xC7FC2085
+                      : 0xC7DC0000),
+                  Color(_selectedIsFemaleOnlyRide ?? false
+                      ? 0xFFFC2085
+                      : 0xd3dc0000),
                 ],
               ),
             ),
@@ -1724,10 +1731,31 @@ class _SharedRidesListAndCompassScreenState
           _selectedRideBroadcast!.broadcast_loc!.longitude);
     }
 
-    double adjustedBearing = (bearing - _lastReadCompassAngels + 360) % 360;
-    double finalBearing =
-        (adjustedBearing < 180.0) ? adjustedBearing : (adjustedBearing - 360.0);
-    _computedOffsetHeading = finalBearing / 360.0;
+    /// if compass works, use it. otherwise do a relative angle calculation based on walk history
+    if (isCompassAvailable) {
+      double adjustedBearing = (bearing - _lastReadCompassAngels + 360) % 360;
+      double finalBearing = (adjustedBearing < 180.0)
+          ? adjustedBearing
+          : (adjustedBearing - 360.0);
+      _computedOffsetHeading = finalBearing / 360.0;
+    } else {
+      if (prevLocation != null) {
+        double phoneOrientation = Geolocator.bearingBetween(
+            prevLocation!.latitude,
+            prevLocation!.longitude,
+            currentLocation!.latitude,
+            currentLocation!.longitude);
+
+        double adjustedBearing = bearing - phoneOrientation;
+        if (adjustedBearing < -180.0) {
+          adjustedBearing = (adjustedBearing + 360.0) % 360;
+        }
+        double finalBearing = (adjustedBearing < 180.0)
+            ? adjustedBearing
+            : (adjustedBearing - 360.0);
+        _computedOffsetHeading = finalBearing / 360.0;
+      }
+    }
 
     return _computedOffsetHeading;
   }
