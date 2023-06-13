@@ -40,7 +40,7 @@ class MainApp extends StatelessWidget {
       ],
       builder: (context, child) {
         return MaterialApp(
-          title: 'Safe Rider',
+          title: 'Safe Passenger',
           locale: Provider.of<CurrentLocale>(context).getLocale,
           localizationsDelegates: SafeLocalizations.localizationsDelegates,
           supportedLocales: SafeLocalizations.supportedLocales,
