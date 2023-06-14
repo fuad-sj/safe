@@ -26,6 +26,7 @@ import 'package:safe/utils/map_style.dart';
 import 'package:safe/utils/phone_call.dart';
 import 'package:safe/utils/pref_util.dart';
 import 'package:safe/controller/slider_button/slider.dart';
+import 'package:vector_math/vector_math.dart' show radians, degrees;
 
 class SharedRidesListAndCompassScreen extends StatefulWidget {
   const SharedRidesListAndCompassScreen({Key? key}) : super(key: key);
@@ -63,15 +64,23 @@ class _SharedRidesListAndCompassScreenState
 
   LatLng? currentLocation;
 
-  static const int LOCATIONS_SMOOTHING_WINDOW = 6;
-  static const SMOOTHING_FACTOR_ALPHA_CURRENT = 0.90;
-  static const SMOOTHING_FACTOR_ALPHA_PREV = 0.85;
-  static const SMOOTHING_FACTOR_CURRENT_POWER_MULTIPLIER = 2.9;
+  static const int LOCATIONS_SMOOTHING_WINDOW = 4;
+  static const SMOOTHING_FACTOR_ALPHA_CURRENT = 0.95;
+  static const SMOOTHING_FACTOR_CURRENT_POWER_MULTIPLIER = 1.3;
 
-  List<LatLng> arrSmoothingLocations = [];
+  static const TURN_ANGLE_THRESHOLD_MIN = 15.0;
+  static const TURN_ANGLE_THRESHOLD_MAX = 60.0;
+
+  static const DELTA_ANGLE_COS_POW_FACTOR = 10.0;
+
+  static const int TURN_TYPE_NONE = -1;
+  static const int TURN_TYPE_RIGHT = 1;
+  static const int TURN_TYPE_LEFT = 2;
+
+  List<double> arrSmoothedAngles = [];
   LatLng? smoothedCurrentLocation;
   LatLng? smoothedPreviousLocation;
-  int arrLocIndex = 0;
+  int arrAngleIndex = 0;
 
   List<MapEntry<String, SharedRidePlaceAggregate>> _sharedBroadcasts = [];
 
@@ -386,65 +395,149 @@ class _SharedRidesListAndCompassScreenState
     return true;
   }
 
-  void computeSmoothedLocation(LatLng new_loc) {
-    if (LOCATIONS_SMOOTHING_WINDOW > arrSmoothingLocations.length) {
-      arrSmoothingLocations.add(new_loc);
+  LatLng endPointWithBearing(
+      LatLng startPoint, double bearing, double distance) {
+    var earthRadius = 6378137.0;
+
+    bearing = radians(bearing);
+
+    var angDist = distance / earthRadius;
+
+    var lat1 = radians(startPoint.latitude);
+    var lng1 = radians(startPoint.longitude);
+
+    var lat2 = degrees(asin(
+        sin(lat1) * cos(angDist) + cos(lat1) * sin(angDist) * cos(bearing)));
+    var lng2 = degrees(lng1 +
+        atan2(sin(bearing) * sin(angDist) * cos(lat1),
+            cos(angDist) - sin(lat1) * sin(lat2)));
+
+    return LatLng(lat2.toDouble(), lng2.toDouble());
+  }
+
+  void computeSmoothedLocation(LatLng newLoc) {
+    if (smoothedCurrentLocation == null) {
+      smoothedCurrentLocation = newLoc;
+      return;
+    }
+
+    double bearing = (Geolocator.bearingBetween(
+                smoothedCurrentLocation!.latitude,
+                smoothedCurrentLocation!.longitude,
+                newLoc.latitude,
+                newLoc.longitude) +
+            360) %
+        360;
+
+    if (LOCATIONS_SMOOTHING_WINDOW > arrSmoothedAngles.length) {
+      arrSmoothedAngles.add(bearing);
     } else {
-      arrSmoothingLocations[arrLocIndex] = new_loc;
+      arrSmoothedAngles[arrAngleIndex] = bearing;
     }
 
     int counter = 0;
-    int i = arrLocIndex;
+    int i = arrAngleIndex;
 
-    double lat_current = 0.0, lng_current = 0.0;
-    double lat_prev = 0.0, lng_prev = 0.0;
+    double smoothedBearing = 0.0;
 
-    double totalWeightCurrent = 0.0, totalWeightPrev = 0.0;
+    double totalWeight = 0.0;
 
-    while (counter < arrSmoothingLocations.length) {
-      double weight_current = pow(SMOOTHING_FACTOR_ALPHA_CURRENT,
+    int turnType = TURN_TYPE_NONE;
+    double correctTurnWeight = 0;
+    double totalTurnWeight = 0;
+
+    double prevAngle = -1.0;
+
+    while (counter < arrSmoothedAngles.length) {
+      double weight = pow(SMOOTHING_FACTOR_ALPHA_CURRENT,
               counter * SMOOTHING_FACTOR_CURRENT_POWER_MULTIPLIER)
           .toDouble();
 
-      totalWeightCurrent += weight_current;
+      double relativeAngle = arrSmoothedAngles[i] -
+          (smoothedBearing / (totalWeight == 0 ? 1 : totalWeight));
+      double adjAngle = arrSmoothedAngles[i];
 
-      lat_current += arrSmoothingLocations[i].latitude * weight_current;
-      lng_current += arrSmoothingLocations[i].longitude * weight_current;
+      if (relativeAngle < -180) {
+        adjAngle += 360.0;
+        relativeAngle += 360.0;
+      } else if (relativeAngle > 180) {
+        // if we're past the first iteration and relative angle is actually saying our delta from prev is > 180
+        if (counter != 0) {
+          adjAngle -= 360.0;
+          relativeAngle -= 360.0;
+        }
+      }
 
       if (counter > 0) {
-        // loop has gone once, so we can start doing prev location
-        double weight_prev = pow(SMOOTHING_FACTOR_ALPHA_PREV,
-                (counter - 1) * SMOOTHING_FACTOR_ALPHA_PREV)
-            .toDouble();
+        double deltaPrevFromCurrent = prevAngle - arrSmoothedAngles[i];
+        if (deltaPrevFromCurrent < -180.0) deltaPrevFromCurrent += 360.0;
+        // the turn direction is defined by the first delta angle
 
-        totalWeightPrev += weight_prev;
-
-        lat_prev += arrSmoothingLocations[i].latitude * weight_prev;
-        lng_prev += arrSmoothingLocations[i].longitude * weight_prev;
+        if (deltaPrevFromCurrent.abs() > TURN_ANGLE_THRESHOLD_MIN &&
+            deltaPrevFromCurrent.abs() < TURN_ANGLE_THRESHOLD_MAX) {
+          if (counter == 1) {
+            turnType =
+                deltaPrevFromCurrent > 0 ? TURN_TYPE_RIGHT : TURN_TYPE_LEFT;
+            correctTurnWeight = weight;
+          } else {
+            if (deltaPrevFromCurrent > 0 && turnType == TURN_TYPE_RIGHT) {
+              correctTurnWeight += weight;
+            } else if (deltaPrevFromCurrent < 0 && turnType == TURN_TYPE_LEFT) {
+              correctTurnWeight += weight;
+            }
+          }
+        }
+        totalTurnWeight += weight;
       }
+      prevAngle = arrSmoothedAngles[i];
+
+      totalWeight += weight;
+      smoothedBearing += adjAngle * weight;
 
       // if you hit left most part, cycle back to far right
       if (--i < 0) {
-        i = arrSmoothingLocations.length - 1;
+        i = arrSmoothedAngles.length - 1;
       }
       counter++;
     }
 
-    if (totalWeightCurrent > 0) {
-      lat_current /= totalWeightCurrent;
-      lng_current /= totalWeightCurrent;
+    if (totalWeight > 0) {
+      smoothedBearing = (smoothedBearing / totalWeight) % 360.0;
+      double actualBearing = arrSmoothedAngles[arrAngleIndex];
 
-      smoothedCurrentLocation = LatLng(lat_current, lng_current);
+      double deltaBearing = (actualBearing - smoothedBearing);
+      if (deltaBearing < -180.0) {
+        deltaBearing += 360.0;
+      }
+
+      // turn is considered monotonic is most(i.e: 50%+) of its movements are in the correct direction
+      bool isMonotonicTurn =
+          (correctTurnWeight / (totalTurnWeight > 0 ? totalTurnWeight : 1.0)) >=
+              0.5;
+
+      //print(isMonotonicTurn ? (turnType == TURN_TYPE_RIGHT ? "--->" : "<---") : ".");
+
+      double dist = Geolocator.distanceBetween(
+          smoothedCurrentLocation!.latitude,
+          smoothedCurrentLocation!.longitude,
+          newLoc.latitude,
+          newLoc.longitude);
+
+      double factor =
+          pow(cos(radians(deltaBearing)).abs(), DELTA_ANGLE_COS_POW_FACTOR)
+              .toDouble();
+
+      double adjDistance = dist * factor;
+
+      smoothedPreviousLocation = smoothedCurrentLocation;
+
+      smoothedCurrentLocation = endPointWithBearing(
+          smoothedCurrentLocation!,
+          isMonotonicTurn ? actualBearing : smoothedBearing,
+          isMonotonicTurn ? dist : adjDistance);
     }
 
-    if (totalWeightPrev > 0) {
-      lat_prev /= totalWeightPrev;
-      lng_prev /= totalWeightPrev;
-
-      smoothedPreviousLocation = LatLng(lat_prev, lng_prev);
-    }
-
-    arrLocIndex = (arrLocIndex + 1) % LOCATIONS_SMOOTHING_WINDOW;
+    arrAngleIndex = (arrAngleIndex + 1) % LOCATIONS_SMOOTHING_WINDOW;
   }
 
   Future<void> sendPingUpdate() async {
