@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:back_button_interceptor/back_button_interceptor.dart';
 import 'package:dartx/dartx_io.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -41,7 +42,7 @@ class _SharedRidesListAndCompassScreenState
   static const SEARCH_NOT_FOUND_ID = "search_not_found_id";
 
   static const double DEFAULT_SEARCH_RADIUS_KMS = 0.95;
-  static const double COMPASS_POINTER_DISAPPEAR_METERS = 20;
+  static const double COMPASS_POINTER_DISAPPEAR_METERS = 15.0;
 
   /// if we've moved so much from the launch of geoquery, relaunch the query to update the search radius area
   static const double GEOQUERY_RELAUNCH_MOVED_METERS = 50;
@@ -144,9 +145,25 @@ class _SharedRidesListAndCompassScreenState
 
   String _selfPhone = "";
 
+  static const int VOICE_CALLOUT_DURATION_SECONDS = 5;
+  static const ARROW_HEADING_VOICE_SHOUT_OUT_THRESHOLD = 0.10;
+  static const RIGHT_OR_LEFT_TURN_THRESHOLD = 0.06;
+
+  AudioPlayer? calloutPlayer;
+
+  Timer? _directionVoiceTimer;
+
+  double lastVoiceCalledOutBearing = 0.0;
+
   bool isShowingLoadingSpinner = false;
 
   bool get isCorrectHeading => _computedOffsetHeading.abs() < 0.06;
+
+  bool get isAtTheBackHeading => _computedOffsetHeading.abs() > 0.45;
+
+  Color get colorForHeading => isCorrectHeading
+      ? Colors.amber.shade400
+      : (isAtTheBackHeading ? Colors.black : Colors.white);
 
   String getEstPriceText() {
     double estPrice = _selectedRideBroadcast?.ride_details?.est_price ?? 0.0;
@@ -183,6 +200,11 @@ class _SharedRidesListAndCompassScreenState
         setupNearbyBroadcastsQuery();
         setupCompassCallback();
       }
+
+      startVoiceTimer();
+
+      calloutPlayer = AudioPlayer(playerId: "voice_callout_player")
+        ..setReleaseMode(ReleaseMode.stop);
 
       if (mounted) {
         setState(() {});
@@ -244,6 +266,10 @@ class _SharedRidesListAndCompassScreenState
 
     _customerLocPingUpdaterTimer?.cancel();
 
+    _directionVoiceTimer?.cancel();
+
+    calloutPlayer?.dispose();
+
     super.dispose();
   }
 
@@ -266,6 +292,15 @@ class _SharedRidesListAndCompassScreenState
     _selectedRideBroadcast = null;
 
     _isInCompassState = false;
+  }
+
+  void startVoiceTimer() {
+    _directionVoiceTimer = new Timer.periodic(
+      const Duration(seconds: VOICE_CALLOUT_DURATION_SECONDS),
+      (Timer timer) async {
+        calloutDirectionVoice(false);
+      },
+    );
   }
 
   Future<void> sendNearbyLocationRequest(
@@ -345,10 +380,7 @@ class _SharedRidesListAndCompassScreenState
 
       computeMetersToSelectedRide();
 
-      // do smoothing only if compass isn't available, its a fall back
-      if (!isCompassAvailable) {
-        computeSmoothedLocation(currentLocation!);
-      }
+      computeSmoothedLocation(currentLocation!);
 
       if (mounted) {
         setState(() {});
@@ -589,7 +621,8 @@ class _SharedRidesListAndCompassScreenState
 
               /// can't do anything with an empty ride, don't bother
               if (broadcast.ride_details == null ||
-                  broadcast.ride_details?.order_state == null) {
+                  broadcast.ride_details?.order_state == null ||
+                  !broadcast.isValidOrderToConsider()) {
                 return;
               }
 
@@ -1339,9 +1372,7 @@ class _SharedRidesListAndCompassScreenState
                               height: MediaQuery.of(context).size.width * 0.30,
                               child: Image(
                                 image: arrowImage,
-                                color: isCorrectHeading
-                                    ? Colors.amber.shade400
-                                    : Colors.white,
+                                color: colorForHeading,
                               ),
                             ),
                           ),
@@ -1392,22 +1423,27 @@ class _SharedRidesListAndCompassScreenState
                                 Text(
                                   distanceToCar(),
                                   style: TextStyle(
-                                      color: Colors.white,
+                                      color: colorForHeading,
                                       fontSize: 41,
                                       fontFamily: 'Lato',
                                       fontWeight: FontWeight.bold),
                                 ),
                                 Text(
                                   isCorrectHeading
-                                      ? ""
-                                      : (_computedOffsetHeading < 0
-                                          ? 'በስተ ግራ'
-                                          : 'በስተ ቀኝ'),
+                                      ? "ቀጥታ ወደፊት"
+                                      : (isAtTheBackHeading
+                                          ? "በሰተጀርባ"
+                                          : (_computedOffsetHeading < 0
+                                              ? 'በስተ ግራ'
+                                              : 'በስተ ቀኝ')),
                                   style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
+                                    color: colorForHeading,
+                                    fontSize: 20.0,
                                     fontFamily: "Nokia Pure Headline Bold",
                                     letterSpacing: 1.0,
+                                    fontWeight: isCorrectHeading
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
                                   ),
                                 ),
                               ],
@@ -1658,7 +1694,7 @@ class _SharedRidesListAndCompassScreenState
                           style: TextStyle(
                             fontSize: 30.0,
                             letterSpacing: 1.0,
-                            color: Color.fromRGBO(255, 255, 255, 1.0),
+                            color: colorForHeading,
                             fontFamily: "Nokia Pure Headline Bold",
                           ),
                         ),
@@ -1924,7 +1960,88 @@ class _SharedRidesListAndCompassScreenState
       }
     }
 
+    double deltaBearing = _computedOffsetHeading - lastVoiceCalledOutBearing;
+    if (deltaBearing.abs() > ARROW_HEADING_VOICE_SHOUT_OUT_THRESHOLD) {
+      lastVoiceCalledOutBearing = _computedOffsetHeading;
+      calloutDirectionVoice(true);
+    }
+
     return _computedOffsetHeading;
+  }
+
+  Future<void> calloutDirectionVoice(bool resetTimer) async {
+    // we've not found enough location data to callout the bearing
+    if (_isInCompassState == false || smoothedPreviousLocation == null) {
+      return;
+    }
+
+    if (resetTimer) {
+      _directionVoiceTimer?.cancel();
+    }
+
+    const RIGHT_OR_LEFT_EXACT_HEADING = 0.25;
+
+    const DIRECTION_NONE = -1;
+    const DIRECTION_FORWARD = 1;
+    const DIRECTION_BACKWARD = 2;
+    const DIRECTION_SLIGHT_RIGHT = 3;
+    const DIRECTION_SLIGHT_LEFT = 4;
+    const DIRECTION_TURN_RIGHT = 5;
+    const DIRECTION_TURN_LEFT = 6;
+
+    int direction = DIRECTION_NONE;
+
+    if (isCorrectHeading) {
+      direction = DIRECTION_FORWARD;
+    } else if (isAtTheBackHeading) {
+      direction = DIRECTION_BACKWARD;
+    } else if (_computedOffsetHeading < 0 || _computedOffsetHeading > 0) {
+      // left
+      bool is_left = _computedOffsetHeading < 0;
+      double exact_turn_delta =
+          (_computedOffsetHeading - RIGHT_OR_LEFT_EXACT_HEADING).abs();
+      if (exact_turn_delta < RIGHT_OR_LEFT_TURN_THRESHOLD) {
+        direction = is_left ? DIRECTION_TURN_LEFT : DIRECTION_TURN_RIGHT;
+      } else {
+        direction = is_left ? DIRECTION_SLIGHT_LEFT : DIRECTION_SLIGHT_RIGHT;
+      }
+    } else if (_computedOffsetHeading > 0) {
+      // right
+    }
+
+    String? audio_file;
+    switch (direction) {
+      case DIRECTION_FORWARD:
+        audio_file = "front";
+        break;
+      case DIRECTION_BACKWARD:
+        audio_file = "return_back";
+        break;
+      case DIRECTION_SLIGHT_RIGHT:
+        audio_file = "slide_right";
+        break;
+      case DIRECTION_SLIGHT_LEFT:
+        audio_file = "slide_left";
+        break;
+      case DIRECTION_TURN_RIGHT:
+        audio_file = "hard_right";
+        break;
+      case DIRECTION_TURN_LEFT:
+        audio_file = "hard_left";
+        break;
+    }
+
+    if (audio_file != null) {
+      AssetSource source = new AssetSource('$audio_file.mp3');
+
+      await calloutPlayer?.stop();
+      await calloutPlayer?.play(source, volume: 90);
+    }
+
+    if (resetTimer) {
+      // restart the timer
+      startVoiceTimer();
+    }
   }
 
   String distanceToCar() {
