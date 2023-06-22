@@ -28,6 +28,8 @@ import 'package:safe/utils/phone_call.dart';
 import 'package:safe/utils/pref_util.dart';
 import 'package:safe/controller/slider_button/slider.dart';
 import 'package:vector_math/vector_math.dart' show radians, degrees;
+import 'package:flutter/services.dart';
+import 'package:vibration/vibration.dart';
 
 class SharedRidesListAndCompassScreen extends StatefulWidget {
   const SharedRidesListAndCompassScreen({Key? key}) : super(key: key);
@@ -156,6 +158,10 @@ class _SharedRidesListAndCompassScreenState
   double lastVoiceCalledOutBearing = 0.0;
 
   bool isShowingLoadingSpinner = false;
+
+  bool isCalloutAudioMuted = false;
+
+  bool wasPreviousHeadingCorrect = false;
 
   bool get isCorrectHeading => _computedOffsetHeading.abs() < 0.06;
 
@@ -290,6 +296,8 @@ class _SharedRidesListAndCompassScreenState
     _selectedPlaceId = null;
     _selectedRideId = null;
     _selectedRideBroadcast = null;
+
+    isCustomerArrivedAtPickup = false;
 
     _isInCompassState = false;
   }
@@ -1336,10 +1344,12 @@ class _SharedRidesListAndCompassScreenState
                             'ሹፌሮ ስም : ${_selectedRideBroadcast?.ride_details?.driver_name ?? ''}',
                             style: driverDetailTextStyle,
                           ),
+                          /*
                           Text(
                             'ሹፌሮ ስልክ : ${formatPhone(_selectedRideBroadcast?.ride_details?.driver_phone ?? '')}',
                             style: driverDetailTextStyle,
                           ),
+                          */
                           Text(
                             'መኪና ታርጋ : ${_selectedRideBroadcast?.ride_details?.car_plate ?? ''}',
                             style: driverDetailTextStyle,
@@ -1450,6 +1460,31 @@ class _SharedRidesListAndCompassScreenState
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+
+                  // Mute Audio
+                  Positioned(
+                    bottom: MediaQuery.of(context).size.height * 0.06,
+                    right: MediaQuery.of(context).size.width * 0.082,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () async {
+                        isCalloutAudioMuted = !isCalloutAudioMuted;
+                        if (isCalloutAudioMuted) {
+                          await calloutPlayer?.stop();
+                        }
+                        if (mounted) {
+                          setState(() {});
+                        }
+                      },
+                      child: Icon(
+                        isCalloutAudioMuted
+                            ? Icons.volume_off_outlined
+                            : Icons.volume_up_outlined,
+                        color: colorForHeading,
+                        size: 60.0,
                       ),
                     ),
                   ),
@@ -1966,12 +2001,30 @@ class _SharedRidesListAndCompassScreenState
       calloutDirectionVoice(true);
     }
 
+    if ((isCorrectHeading && !wasPreviousHeadingCorrect) ||
+        (!isCorrectHeading && wasPreviousHeadingCorrect)) {
+      Future.delayed(Duration.zero, () async {
+        if ((await Vibration.hasVibrator() ?? false)) {
+          if ((await Vibration.hasAmplitudeControl()) ?? false) {
+            Vibration.vibrate(amplitude: 128);
+          } else {
+            Vibration.vibrate();
+          }
+        }
+        await HapticFeedback.heavyImpact();
+      });
+    }
+    wasPreviousHeadingCorrect = isCorrectHeading;
+
     return _computedOffsetHeading;
   }
 
   Future<void> calloutDirectionVoice(bool resetTimer) async {
     // we've not found enough location data to callout the bearing
-    if (_isInCompassState == false || smoothedPreviousLocation == null) {
+    if (_isInCompassState == false ||
+        smoothedPreviousLocation == null ||
+        isCustomerArrivedAtPickup ||
+        isCalloutAudioMuted) {
       return;
     }
 

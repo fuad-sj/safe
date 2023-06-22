@@ -71,6 +71,7 @@ dependencies:
     path: ./sms_autofill
   disable_battery_optimization:
     path: ./disable_battery_optimization
+  vibration: ^1.7.7
 
 dev_dependencies:
   flutter_test:

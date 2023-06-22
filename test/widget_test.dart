@@ -18,6 +18,7 @@ import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:vector_math/vector_math.dart' show degrees, radians;
 
 void main() {
+  /*
   testWidgets('Averaging bearing angles', (WidgetTester tester) async {
     // Build our app and trigger a frame.
 
@@ -288,5 +289,38 @@ void main() {
     }
 
     print('>>>>>>>>>> actual: $actual, smoothed: $smoothed');
+  });
+  */
+
+  testWidgets('Distance between coordinates', (WidgetTester tester) async {
+    const end_corners = [
+      [9.0897361, 38.6425613],
+      [9.0866851, 38.9278621],
+      [8.8048553, 38.8876934],
+      [8.9201917, 38.6401587],
+    ];
+
+    const LAT = 9.0897361;
+    const LNG = 38.6425613;
+
+    double dist1 = Geolocator.distanceBetween(9.0000000, LNG, 9.0000001, LNG);
+    double dist2 = Geolocator.distanceBetween(9.0000000, LNG, 9.0000010, LNG);
+    double dist3 = Geolocator.distanceBetween(9.0000000, LNG, 9.0000100, LNG);
+    double dist4 = Geolocator.distanceBetween(9.0000000, LNG, 9.0001000, LNG);
+    double dist5 = Geolocator.distanceBetween(9.0000000, LNG, 9.0010000, LNG);
+    double dist6 = Geolocator.distanceBetween(9.0000000, LNG, 9.0100000, LNG);
+    double dist7 = Geolocator.distanceBetween(9.0000000, LNG, 9.1000000, LNG);
+    double disp1 = Geolocator.distanceBetween(LAT, 38.0000000, LAT, 38.0000001);
+    double disp2 = Geolocator.distanceBetween(LAT, 38.0000000, LAT, 38.0000010);
+    double disp3 = Geolocator.distanceBetween(LAT, 38.0000000, LAT, 38.0000100);
+    double disp4 = Geolocator.distanceBetween(LAT, 38.0000000, LAT, 38.0001000);
+    double disp5 = Geolocator.distanceBetween(LAT, 38.0000000, LAT, 38.0010000);
+    double disp6 = Geolocator.distanceBetween(LAT, 38.0000000, LAT, 38.0100000);
+    double disp7 = Geolocator.distanceBetween(LAT, 38.0000000, LAT, 38.1000000);
+
+    print(
+        'dist 1: $dist1, 2: $dist2, 3: $dist3, 4: $dist4, 5: $dist5, 6: $dist6, 7: $dist7');
+    print(
+        'disp 1: $disp1, 2: $disp2, 3: $disp3, 4: $disp4, 5: $disp5, 6: $disp6, 7: $disp7');
   });
 }
