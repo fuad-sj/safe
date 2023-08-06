@@ -115,7 +115,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   int _UIState = UI_STATE_NOTHING_STARTED;
 
   HashMap<String, DriverLocation> _nearbyDriverLocations =
-      HashMap<String, DriverLocation>();
+  HashMap<String, DriverLocation>();
 
   bool _isHamburgerVisible = true;
   bool _isHamburgerDrawerMode = true;
@@ -150,7 +150,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   bool _isBottomToggleOn = true;
 
   StreamSubscription<DocumentSnapshot<Map<String, dynamic>>>?
-      _currentCustomerSubscription;
+  _currentCustomerSubscription;
   Customer? _currentCustomer;
   bool _initLogicAlreadyRun = false;
 
@@ -174,11 +174,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   bool get isDriverSelected => _selectedDriver != null;
 
-  bool get isDriverGoingToPickup => (_currentRideRequest != null &&
-      _currentRideRequest!.ride_status == RideRequest.STATUS_DRIVER_CONFIRMED);
+  bool get isDriverGoingToPickup =>
+      (_currentRideRequest != null &&
+          _currentRideRequest!.ride_status ==
+              RideRequest.STATUS_DRIVER_CONFIRMED);
 
-  bool get isTripStarted => (_currentRideRequest != null &&
-      _currentRideRequest!.ride_status == RideRequest.STATUS_TRIP_STARTED);
+  bool get isTripStarted =>
+      (_currentRideRequest != null &&
+          _currentRideRequest!.ride_status == RideRequest.STATUS_TRIP_STARTED);
 
   bool _isInternetWorking = false;
 
@@ -210,7 +213,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   /// We ONLY want to show the referral dialog IF we know for SURE referral is NOT complete
   bool get isReferralSurelyIncomplete {
     if (_currentCustomer == null || !_isInternetWorking) {
-      // if either internet isn't working, or haven't yet loaded customer details, we're not sure. better to wait
       return false;
     }
 
@@ -250,8 +252,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       FirebaseMessaging.onMessage
           .listen((message) => notificationHandlerCallback(message));
 
-      await updateTokenVersionAndUpdateInfoInRealtimeDb();
-
       await attachCustomerListener();
 
       await loadNetworkProfileImage();
@@ -262,11 +262,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _connectivitySubscription =
           _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
-      //await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
       _geoFireInitialized = true;
 
       isPermissionNotificationGranted =
-          await DisableBatteryOptimization.isNotificationPermissionGranted;
+      await DisableBatteryOptimization.isNotificationPermissionGranted;
 
       if (!isPermissionNotificationGranted) {
         await DisableBatteryOptimization.askNotificationPermission();
@@ -325,8 +324,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
-      await updateTokenVersionAndUpdateInfoInRealtimeDb();
-
       checkIfNotificationClickLaunchedApp();
 
       if (mounted) {
@@ -371,22 +368,25 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         return;
       }
 
-      /**
-       * TODO: update customer state resumption
-       *
+      if (!_initLogicAlreadyRun) {
+        try {
+          _initLogicAlreadyRun = true;
+          await updateLoginCredentials();
+          await checkVersionUpdateDetails();
+        } catch (e) {}
+      }
 
-          if ((_currentCustomer?.current_trip_id ?? '').trim().isEmpty &&
+      if ((_currentCustomer?.current_trip_id ?? '').trim().isEmpty &&
           ((_currentCustomer!.is_trip_completed ?? false) == false)) {
-          resetTripDetails();
-          } else {
-          _rideRequestRef = FirebaseFirestore.instance
-          .collection(FIRESTORE_PATHS.COL_RIDES)
-          .doc(_currentCustomer?.current_trip_id);
+        resetTripDetails();
+      } else {
+        _rideRequestRef = FirebaseFirestore.instance
+            .collection(FIRESTORE_PATHS.COL_RIDES)
+            .doc(_currentCustomer?.current_trip_id);
 
-          // Will update UI when either driver is assigned OR trip is cancelled
-          await listenToRideStatusUpdates();
-          }
-       */
+        // Will update UI when either driver is assigned OR trip is cancelled
+        await listenToRideStatusUpdates();
+      }
 
       if (mounted) {
         // reload UI once we've successfully loaded customer info
@@ -429,9 +429,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     return _updateConnectionStatus(result);
   }
 
-  Future<void> updateTokenVersionAndUpdateInfoInRealtimeDb() async {
-    startupInfoLoadComplete = false;
-
+  Future<void> updateLoginCredentials() async {
     int loginStatus = PrefUtil.getLoginStatus();
     if (loginStatus == PrefUtil.LOGIN_STATUS_SIGNED_OUT) {
       return;
@@ -442,6 +440,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     }
 
     String? newToken;
+
     try {
       newToken = await FirebaseMessaging.instance.getToken();
       if (newToken == null) return;
@@ -449,66 +448,116 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       return;
     }
 
-    PackageInfo info = await PackageInfo.fromPlatform();
 
+
+    await loadNetworkProfileImage();
+    PackageInfo info = await PackageInfo.fromPlatform();
     versionNumber = info.version;
 
-    TokenVersionAndUpdateInfo tokenAndVersionNumber =
-        new TokenVersionAndUpdateInfo();
+    if (_currentCustomer == null || !_currentCustomer!.documentExists()) {
+      Future.delayed(Duration.zero).then((_) {
+        Navigator.pushNamedAndRemoveUntil(
+            context, LoginPage.idScreen, (route) => false);
+      });
+    } else {
+      Map<String, dynamic> updatedFields = Map();
 
-    tokenAndVersionNumber.client_triggered_event = true;
-    tokenAndVersionNumber.device_token = newToken;
-    tokenAndVersionNumber.version_number = info.version;
-    tokenAndVersionNumber.build_number =
-        AlphaNumericUtil.parseInt(info.buildNumber, -1);
+      updatedFields[Customer.FIELD_DATE_LAST_LOGIN] =
+          FieldValue.serverTimestamp();
+      updatedFields[Customer.FIELD_IS_LOGGED_IN] = true;
 
-    await FirebaseDatabase.instanceFor(
-            app: Firebase.app(),
-            databaseURL: TokenVersionAndUpdateInfo.DATABASE_ROOT)
-        .ref()
-        .child(FIREBASE_DB_PATHS.PATH_CUSTOMER_TOKEN_VERSION_AND_UPDATE)
-        .child(_getCustomerID)
-        .update(tokenAndVersionNumber.toJson());
-
-    _tokenVersionUpdateSubscription = FirebaseDatabase.instanceFor(
-            app: Firebase.app(),
-            databaseURL: TokenVersionAndUpdateInfo.DATABASE_ROOT)
-        .ref()
-        .child(FIREBASE_DB_PATHS.PATH_CUSTOMER_TOKEN_VERSION_AND_UPDATE)
-        .child(_getCustomerID)
-        .onValue
-        .listen((event) {
-      var data = event.snapshot.value;
-
-      if (data == null) {
-        return;
+      if (loginStatus == PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW) {
+        await PrefUtil.setLoginStatus(
+            PrefUtil.LOGIN_STATUS_PREVIOUSLY_LOGGED_IN);
       }
 
-      TokenVersionAndUpdateInfo info =
-          TokenVersionAndUpdateInfo.fromJson(data as Map);
-      // the server hasn't yet responded
-      if (info.client_triggered_event != false) {
-        return;
+      List<String> deviceTokens =
+          _currentCustomer!.device_registration_tokens ?? [];
+
+      String? newToken = await FirebaseMessaging.instance.getToken();
+
+      if (newToken != null && !deviceTokens.contains(newToken)) {
+        deviceTokens.add(newToken);
+
+        updatedFields[Customer.FIELD_DEVICE_REGISTRATION_TOKENS] = deviceTokens;
       }
 
-      _tokenVersionUpdateSubscription!.cancel();
-      _tokenVersionUpdateSubscription = null;
+      PackageInfo info = await PackageInfo.fromPlatform();
 
-      updateAvailable = info.optional_update_available ?? false;
-      forcefulUpdateAvailable = info.forceful_update_available ?? false;
-      isReferralForSureNotComplete = (info.is_referral_active ?? true) == false;
-      isReferralComplete = info.is_referral_active ?? false;
+      updatedFields[Customer.FIELD_VERSION_NUMBER] = info.version;
+      updatedFields[Customer.FIELD_VERSION_BUILD_NUMBER] =
+          AlphaNumericUtil.parseInt(info.buildNumber, -1);
 
-      if (!updateDialogVisible) {
-        updateDialogShown = false;
+      if (updatedFields.isNotEmpty) {
+        await FirebaseFirestore.instance
+            .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+            .doc(PrefUtil.getCurrentUserID())
+            .set(updatedFields, SetOptions(merge: true));
       }
+    }
+  }
 
-      startupInfoLoadComplete = true;
+  Future<void> checkVersionUpdateDetails() async {
+    if (_currentCustomer == null) {
+      // TODO: check what to do with no customer
+      return;
+    }
 
-      if (mounted) {
-        setState(() {});
-      }
-    });
+    PackageInfo info = await PackageInfo.fromPlatform();
+
+    Map<String, dynamic> customerUpdateFields = Map();
+    bool shouldUpdateCurrentCustomer = false;
+
+    int installedBuildNumber = AlphaNumericUtil.parseInt(info.buildNumber, -1);
+    int lastCheckedBuildNumber =
+        _currentCustomer!.last_checked_build_number ?? installedBuildNumber;
+
+    var laterVersionSnapshots = await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_UPDATE_VERSIONS)
+        .doc(FIRESTORE_PATHS.DOC_UPDATE_VERSIONS_CUSTOMERS)
+        .collection(FIRESTORE_PATHS.SUB_COL_UPDATE_VERSION_CUSTOMERS)
+        .where(UpdateVersion.FIELD_BUILD_NUMBER,
+            isGreaterThan: lastCheckedBuildNumber)
+        .orderBy(UpdateVersion.FIELD_BUILD_NUMBER, descending: true)
+        .get();
+
+    updateAvailable = laterVersionSnapshots.docs.isNotEmpty;
+
+    // If update available, update the customer's last seen update number, so won't bother again with same version
+    if (laterVersionSnapshots.docs.isNotEmpty) {
+      UpdateVersion versionInfo =
+      UpdateVersion.fromSnapshot(laterVersionSnapshots.docs.first);
+
+      customerUpdateFields[Customer.FIELD_LAST_CHECKED_VERSION_NUMBER] =
+          versionInfo.version_number;
+      customerUpdateFields[Customer.FIELD_LAST_CHECKED_BUILD_NUMBER] =
+          versionInfo.build_number;
+      customerUpdateFields[Customer.FIELD_LAST_CHECKED_VERSION_DATETIME] =
+          versionInfo.date_version_created;
+
+      shouldUpdateCurrentCustomer = true;
+    }
+
+    if (shouldUpdateCurrentCustomer) {
+      await FirebaseFirestore.instance
+          .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+          .doc(_getCustomerID)
+          .set(customerUpdateFields, SetOptions(merge: true));
+    }
+
+    var forcefulUpdateVersions = await FirebaseFirestore.instance
+        .collection(FIRESTORE_PATHS.COL_UPDATE_VERSIONS)
+        .doc(FIRESTORE_PATHS.DOC_UPDATE_VERSIONS_CUSTOMERS)
+        .collection(FIRESTORE_PATHS.SUB_COL_UPDATE_VERSION_CUSTOMERS)
+        .where(UpdateVersion.FIELD_IS_FORCEFUL_UPDATE, isEqualTo: true)
+        .where(UpdateVersion.FIELD_BUILD_NUMBER,
+            isGreaterThan: installedBuildNumber)
+        .get();
+
+    forcefulUpdateAvailable = forcefulUpdateVersions.docs.isNotEmpty;
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> loadNetworkProfileImage() async {
@@ -598,8 +647,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     }
   }
 
-  Widget _getNavigationItemWidget(
-      BuildContext context,
+  Widget _getNavigationItemWidget(BuildContext context,
       _MenuListItem item,
       double leftPadding,
       double verticalPadding,
@@ -607,7 +655,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       void Function(MenuOption) callback) {
     bool isWalletOption = item.navOption == MenuOption.MENU_OPTION_BALANCE;
     Color txtIconColor =
-        isWalletOption ? Colors.blue.shade700 : Colors.grey.shade700;
+    isWalletOption ? Colors.blue.shade700 : Colors.grey.shade700;
     return Center(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -681,8 +729,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     double VERTICAL_PADDING_PERCENT = 0.018;
     double HORIZONTAL_BETWEEN_SPACE_PERCENT = 0.09;
 
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
+    double screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
 
     double profileHeight = screenHeight * PROFILE_HEIGHT_PERCENT;
     double drawerWidth = DRAWER_WIDTH_PERCENT * screenWidth;
@@ -744,13 +798,19 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             children: [
               Container(
                 padding: EdgeInsets.only(
-                    top: MediaQuery.of(context).size.height * 0.031),
+                    top: MediaQuery
+                        .of(context)
+                        .size
+                        .height * 0.031),
                 child: Row(
                   children: [
                     Expanded(child: Container()),
                     Container(
                       padding: EdgeInsets.only(
-                          right: MediaQuery.of(context).size.width * 0.05),
+                          right: MediaQuery
+                              .of(context)
+                              .size
+                              .width * 0.05),
                       child: Row(
                         children: [
                           GestureDetector(
@@ -762,9 +822,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                             },
                             child: Text('ENG',
                                 style:
-                                    PrefUtil.getUserLanguageLocale() == ('en')
-                                        ? selectedTextFieldStyle()
-                                        : unSelectedTextFieldStyle()),
+                                PrefUtil.getUserLanguageLocale() == ('en')
+                                    ? selectedTextFieldStyle()
+                                    : unSelectedTextFieldStyle()),
                           ),
                           SizedBox(width: 20.0),
                           GestureDetector(
@@ -776,9 +836,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                             },
                             child: Text('አ ማ',
                                 style:
-                                    PrefUtil.getUserLanguageLocale() == ('am')
-                                        ? selectedTextFieldStyle()
-                                        : unSelectedTextFieldStyle()),
+                                PrefUtil.getUserLanguageLocale() == ('am')
+                                    ? selectedTextFieldStyle()
+                                    : unSelectedTextFieldStyle()),
                           )
                         ],
                       ),
@@ -788,8 +848,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               ),
               Container(
                 padding: EdgeInsets.only(
-                  top: MediaQuery.of(context).size.height * 0.012,
-                  left: MediaQuery.of(context).size.width * 0.09,
+                  top: MediaQuery
+                      .of(context)
+                      .size
+                      .height * 0.012,
+                  left: MediaQuery
+                      .of(context)
+                      .size
+                      .width * 0.09,
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -805,8 +871,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                           fit: BoxFit.fill),
                       child: Image.asset(
                         'images/mask2.png',
-                        width: MediaQuery.of(context).size.width * 0.20,
-                        height: MediaQuery.of(context).size.height * 0.10,
+                        width: MediaQuery
+                            .of(context)
+                            .size
+                            .width * 0.20,
+                        height: MediaQuery
+                            .of(context)
+                            .size
+                            .height * 0.10,
                       ),
                     ),
                     SizedBox(width: 20.0),
@@ -867,24 +939,26 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 ),
               ),
               ...primaryNavOptions.map(
-                (item) => _getNavigationItemWidget(
-                  context,
-                  item,
-                  horizontalPadding,
-                  verticalPadding,
-                  horizontalSpace,
-                  navOptionSelected,
-                ),
+                    (item) =>
+                    _getNavigationItemWidget(
+                      context,
+                      item,
+                      horizontalPadding,
+                      verticalPadding,
+                      horizontalSpace,
+                      navOptionSelected,
+                    ),
               ),
               ...secondaryNavOptions.map(
-                (item) => _getNavigationItemWidget(
-                  context,
-                  item,
-                  horizontalPadding,
-                  verticalPadding,
-                  horizontalSpace,
-                  navOptionSelected,
-                ),
+                    (item) =>
+                    _getNavigationItemWidget(
+                      context,
+                      item,
+                      horizontalPadding,
+                      verticalPadding,
+                      horizontalSpace,
+                      navOptionSelected,
+                    ),
               ),
             ],
           ),
@@ -925,7 +999,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             child: Icon(
                 _isHamburgerDrawerMode ? Icons.menu_outlined : Icons.close,
                 color: Color(0xffdd0000)),
-            radius: MediaQuery.of(context).size.height * 0.025,
+            radius: MediaQuery
+                .of(context)
+                .size
+                .height * 0.025,
           ),
         ),
       ),
@@ -957,7 +1034,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       updateDialogVisible = true;
       Future.delayed(
         Duration.zero,
-        () async {
+            () async {
           await showDialog(
             context: context,
             barrierDismissible: false,
@@ -1009,7 +1086,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
        */
       Future.delayed(
         Duration.zero,
-        () async {
+            () async {
           await showDialog(
               context: context,
               builder: (_) {
@@ -1026,12 +1103,18 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       );
     }
 
-    double screenWidth = MediaQuery.of(context).size.width;
-    double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
+    double screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
     double side_padding = screenWidth * 0.02; // 2% of screen width
 
     final RoundedLoadingButtonController _referalController =
-        RoundedLoadingButtonController();
+    RoundedLoadingButtonController();
 
     void _referalBtn() async {
       Timer(Duration(seconds: 3), () {
@@ -1045,8 +1128,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         key: _scaffoldKey,
         drawer: _getDrawerLayout(context),
         resizeToAvoidBottomInset: false,
-        body:
-        Stack(
+        body: Stack(
           children: [
             GoogleMap(
               padding: EdgeInsets.only(
@@ -1089,11 +1171,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               _getHamburgerBtnWidget(),
             ],
 
-            if (isReferralComplete) ...[
+            if (_isReferralActivationComplete) ...[
               //
               WhereToBottomSheet(
                 tickerProvider: this,
-                showSharedRideOption: startupInfoLoadComplete &&
+                showSharedRideOption: !startupInfoLoadComplete &&
                     (!updateAvailable && !forcefulUpdateAvailable),
                 showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
                 enableButtonSelection: _isInternetWorking,
@@ -1131,7 +1213,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 tickerProvider: this,
                 actionCallback: () {},
                 showBottomSheet:
-                    _UIState == UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED,
+                _UIState == UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED,
                 onWhereRecommendationToSelected: () {
                   _UIState = UI_STATE_WHERE_TO_SELECTED;
                 },
@@ -1213,9 +1295,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                     showDialog(
                       context: context,
                       barrierDismissible: false,
-                      builder: (context) => CustomProgressDialog(
-                          message: SafeLocalizations.of(context)!
-                              .main_screen_creating_order_progress),
+                      builder: (context) =>
+                          CustomProgressDialog(
+                              message: SafeLocalizations.of(context)!
+                                  .main_screen_creating_order_progress),
                     );
 
                     _UIState = await createNewRideRequest();
@@ -1228,8 +1311,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                     setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
                         ? 0
                         : (screenHeight *
-                            SearchingForDriverBottomSheet
-                                .HEIGHT_SEARCHING_FOR_DRIVER_PERCENT));
+                        SearchingForDriverBottomSheet
+                            .HEIGHT_SEARCHING_FOR_DRIVER_PERCENT));
 
                     _isHamburgerDrawerMode = true;
                   }
@@ -1245,8 +1328,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 actionCallback: () async {
                   await showDialog(
                     context: context,
-                    builder: (_) => RideCancellationDialog(
-                        rideRequest: _currentRideRequest!),
+                    builder: (_) =>
+                        RideCancellationDialog(
+                            rideRequest: _currentRideRequest!),
                   );
                 },
               ),
@@ -1259,8 +1343,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 actionCallback: () async {
                   await showDialog(
                     context: context,
-                    builder: (_) => RideCancellationDialog(
-                        rideRequest: _currentRideRequest!),
+                    builder: (_) =>
+                        RideCancellationDialog(
+                            rideRequest: _currentRideRequest!),
                   );
                 },
               ),
@@ -1274,8 +1359,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 actionCallback: () async {
                   await showDialog(
                     context: context,
-                    builder: (_) => RideCancellationDialog(
-                        rideRequest: _currentRideRequest!),
+                    builder: (_) =>
+                        RideCancellationDialog(
+                            rideRequest: _currentRideRequest!),
                   );
                 },
               ),
@@ -1297,12 +1383,17 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             ],
 
             /// Only show referral dialog if referral is NOT complete, for SURE
-            //if (isReferralSurelyIncomplete) ...[
-            if (isReferralForSureNotComplete) ...[
+            if (isReferralSurelyIncomplete) ...[
               // grey background
               Container(
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height,
+                width: MediaQuery
+                    .of(context)
+                    .size
+                    .width,
                 color: Colors.black.withOpacity(0.83),
               ),
 
@@ -1312,7 +1403,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                 onReferralErrorCallback: () {},
                 onInvalidReferralCallback: () {},
                 onSuccessfulReferralCallback: () async {
-                  await updateTokenVersionAndUpdateInfoInRealtimeDb();
                   setState(() {});
                 },
                 actionCallback: () {},
@@ -1326,7 +1416,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   Future<void> listenToRideStatusUpdates() async {
     _rideRequestRef?.snapshots().listen(
-      (snapshot) async {
+          (snapshot) async {
         _currentRideRequest = RideRequest.fromSnapshot(snapshot);
 
         int rideStatus = _currentRideRequest!.ride_status;
@@ -1382,7 +1472,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         if (isDriverPicked) {
           pathColor = Color(0xffDE0000);
           encodedPathRoute =
-              _currentRideRequest!.driver_to_pickup_encoded_points!;
+          _currentRideRequest!.driver_to_pickup_encoded_points!;
           lineWidth = 3;
 
           bottomSheetHeightPercent =
@@ -1393,7 +1483,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         } else if (isOnWayToPickup) {
           pathColor = Color(0xffDE0000);
           encodedPathRoute =
-              _currentRideRequest!.driver_to_pickup_encoded_points!;
+          _currentRideRequest!.driver_to_pickup_encoded_points!;
           lineWidth = 5;
 
           bottomSheetHeightPercent =
@@ -1416,7 +1506,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           _tripStartTimestamp = DateTime.now();
           _tripCounterTimer = new Timer.periodic(
             const Duration(seconds: 1),
-            (Timer timer) {
+                (Timer timer) {
               setState(() {});
             },
           );
@@ -1428,7 +1518,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
         if (bottomSheetHeightPercent != null) {
           setBottomMapPadding(
-              MediaQuery.of(context).size.height * bottomSheetHeightPercent);
+              MediaQuery
+                  .of(context)
+                  .size
+                  .height * bottomSheetHeightPercent);
         }
 
         if (encodedPathRoute != null) {
@@ -1476,7 +1569,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             .child(driverId)
             .onValue
             .listen(
-          (locSnapshot) {
+              (locSnapshot) {
             bool firstTimeLocationAcquired =
                 _selectedDriverCurrentLocation == null;
             _selectedDriverCurrentLocation =
@@ -1509,9 +1602,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               Marker(
                 markerId: MarkerId('pickup id'),
                 icon:
-                    (has_trip_started ? _DROPOFF_PIN_ICON : _PICKUP_PIN_ICON) ??
-                        BitmapDescriptor.defaultMarkerWithHue(
-                            BitmapDescriptor.hueYellow),
+                (has_trip_started ? _DROPOFF_PIN_ICON : _PICKUP_PIN_ICON) ??
+                    BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueYellow),
                 infoWindow: InfoWindow(
                     title: has_trip_started
                         ? _currentRideRequest!.dropoff_address_name
@@ -1541,7 +1634,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     try {
       CameraPosition cameraPosition = CameraPosition(
           target:
-              LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
+          LatLng(_currentPosition!.latitude, _currentPosition!.longitude),
           zoom: 17.0);
 
       _mapController!
@@ -1563,17 +1656,21 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   Future<int> createNewRideRequest() async {
     Address pickUpAddress =
-        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-            .pickUpLocation!;
+    Provider
+        .of<PickUpAndDropOffLocations>(context, listen: false)
+        .pickUpLocation!;
     Address dropOffAddress =
-        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-            .dropOffLocation!;
+    Provider
+        .of<PickUpAndDropOffLocations>(context, listen: false)
+        .dropOffLocation!;
     Duration? scheduledDuration =
-        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+        Provider
+            .of<PickUpAndDropOffLocations>(context, listen: false)
             .scheduledDuration;
     bool isStudent =
-        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-                .isStudent ??
+        Provider
+            .of<PickUpAndDropOffLocations>(context, listen: false)
+            .isStudent ??
             false;
     Map<String, dynamic> rideFields = new Map();
 
@@ -1581,9 +1678,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     rideFields[RideRequest.FIELD_CUSTOMER_ID] = PrefUtil.getCurrentUserID();
     rideFields[RideRequest.FIELD_CUSTOMER_NAME] = _currentCustomer!.user_name!;
     rideFields[RideRequest.FIELD_CUSTOMER_PHONE] =
-        _currentCustomer!.phone_number!;
+    _currentCustomer!.phone_number!;
     rideFields[RideRequest.FIELD_CUSTOMER_DEVICE_TOKEN] =
-        await FirebaseMessaging.instance.getToken();
+    await FirebaseMessaging.instance.getToken();
     rideFields[RideRequest.FIELD_CUSTOMER_EMAIL] =
         _currentCustomer!.email ?? '';
     // for developer accounts, create a developer test order
@@ -1652,11 +1749,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   Future<void> getRouteDetails(BuildContext context) async {
     Address startLocation =
-        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-            .pickUpLocation!;
+    Provider
+        .of<PickUpAndDropOffLocations>(context, listen: false)
+        .pickUpLocation!;
     Address destLocation =
-        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-            .dropOffLocation!;
+    Provider
+        .of<PickUpAndDropOffLocations>(context, listen: false)
+        .dropOffLocation!;
 
     LatLng pickUpLoc = startLocation.location;
     LatLng dropOffLoc = destLocation.location;
@@ -1670,8 +1769,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     }
     try {
       _pickupToDropOffRouteDetail =
-          await GoogleApiUtils.getRouteDetailsFromStartToDestination(
-              pickUpLoc, dropOffLoc, _sysConfig!);
+      await GoogleApiUtils.getRouteDetailsFromStartToDestination(
+          pickUpLoc, dropOffLoc, _sysConfig!);
     } catch (err) {
       return;
     }
@@ -1685,7 +1784,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         jointType: JointType.round,
         points: _POLYLINE_POINTS_DECODER
             .decodePolyline(_pickupToDropOffRouteDetail!.encoded_points)
-            // convert from [PointLatLng] to [LatLng]
+        // convert from [PointLatLng] to [LatLng]
             .map((loc) => LatLng(loc.latitude, loc.longitude))
             .toList(),
         width: 5,
@@ -1705,7 +1804,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         infoWindow: InfoWindow(
             title: startLocation.placeName,
             snippet:
-                SafeLocalizations.of(context)!.customer_marker_info_pickup),
+            SafeLocalizations.of(context)!.customer_marker_info_pickup),
         position: pickUpLoc,
       ),
       // dropoff marker
@@ -1716,7 +1815,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         infoWindow: InfoWindow(
             title: destLocation.placeName,
             snippet:
-                SafeLocalizations.of(context)!.customer_marker_info_dropoff),
+            SafeLocalizations.of(context)!.customer_marker_info_dropoff),
         position: dropOffLoc,
       ),
     };
@@ -1725,8 +1824,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         _pickupToDropOffRouteDetail!.dropoff_loc, 150);
   }
 
-  void zoomCameraToWithinBounds(
-      LatLng startLoc, LatLng finalLoc, double padding) {
+  void zoomCameraToWithinBounds(LatLng startLoc, LatLng finalLoc,
+      double padding) {
     LatLng south, north;
     if (startLoc.latitude > finalLoc.latitude &&
         startLoc.longitude > finalLoc.longitude) {
@@ -1744,7 +1843,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     }
 
     LatLngBounds latLngBounds =
-        LatLngBounds(southwest: south, northeast: north);
+    LatLngBounds(southwest: south, northeast: north);
     _mapController!
         .animateCamera(CameraUpdate.newLatLngBounds(latLngBounds, padding));
   }
@@ -1758,9 +1857,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _isNearbyDriverLoadingComplete = false;
 
     _geofireLocationStream = Geofire.queryAtLocation(
-            _currentPosition!.latitude, _currentPosition!.longitude, 0.2)
+        _currentPosition!.latitude, _currentPosition!.longitude, 0.2)
         ?.listen(
-      (map) async {
+          (map) async {
         if (map == null || _ignoreGeofireUpdates) {
           return;
         }
@@ -1826,12 +1925,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
   void updateAvailableDriversOnMap() {
     _mapMarkers = _nearbyDriverLocations.values
-        .map((driver) => Marker(
-              markerId: MarkerId('driver${driver.driverID}'),
-              position: LatLng(driver.latitude, driver.longitude),
-              icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
-              rotation: driver.orientation ?? 0,
-            ))
+        .map((driver) =>
+        Marker(
+          markerId: MarkerId('driver${driver.driverID}'),
+          position: LatLng(driver.latitude, driver.longitude),
+          icon: _CAR_ICON ?? BitmapDescriptor.defaultMarker,
+          rotation: driver.orientation ?? 0,
+        ))
         .toSet();
   }
 

@@ -102,7 +102,6 @@ abstract class BaseBottomSheet extends StatefulWidget {
       left: offset,
       right: offset,
       child: AnimatedSize(
-        vsync: tickerProvider,
         curve: Curves.bounceIn,
         duration: Duration(milliseconds: animationDuration()),
         child: haveWrappedHeight(context)

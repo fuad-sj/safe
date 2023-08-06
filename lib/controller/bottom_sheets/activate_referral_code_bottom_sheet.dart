@@ -3,8 +3,6 @@ import 'dart:ffi';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:provider/provider.dart';
@@ -169,22 +167,6 @@ class _ActivateReferralCodeBottomSheetState
                     GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () async {
-                        TokenVersionAndUpdateInfo tokenAndVersionNumber =
-                            new TokenVersionAndUpdateInfo();
-
-                        tokenAndVersionNumber.client_triggered_event = true;
-                        tokenAndVersionNumber.is_referral_active = true;
-
-                        await FirebaseDatabase.instanceFor(
-                                app: Firebase.app(),
-                                databaseURL:
-                                    TokenVersionAndUpdateInfo.DATABASE_ROOT)
-                            .ref()
-                            .child(FIREBASE_DB_PATHS
-                                .PATH_CUSTOMER_TOKEN_VERSION_AND_UPDATE)
-                            .child(FirebaseAuth.instance.currentUser!.uid)
-                            .update(tokenAndVersionNumber.toJson());
-
                         Navigator.push(
                           context,
                           MaterialPageRoute(

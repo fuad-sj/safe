@@ -29,7 +29,6 @@ import 'package:safe/utils/pref_util.dart';
 import 'package:safe/controller/slider_button/slider.dart';
 import 'package:vector_math/vector_math.dart' show radians, degrees;
 import 'package:flutter/services.dart';
-import 'package:vibration/vibration.dart';
 
 class SharedRidesListAndCompassScreen extends StatefulWidget {
   const SharedRidesListAndCompassScreen({Key? key}) : super(key: key);
@@ -2004,6 +2003,7 @@ class _SharedRidesListAndCompassScreenState
     if ((isCorrectHeading && !wasPreviousHeadingCorrect) ||
         (!isCorrectHeading && wasPreviousHeadingCorrect)) {
       Future.delayed(Duration.zero, () async {
+        /*
         if ((await Vibration.hasVibrator() ?? false)) {
           if ((await Vibration.hasAmplitudeControl()) ?? false) {
             Vibration.vibrate(amplitude: 128);
@@ -2012,6 +2012,9 @@ class _SharedRidesListAndCompassScreenState
           }
         }
         await HapticFeedback.heavyImpact();
+
+
+         */
       });
     }
     wasPreviousHeadingCorrect = isCorrectHeading;
