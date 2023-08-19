@@ -50,6 +50,9 @@ class Customer extends FirebaseDocument {
 
   static const FIELD_LINK_IMG_PROFILE = 'link_img_profile';
 
+  static const FIELD_WAS_REFERRED = 'was_referred';
+  static const FIELD_REFERRED_BY = 'referred_by';
+
   // END field name declarations
 
   static const int GENDER_FEMALE = 1;
@@ -112,6 +115,9 @@ class Customer extends FirebaseDocument {
   String? link_img_profile;
 
   bool? referral_activation_complete;
+
+  bool? was_referred;
+  String? referred_by;
 
   Customer();
 

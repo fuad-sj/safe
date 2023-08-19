@@ -7,6 +7,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:safe/controller/custom_toast_message.dart';
 import 'package:safe/controller/main_screen_customer.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
+import 'package:safe/controller/otp_text_field/otp_field.dart';
+import 'package:safe/controller/otp_text_field/otp_field_style.dart';
+import 'package:safe/controller/otp_text_field/style.dart';
+import 'package:safe/controller/toggle_switch.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
@@ -29,18 +33,26 @@ enum Gender { female, male }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
- // final picker = ImagePicker();
+
+  static const REGISTER_BTN_STATE_MISSING_FIELD = 1;
+  static const REGISTER_BTN_STATE_WRONG_REFERRAL = 2;
+  static const REGISTER_BTN_STATE_CORRECT_DATA = 3;
+  static const REGISTER_BTN_STATE_CORRECT_REFERRAL = 4;
+
+  // final picker = ImagePicker();
   TextEditingController _nameController = TextEditingController();
   TextEditingController _lastNameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
 
   late ImageProvider _defaultProfileImage;
 
-  Gender _character = Gender.female;
+  Gender _character = Gender.male;
   File? _profileFile;
   FileImage? _profileImage;
 
-  bool _enableRegisterBtn = false;
+  int _registerBtnState = REGISTER_BTN_STATE_MISSING_FIELD;
+
+  String _referralCode = "";
 
   final RoundedLoadingButtonController _CustomerLoadingBtnController =
       RoundedLoadingButtonController();
@@ -70,8 +82,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   void updateEnableBtnState() {
-    _enableRegisterBtn = _nameController.text.trim().isNotEmpty &&
-        _lastNameController.text.trim().isNotEmpty;
+    _registerBtnState = (_nameController.text.trim().isNotEmpty &&
+            _lastNameController.text.trim().isNotEmpty)
+        ? REGISTER_BTN_STATE_CORRECT_DATA
+        : REGISTER_BTN_STATE_MISSING_FIELD;
+
+    _referralCode = _referralCode.replaceAll(' ', '');
+
+    if (_registerBtnState == REGISTER_BTN_STATE_CORRECT_DATA) {
+      if (_referralCode.length == 10) {
+        if (Customer.isReferralCodeValid(_referralCode)) {
+          _registerBtnState = REGISTER_BTN_STATE_CORRECT_REFERRAL;
+        } else {
+          _registerBtnState = REGISTER_BTN_STATE_WRONG_REFERRAL;
+        }
+      }
+    }
   }
 
   final Shader linearGradient = LinearGradient(
@@ -80,6 +106,28 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String registerBtnText;
+    Color registerBtnColor;
+
+    switch (_registerBtnState) {
+      case REGISTER_BTN_STATE_WRONG_REFERRAL:
+        registerBtnText = "የተሳሳተ ሪፈራል";
+        registerBtnColor = Color(0xffDE0000);
+        break;
+      case REGISTER_BTN_STATE_CORRECT_DATA:
+        registerBtnText = "ይመዝገቡ";
+        registerBtnColor = Colors.green.shade800;
+        break;
+      case REGISTER_BTN_STATE_CORRECT_REFERRAL:
+        registerBtnText = "ትክክል ሪፈራል, ይመዝገቡ";
+        registerBtnColor = Colors.blue.shade800;
+        break;
+      case REGISTER_BTN_STATE_MISSING_FIELD:
+      default:
+        registerBtnText = "ስም ያስገቡ";
+        registerBtnColor = Colors.grey.shade700;
+        break;
+    }
     return Scaffold(
         body: SingleChildScrollView(
       child: new Stack(
@@ -95,17 +143,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       fit: BoxFit.cover)),
               child: Stack(
                 children: <Widget>[
-                  Positioned(
-                    top: MediaQuery.of(context).size.height * 0.127,
-                    left: MediaQuery.of(context).size.width * 0.1,
-                    child: Text('Welcome to Safe',
-                        style: TextStyle(
-                            fontFamily: 'Lato',
-                            fontSize: 30.0,
-                            fontWeight: FontWeight.bold,
-                            foreground: Paint()..shader = linearGradient)),
-                  ),
-                /*
+                  /*
                   GestureDetector(
                     onTap: () async {
                       XFile? pickedXFile =
@@ -174,14 +212,26 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
                  */
                   Positioned(
-                    top: MediaQuery.of(context).size.height * 0.383,
-                    left: MediaQuery.of(context).size.width * 0.11,
+                    top: MediaQuery.of(context).size.height * 0.127,
+                    left: MediaQuery.of(context).size.width * 0.05,
                     child: Container(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: <Widget>[
                           Container(
-                            width: MediaQuery.of(context).size.width * 0.8,
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            child: Text('እንኳን ወደ ሴፍ መጡ',
+                                style: TextStyle(
+                                    fontFamily: 'Lato',
+                                    fontSize: 30.0,
+                                    fontWeight: FontWeight.bold,
+                                    foreground: Paint()
+                                      ..shader = linearGradient)),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.02),
+                            width: MediaQuery.of(context).size.width * 0.9,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(15.0),
                                 color: Color(0xffE1E0DF)),
@@ -189,179 +239,173 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               style: TextStyle(color: Colors.black),
                               // keyboardType: TextInputType.text,
                               controller: _nameController,
-                              validator: (name) {
-                                return (name!.isEmpty)
-                                    ? SafeLocalizations.of(context)!
-                                        .registration_customer_name_empty
-                                    : null;
-                              },
                               decoration: InputDecoration(
                                   border: InputBorder.none,
                                   contentPadding: const EdgeInsets.symmetric(
                                       vertical: 13.0, horizontal: 20.7),
-                                  hintText: SafeLocalizations.of(context)!
-                                      .registration_customer_name_hint,
-                                  hintStyle: TextStyle(color: Colors.black),
+                                  hintText: "ስም",
+                                  hintStyle:
+                                      TextStyle(color: Colors.grey.shade500),
                                   fillColor: Colors.white),
                             ),
                           ),
-                          Padding(
-                            padding: EdgeInsets.only(
-                                top: MediaQuery.of(context).size.height * 0.02),
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(15.0),
-                                color: Color(0xffE1E0DF),
-                              ),
-                              child: TextFormField(
-                                style: TextStyle(color: Colors.black),
-                                // keyboardType: TextInputType.text,
-                                controller: _lastNameController,
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 13.0, horizontal: 20.7),
-                                    hintText: 'Last Name',
-                                    hintStyle: TextStyle(color: Colors.black),
-                                    fillColor: Colors.white),
-                              ),
+                          Container(
+                            margin: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.01),
+                            width: MediaQuery.of(context).size.width * 0.9,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(15.0),
+                              color: Color(0xffE1E0DF),
+                            ),
+                            child: TextFormField(
+                              style: TextStyle(color: Colors.black),
+                              // keyboardType: TextInputType.text,
+                              controller: _lastNameController,
+                              decoration: InputDecoration(
+                                  border: InputBorder.none,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                      vertical: 13.0, horizontal: 20.7),
+                                  hintText: 'የአባት ስም',
+                                  hintStyle:
+                                      TextStyle(color: Colors.grey.shade500),
+                                  fillColor: Colors.white),
                             ),
                           ),
-                          Padding(
-                              padding: EdgeInsets.only(
-                                  top:
-                                      MediaQuery.of(context).size.height * 0.03,
-                                  bottom: MediaQuery.of(context).size.height *
+                          Center(
+                            child: Container(
+                              margin: EdgeInsets.only(
+                                  top: MediaQuery.of(context).size.height *
                                       0.01),
-                              child: Container(
-                                width: MediaQuery.of(context).size.width * 0.8,
-                                child: Text('Gender',
-                                    style: TextStyle(
-                                        color: Colors.black,
-                                        fontFamily: 'Lato',
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.w800)),
-                              )),
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Expanded(
-                                    child: RadioListTile<Gender>(
-                                  title: const Text('Male',
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text('ፆታ : ',
                                       style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w400)),
-                                  value: Gender.male,
-                                  activeColor: Color(0xffDE0000),
-                                  groupValue: _character,
-                                  onChanged: (Gender? value) {
-                                    setState(() {
-                                      _character = value!;
-                                    });
-                                  },
-                                )),
-                                Expanded(
-                                  child: RadioListTile<Gender>(
-                                    title: const Text('Female',
-                                        style: TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w400,
-                                        )),
-                                    value: Gender.female,
-                                    activeColor: Color(0xffDE0000),
-                                    groupValue: _character,
-                                    onChanged: (Gender? value) {
-                                      setState(
-                                        () {
-                                          _character = value!;
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          /*
-                          Padding(
-                            padding: EdgeInsets.only(
-                                top: MediaQuery.of(context).size.height * 0.02,
-                                bottom:
-                                    MediaQuery.of(context).size.height * 0.02),
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(15.0),
-                                  color: Color(0xffE1E0DF)),
-                              child: TextFormField(
-                                style: TextStyle(color: Colors.black),
-                                // keyboardType: TextInputType.text,
-                                controller: _emailController,
-                                decoration: InputDecoration(
-                                    border: InputBorder.none,
-                                    contentPadding: const EdgeInsets.symmetric(
-                                        vertical: 13.0, horizontal: 20.7),
-                                    hintText: 'Email',
-                                    hintStyle: TextStyle(color: Colors.black),
-                                    fillColor: Colors.white),
-                              ),
-                            ),
-                          ),
-
-                           */
-                          Container(
-                            width: MediaQuery.of(context).size.width * 0.8,
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Container(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.35,
-                                    height: MediaQuery.of(context).size.height *
-                                        0.042,
-                                    child: ElevatedButton(
-                                      child: Text('Sign Up',
-                                          style:
-                                              TextStyle(color: Colors.white)),
-                                      onPressed: () {
-                                        if (_enableRegisterBtn) {
-                                          registerNewUser(context);
-                                        } else if (_nameController.text
-                                            .trim()
-                                            .isEmpty) {
-                                          displayToastMessage(
-                                              'Please fill your first Name',
-                                              context);
-                                        } else if (_lastNameController.text
-                                            .trim()
-                                            .isEmpty) {
-                                          displayToastMessage(
-                                              'Please fill your Last Name',
-                                              context);
+                                          color: Colors.grey.shade700,
+                                          fontFamily: 'Lato',
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w800)),
+                                  SizedBox(
+                                      width: MediaQuery.of(context).size.width *
+                                          0.05),
+                                  Container(
+                                    //width: MediaQuery.of(context).size.width * 0.8,
+                                    child: ToggleSwitch(
+                                      minWidth:
+                                          MediaQuery.of(context).size.width *
+                                              0.20,
+                                      cornerRadius: 20.0,
+                                      activeBgColors: [
+                                        [Colors.blue[900]!],
+                                        [Color(0xFFFC2085)],
+                                      ],
+                                      activeFgColor: Colors.white,
+                                      inactiveBgColor: Colors.grey,
+                                      inactiveFgColor: Colors.white,
+                                      initialLabelIndex:
+                                          _character == Gender.male ? 0 : 1,
+                                      totalSwitches: 2,
+                                      labels: ['ወንድ', 'ሴት'],
+                                      animate: true,
+                                      animationDuration: 200,
+                                      customTextStyles: [
+                                        TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14.0)
+                                      ],
+                                      radiusStyle: true,
+                                      onToggle: (index) {
+                                        _character = (index == 0)
+                                            ? Gender.male
+                                            : Gender.female;
+                                        if (mounted) {
+                                          setState(() {});
                                         }
                                       },
-                                      style: ButtonStyle(
-                                          backgroundColor: MaterialStateProperty.all(
-                                              _enableRegisterBtn
-                                                  ? Color(0xffDE0000)
-                                                  : Colors.grey.shade700),
-                                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                                              RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(15.0),
-                                              ))),
                                     ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: Container(
-                                    width: MediaQuery.of(context).size.width *
-                                        0.45,
+                                ],
+                              ),
+                            ),
+                          ),
+                          Container(
+                            margin: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.01),
+                            child: FocusScope(
+                              child: Focus(
+                                child: OTPTextField(
+                                  length: 10,
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.9,
+                                  textFieldAlignment:
+                                      MainAxisAlignment.spaceAround,
+                                  fieldWidth: 28,
+                                  fieldStyle: FieldStyle.box,
+                                  outlineBorderRadius: 10,
+                                  otpFieldStyle: OtpFieldStyle(
+                                    borderColor: Colors.green.shade600,
+                                    focusBorderColor: Colors.grey.shade500,
+                                    enabledBorderColor: Color(0xff990000),
                                   ),
+                                  style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold),
+                                  keyboardType: TextInputType.text,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _referralCode = val;
+                                      updateEnableBtnState();
+                                    });
+                                  },
+                                  onCompleted: (val) {
+                                    setState(() {
+                                      _referralCode = val;
+                                      updateEnableBtnState();
+                                    });
+                                  },
                                 ),
-                              ],
+                              ),
+                            ),
+                          ),
+                          Text('ሪፈራል ኮድ (optional)',
+                              style: TextStyle(
+                                  color: Colors.grey.shade400,
+                                  fontFamily: 'Lato',
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w200)),
+                          Container(
+                            margin: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.04),
+                            width: MediaQuery.of(context).size.width * 0.65,
+                            height: MediaQuery.of(context).size.height * 0.052,
+                            child: ElevatedButton(
+                              child: Text(registerBtnText,
+                                  style: TextStyle(color: Colors.white)),
+                              onPressed: () {
+                                if (_registerBtnState ==
+                                        REGISTER_BTN_STATE_CORRECT_DATA ||
+                                    _registerBtnState ==
+                                        REGISTER_BTN_STATE_CORRECT_REFERRAL) {
+                                  registerNewUser(context);
+                                } else if (_nameController.text
+                                    .trim()
+                                    .isEmpty) {
+                                  displayToastMessage('የራሶን ስም ያስገቡ', context);
+                                } else if (_lastNameController.text
+                                    .trim()
+                                    .isEmpty) {
+                                  displayToastMessage('የአባቶን ስም ያስገቡ', context);
+                                }
+                              },
+                              style: ButtonStyle(
+                                  backgroundColor: MaterialStateProperty.all(
+                                      registerBtnColor),
+                                  shape: MaterialStateProperty.all<
+                                          RoundedRectangleBorder>(
+                                      RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15.0),
+                                  ))),
                             ),
                           ),
                         ],
@@ -427,14 +471,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             : Customer.GENDER_MALE;
         customerFields[Customer.FIELD_EMAIL] = _emailController.text.trim();
         customerFields[Customer.FIELD_PHONE_NUMBER] =
-            await PrefUtil.getCurrentUserPhone();
-        if (profileURL != null ) {
+            PrefUtil.getCurrentUserPhone();
+        if (profileURL != null) {
           customerFields[Customer.FIELD_LINK_IMG_PROFILE] = profileURL;
         }
         customerFields[Customer.FIELD_IS_ACTIVE] = true;
         customerFields[Customer.FIELD_IS_LOGGED_IN] = true;
         customerFields[Customer.FIELD_DATE_CREATED] =
             FieldValue.serverTimestamp();
+
+        if (_registerBtnState == REGISTER_BTN_STATE_CORRECT_REFERRAL) {
+          customerFields[Customer.FIELD_WAS_REFERRED] = true;
+          customerFields[Customer.FIELD_REFERRED_BY] =
+              _referralCode.toUpperCase();
+        }
 
         await FirebaseFirestore.instance
             .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
