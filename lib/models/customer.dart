@@ -12,6 +12,8 @@ part 'customer.g.dart';
 class Customer extends FirebaseDocument {
   static const FIREBASE_STORAGE_PATH_CUSTOMER_FILES = 'customer_files';
 
+  static const FIELD_REGISTRATION_STATUS = 'registration_status';
+
   static const FIELD_PHONE_NUMBER = 'phone_number';
   static const FIELD_USER_NAME = 'user_name';
   static const FIELD_USER_LAST_NAME = 'last_user_name';
@@ -58,7 +60,13 @@ class Customer extends FirebaseDocument {
   static const int GENDER_FEMALE = 1;
   static const int GENDER_MALE = 2;
 
+  static const int REGISTRATION_STATUS_CREATED = 1;
+  static const int REGISTRATION_STATUS_REFERRAL_ACCOUNT_CREATED = 2;
+  static const int REGISTRATION_STATUS_NON_REFERRAL_ACCOUNT_CREATED = 3;
+
   bool? client_triggered_event;
+
+  int? registration_status;
 
   String? current_trip_id;
   bool? is_trip_completed;

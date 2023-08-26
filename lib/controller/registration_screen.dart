@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -57,6 +58,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final RoundedLoadingButtonController _CustomerLoadingBtnController =
       RoundedLoadingButtonController();
 
+  StreamSubscription? registrationSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -75,6 +78,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     _nameController.addListener(callback);
     _lastNameController.addListener(callback);
     _emailController.addListener(callback);
+  }
+
+  @override
+  void dispose() {
+    registrationSubscription?.cancel();
+
+    super.dispose();
   }
 
   bool isValidEmail(String email) {
@@ -463,6 +473,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
         Map<String, dynamic> customerFields = new Map();
 
+        customerFields[Customer.FIELD_REGISTRATION_STATUS] =
+            Customer.REGISTRATION_STATUS_CREATED;
         customerFields[Customer.FIELD_USER_NAME] = _nameController.text.trim();
         customerFields[Customer.FIELD_USER_LAST_NAME] =
             _lastNameController.text.trim();
@@ -491,15 +503,38 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             .doc(firebaseUser.uid)
             .set(customerFields, SetOptions(merge: true));
 
-        await PrefUtil.setLoginStatus(PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW);
+        registrationSubscription = FirebaseFirestore.instance
+            .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+            .doc(firebaseUser.uid)
+            .snapshots()
+            .listen((snapshot) async {
+          if (snapshot.metadata.hasPendingWrites) {
+            return;
+          }
 
-        displayToastMessage(
-            SafeLocalizations.of(context)!
-                .registration_registration_congratulations,
-            context);
+          Customer customer = Customer.fromSnapshot(snapshot);
 
-        Navigator.pushNamedAndRemoveUntil(
-            context, MainScreenCustomer.idScreen, (route) => false);
+          switch (customer.registration_status!) {
+            case Customer.REGISTRATION_STATUS_CREATED:
+              break;
+
+            case Customer.REGISTRATION_STATUS_REFERRAL_ACCOUNT_CREATED:
+            case Customer.REGISTRATION_STATUS_NON_REFERRAL_ACCOUNT_CREATED:
+              registrationSubscription?.cancel();
+
+              await PrefUtil.setLoginStatus(
+                  PrefUtil.LOGIN_STATUS_LOGIN_JUST_NOW);
+
+              displayToastMessage(
+                  SafeLocalizations.of(context)!
+                      .registration_registration_congratulations,
+                  context);
+
+              Navigator.pushNamedAndRemoveUntil(
+                  context, MainScreenCustomer.idScreen, (route) => false);
+              break;
+          }
+        });
       } else {
         // this dismisses the progress dialog
         Navigator.pop(context);
