@@ -328,6 +328,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       checkIfNotificationClickLaunchedApp();
 
+      loadCurrentPosition();
+
       if (mounted) {
         setState(() {});
       }
@@ -1070,6 +1072,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                       WhereToBottomSheet.HEIGHT_WHERE_TO_PERCENT);
                 });
 
+                await loadCurrentPosition();
+
                 bool locationAcquired = await zoomCameraToCurrentPosition();
 
                 _ignoreGeofireUpdates = !_isReferralActivationComplete;
@@ -1150,6 +1154,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             },
              */
                 callback: () async {
+                  // if still not able to load current location, bail out
+                  if (_currentPosition == null) {
+                    return;
+                  }
+
                   await getRouteDetails(context);
                   _UIState = UI_STATE_DROPOFF_SET;
 
