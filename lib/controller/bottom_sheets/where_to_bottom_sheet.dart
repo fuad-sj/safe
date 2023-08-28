@@ -239,6 +239,10 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () async {
+                          if (widget.referralCode == null) {
+                            return;
+                          }
+
                           await Clipboard.setData(
                               ClipboardData(text: widget.referralCode!));
 
@@ -260,17 +264,14 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                         ),
                       ),
 
-                      Text(
-                          (widget.referralCode != null
-                              ? ' ${widget.referralCode!}'
-                              : ''),
+                      Text(widget.referralCode ?? '',
                           style: TextStyle(
                               fontSize: 25.0,
                               fontFamily: 'Lato',
                               fontWeight: FontWeight.w900,
                               color: Color.fromRGBO(221, 0, 0, 1))),
 
-                      //referal code copy
+                      //referral code copy
                       Container(
                         child: GestureDetector(
                           behavior: HitTestBehavior.opaque,

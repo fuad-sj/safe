@@ -492,7 +492,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
         return;
       }
 
-      _tokenVersionUpdateSubscription!.cancel();
+      _tokenVersionUpdateSubscription?.cancel();
       _tokenVersionUpdateSubscription = null;
 
       updateAvailable = info.optional_update_available ?? false;
@@ -1090,75 +1090,100 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
               _getHamburgerBtnWidget(),
             ],
 
-            if (isReferralComplete) ...[
-              //
-              WhereToBottomSheet(
-                tickerProvider: this,
-                showSharedRideOption: startupInfoLoadComplete &&
-                    (!updateAvailable && !forcefulUpdateAvailable),
-                showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
-                enableButtonSelection: _isInternetWorking,
-                customerName: _currentCustomer?.user_name,
-                referralCode: _currentCustomer?.referral_code,
-                versionNumber: versionNumber,
-                enabledBottomToggle: _isBottomToggleOn,
-                actionCallback: () {
-                  Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-                      .setResetPickupLocation(true);
+            WhereToBottomSheet(
+              tickerProvider: this,
+              showSharedRideOption: startupInfoLoadComplete &&
+                  (!updateAvailable && !forcefulUpdateAvailable),
+              showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
+              enableButtonSelection: _isInternetWorking,
+              customerName: _currentCustomer?.user_name,
+              referralCode: _currentCustomer?.referral_code,
+              versionNumber: versionNumber,
+              enabledBottomToggle: _isBottomToggleOn,
+              actionCallback: () {
+                Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+                    .setResetPickupLocation(true);
 
-                  _UIState = UI_STATE_WHERE_TO_SELECTED;
-                  setBottomMapPadding(screenHeight *
-                      DestinationPickerBottomSheet
-                          .HEIGHT_DESTINATION_SELECTOR_PERCENT);
+                _UIState = UI_STATE_WHERE_TO_SELECTED;
+                setBottomMapPadding(screenHeight *
+                    DestinationPickerBottomSheet
+                        .HEIGHT_DESTINATION_SELECTOR_PERCENT);
 
-                  _isHamburgerDrawerMode = false;
+                _isHamburgerDrawerMode = false;
 
-                  setState(() {});
-                },
-                onDisabledCallback: () {
-                  displayToastMessage(
-                      SafeLocalizations.of(context)!
-                          .generic_message_no_internet,
-                      context);
-                },
-                callBackDestination: () {
-                  _UIState = UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED;
-                  _isBottomToggleOn = true;
-                  setState(() {});
-                },
-              ),
+                setState(() {});
+              },
+              onDisabledCallback: () {
+                displayToastMessage(
+                    SafeLocalizations.of(context)!.generic_message_no_internet,
+                    context);
+              },
+              callBackDestination: () {
+                _UIState = UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED;
+                _isBottomToggleOn = true;
+                setState(() {});
+              },
+            ),
 
-              WhereToBottomSheetWithRecommendation(
-                tickerProvider: this,
-                actionCallback: () {},
-                showBottomSheet:
-                    _UIState == UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED,
-                onWhereRecommendationToSelected: () {
-                  _UIState = UI_STATE_WHERE_TO_SELECTED;
-                },
-              ),
+            WhereToBottomSheetWithRecommendation(
+              tickerProvider: this,
+              actionCallback: () {},
+              showBottomSheet:
+                  _UIState == UI_STATE_WHERE_TO_WITH_RECOMMENDATION_SELECTED,
+              onWhereRecommendationToSelected: () {
+                _UIState = UI_STATE_WHERE_TO_SELECTED;
+              },
+            ),
 
-              //
-              DestinationPickerBottomSheet(
-                tickerProvider: this,
-                showBottomSheet: _UIState == UI_STATE_WHERE_TO_SELECTED,
-                sysConfig: _sysConfig,
-                onSelectPinCalled: () {
-                  _UIState = UI_STATE_SELECT_PIN_SELECTED;
-                  setState(() {});
-                },
-                /*
+            //
+            DestinationPickerBottomSheet(
+              tickerProvider: this,
+              showBottomSheet: _UIState == UI_STATE_WHERE_TO_SELECTED,
+              sysConfig: _sysConfig,
+              onSelectPinCalled: () {
+                _UIState = UI_STATE_SELECT_PIN_SELECTED;
+                setState(() {});
+              },
+              /*
             onDismissDialog: () {
               cancelCurrentRideRequest();
               resetTripDetails();
             },
              */
-                callback: () async {
-                  // if still not able to load current location, bail out
-                  if (_currentPosition == null) {
-                    return;
-                  }
+              callback: () async {
+                // if still not able to load current location, bail out
+                if (_currentPosition == null) {
+                  return;
+                }
 
+                await getRouteDetails(context);
+                _UIState = UI_STATE_DROPOFF_SET;
+
+                _isHamburgerDrawerMode = false;
+                setBottomMapPadding(screenHeight *
+                    ConfirmRideDetailsBottomSheet.HEIGHT_RIDE_DETAILS_PERCENT);
+
+                // stop showing nearby drivers
+                ignoreGeoFireUpdates();
+
+                setState(() {});
+              },
+            ),
+
+            if (_UIState == UI_STATE_SELECT_PIN_SELECTED &&
+                _CURRENT_PIN_ICON != null &&
+                _currentPosition != null) ...[
+              SelectDropOffPinBottomSheet(
+                tickerProvider: this,
+                showBottomSheet: _UIState == UI_STATE_SELECT_PIN_SELECTED,
+                CURRENT_PIN_ICON: _CURRENT_PIN_ICON!,
+                currentPosition: _currentPosition!,
+                sysConfig: _sysConfig,
+                onBackSelected: () {
+                  _UIState = UI_STATE_WHERE_TO_SELECTED;
+                  setState(() {});
+                },
+                callback: () async {
                   await getRouteDetails(context);
                   _UIState = UI_STATE_DROPOFF_SET;
 
@@ -1173,134 +1198,104 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
                   setState(() {});
                 },
               ),
-
-              if (_UIState == UI_STATE_SELECT_PIN_SELECTED &&
-                  _CURRENT_PIN_ICON != null &&
-                  _currentPosition != null) ...[
-                SelectDropOffPinBottomSheet(
-                  tickerProvider: this,
-                  showBottomSheet: _UIState == UI_STATE_SELECT_PIN_SELECTED,
-                  CURRENT_PIN_ICON: _CURRENT_PIN_ICON!,
-                  currentPosition: _currentPosition!,
-                  sysConfig: _sysConfig,
-                  onBackSelected: () {
-                    _UIState = UI_STATE_WHERE_TO_SELECTED;
-                    setState(() {});
-                  },
-                  callback: () async {
-                    await getRouteDetails(context);
-                    _UIState = UI_STATE_DROPOFF_SET;
-
-                    _isHamburgerDrawerMode = false;
-                    setBottomMapPadding(screenHeight *
-                        ConfirmRideDetailsBottomSheet
-                            .HEIGHT_RIDE_DETAILS_PERCENT);
-
-                    // stop showing nearby drivers
-                    ignoreGeoFireUpdates();
-
-                    setState(() {});
-                  },
-                ),
-              ],
-
-              //
-              ConfirmRideDetailsBottomSheet(
-                tickerProvider: this,
-                showBottomSheet: _UIState == UI_STATE_DROPOFF_SET,
-                routeDetails: _pickupToDropOffRouteDetail,
-                actionCallback: () async {
-                  if (!_isInternetWorking) {
-                    displayToastMessage(
-                        SafeLocalizations.of(context)!
-                            .generic_message_no_internet,
-                        context);
-                  } else {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => CustomProgressDialog(
-                          message: SafeLocalizations.of(context)!
-                              .main_screen_creating_order_progress),
-                    );
-
-                    _UIState = await createNewRideRequest();
-
-                    Navigator.pop(context);
-
-                    // Will update UI when either driver is assigned OR trip is cancelled
-                    await listenToRideStatusUpdates();
-
-                    setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
-                        ? 0
-                        : (screenHeight *
-                            SearchingForDriverBottomSheet
-                                .HEIGHT_SEARCHING_FOR_DRIVER_PERCENT));
-
-                    _isHamburgerDrawerMode = true;
-                  }
-
-                  setState(() {});
-                },
-              ),
-
-              //
-              SearchingForDriverBottomSheet(
-                tickerProvider: this,
-                showBottomSheet: _UIState == UI_STATE_SEARCHING_FOR_DRIVER,
-                actionCallback: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (_) => RideCancellationDialog(
-                        rideRequest: _currentRideRequest!),
-                  );
-                },
-              ),
-
-              // Tentatively Picked Driver
-              DriverPickedBottomSheet(
-                tickerProvider: this,
-                showBottomSheet: _UIState == UI_STATE_DRIVER_PICKED,
-                pickedDriver: _selectedDriver,
-                actionCallback: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (_) => RideCancellationDialog(
-                        rideRequest: _currentRideRequest!),
-                  );
-                },
-              ),
-
-              //
-              DriverToPickupBottomSheet(
-                tickerProvider: this,
-                showBottomSheet: _UIState == UI_STATE_DRIVER_CONFIRMED,
-                pickedDriver: _selectedDriver,
-                rideRequest: _currentRideRequest,
-                actionCallback: () async {
-                  await showDialog(
-                    context: context,
-                    builder: (_) => RideCancellationDialog(
-                        rideRequest: _currentRideRequest!),
-                  );
-                },
-              ),
-
-              //
-              TripDetailsBottomSheet(
-                tickerProvider: this,
-                showBottomSheet: _UIState == UI_STATE_TRIP_STARTED,
-                pickedDriver: _selectedDriver,
-                rideRequest: _currentRideRequest,
-                currentPosition: _currentPosition,
-                tripStartedLocation: _tripStartedLocation,
-                tripCounterTimer: _tripCounterTimer,
-                tripStartTimestamp: _tripStartTimestamp,
-                actionCallback: () {
-                  // TODO: nothing to do here, just sitting and waiting
-                },
-              ),
             ],
+
+            //
+            ConfirmRideDetailsBottomSheet(
+              tickerProvider: this,
+              showBottomSheet: _UIState == UI_STATE_DROPOFF_SET,
+              routeDetails: _pickupToDropOffRouteDetail,
+              actionCallback: () async {
+                if (!_isInternetWorking) {
+                  displayToastMessage(
+                      SafeLocalizations.of(context)!
+                          .generic_message_no_internet,
+                      context);
+                } else {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => CustomProgressDialog(
+                        message: SafeLocalizations.of(context)!
+                            .main_screen_creating_order_progress),
+                  );
+
+                  _UIState = await createNewRideRequest();
+
+                  Navigator.pop(context);
+
+                  // Will update UI when either driver is assigned OR trip is cancelled
+                  await listenToRideStatusUpdates();
+
+                  setBottomMapPadding(_UIState == UI_STATE_NOTHING_STARTED
+                      ? 0
+                      : (screenHeight *
+                          SearchingForDriverBottomSheet
+                              .HEIGHT_SEARCHING_FOR_DRIVER_PERCENT));
+
+                  _isHamburgerDrawerMode = true;
+                }
+
+                setState(() {});
+              },
+            ),
+
+            //
+            SearchingForDriverBottomSheet(
+              tickerProvider: this,
+              showBottomSheet: _UIState == UI_STATE_SEARCHING_FOR_DRIVER,
+              actionCallback: () async {
+                await showDialog(
+                  context: context,
+                  builder: (_) =>
+                      RideCancellationDialog(rideRequest: _currentRideRequest!),
+                );
+              },
+            ),
+
+            // Tentatively Picked Driver
+            DriverPickedBottomSheet(
+              tickerProvider: this,
+              showBottomSheet: _UIState == UI_STATE_DRIVER_PICKED,
+              pickedDriver: _selectedDriver,
+              actionCallback: () async {
+                await showDialog(
+                  context: context,
+                  builder: (_) =>
+                      RideCancellationDialog(rideRequest: _currentRideRequest!),
+                );
+              },
+            ),
+
+            //
+            DriverToPickupBottomSheet(
+              tickerProvider: this,
+              showBottomSheet: _UIState == UI_STATE_DRIVER_CONFIRMED,
+              pickedDriver: _selectedDriver,
+              rideRequest: _currentRideRequest,
+              actionCallback: () async {
+                await showDialog(
+                  context: context,
+                  builder: (_) =>
+                      RideCancellationDialog(rideRequest: _currentRideRequest!),
+                );
+              },
+            ),
+
+            //
+            TripDetailsBottomSheet(
+              tickerProvider: this,
+              showBottomSheet: _UIState == UI_STATE_TRIP_STARTED,
+              pickedDriver: _selectedDriver,
+              rideRequest: _currentRideRequest,
+              currentPosition: _currentPosition,
+              tripStartedLocation: _tripStartedLocation,
+              tripCounterTimer: _tripCounterTimer,
+              tripStartTimestamp: _tripStartTimestamp,
+              actionCallback: () {
+                // TODO: nothing to do here, just sitting and waiting
+              },
+            ),
           ],
         ));
   }
