@@ -15,7 +15,7 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^1.0.4
-  firebase_core: ^2.7.0
+  firebase_core: ^2.15.0
   firebase_auth: ^4.2.9
   firebase_auth_web: ^5.2.8
   firebase_messaging: ^14.2.5
@@ -41,7 +41,7 @@ dependencies:
   future_progress_dialog: ^0.2.0
   rounded_loading_button: ^2.0.9
   package_info_plus: ^3.0.3
-  intl: ^0.17.0
+  intl: ^0.18.0
   flutter_native_timezone: ^2.0.0
   url_launcher: ^6.0.20
   email_validator: ^2.0.1
