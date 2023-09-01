@@ -151,9 +151,8 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                       ),
 
                       child: Image.asset(
-                        'images/share-ride.png'
+                        'images/share_ride.png'
                       ),
-
                     ),
                     Padding(
                       padding: EdgeInsets.only(left: 10.0, top: 10.0),

@@ -130,6 +130,7 @@ flutter:
     - images/s_suzuki.png
     - images/back_pic.png
     - images/swip_logo.png
+    - images/share_ride.png
     - assets/
 
   fonts:
