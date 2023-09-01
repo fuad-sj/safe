@@ -4,6 +4,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 import 'package:safe/controller/bottom_sheets/base_bottom_sheet.dart';
 import 'package:safe/controller/custom_toast_message.dart';
+import 'package:safe/controller/graphview/GraphView.dart';
 import 'package:safe/controller/shared_rides_list_and_compass_screen.dart';
 import 'package:safe/models/color_constants.dart';
 import 'package:safe/pickup_and_dropoff_locations.dart';
@@ -79,27 +80,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: VSpace(0.02)),
-          Center(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () {
-                if (widget.enabledBottomToggle) {
-                  widget.onActionCallback();
-                } else {
-                  widget.onDisabledCallback();
-                }
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(5.0),
-                    color: Color(0xffDD0000)),
-                margin: EdgeInsets.only(top: VSpace(0.005)),
-                width: HSpace(0.12),
-                height: VSpace(0.01),
-              ),
-            ),
-          ),
           SizedBox(height: VSpace(0.016)),
           Container(
             child: Row(
@@ -120,6 +100,75 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               ],
             ),
           ),
+          SizedBox(height: VSpace(0.025)),
+
+          Container(
+            height: MediaQuery.of(context).size.height * 0.12,
+            width: MediaQuery.of(context).size.width * 0.87,
+            decoration: BoxDecoration(
+              color: Color.fromRGBO(81, 79, 79, 0.15),
+              borderRadius: BorderRadius.circular(15.0),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.white12,
+                  blurRadius: 15.0,
+                  offset: Offset(0.0, 0.75),
+                  spreadRadius: 3.0,
+                )
+              ]
+            ),
+            child: Row(
+              children: [
+                Container(
+                  height: MediaQuery.of(context).size.height * 0.12,
+                  width: MediaQuery.of(context).size.width * 0.435,
+                  decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                         Color.fromRGBO(219, 4, 4, 1.0),
+                         Color.fromRGBO(109, 2, 24, 1.0)
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(15.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white12,
+                          blurRadius: 15.0,
+                          offset: Offset(0.0, 0.75),
+                          spreadRadius: 3.0,
+                        )
+                      ]
+                  ),
+                ),
+                Container(
+                 child: Column(
+                   children: [
+                     Container(
+                       child: Row (
+                         children: [
+                           Text('የጋራ',
+
+                           ),
+                           Icon(Icons.arrow_forward ,
+                           size: 40,
+                           )
+                         ],
+                       ),
+
+                     ),
+
+                     Text('4 ወይም 6 ሆነው የሚጉዋዙበት '),
+
+                   ],
+                 ),
+                )
+              ],
+
+            ),
+          ),
+          /*
           if (widget.showSharedRideOption) ...[
             SizedBox(height: VSpace(0.005)),
             GestureDetector(
@@ -141,6 +190,8 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               ),
             ),
           ],
+
+           */
           SizedBox(height: VSpace(0.020)),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -174,59 +225,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               ),
             ),
           ),
-          SizedBox(height: VSpace(0.038)),
-          Container(
-              height: VSpace(0.056),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      child: Column(
-                        children: <Widget>[
-                          Text('Home',
-                              style: TextStyle(
-                                  fontSize: 16.0,
-                                  fontFamily: 'Lato',
-                                  color: Color.fromRGBO(221, 0, 0, 1))),
-                          SizedBox(height: VSpace(0.001)),
-                          Text('Your home location',
-                              style: TextStyle(
-                                  fontSize: 9.0,
-                                  fontFamily: 'Lato',
-                                  color: Color.fromRGBO(81, 81, 81, 1)))
-                        ],
-                      ),
-                    ),
-                  ),
-                  Container(
-                    width: 2.0,
-                    color: Color.fromRGBO(151, 151, 151, 0.3),
-                  ),
-                  Expanded(
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () async {},
-                      child: Container(
-                        child: Column(
-                          children: <Widget>[
-                            Text('Work',
-                                style: TextStyle(
-                                    fontSize: 16.0,
-                                    fontFamily: 'Lato',
-                                    color: Color.fromRGBO(221, 0, 0, 1))),
-                            SizedBox(height: VSpace(0.001)),
-                            Text('Your work location',
-                                style: TextStyle(
-                                    fontSize: 9.0,
-                                    fontFamily: 'Lato',
-                                    color: Color.fromRGBO(81, 81, 81, 1)))
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              )),
+
           SizedBox(height: VSpace(0.023)),
           Center(
             child: Container(
@@ -266,7 +265,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
 
                       Text(widget.referralCode ?? '',
                           style: TextStyle(
-                              fontSize: 25.0,
+                              fontSize: 15.0,
                               fontFamily: 'Lato',
                               fontWeight: FontWeight.w900,
                               color: Color.fromRGBO(221, 0, 0, 1))),
