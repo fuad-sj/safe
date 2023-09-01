@@ -246,7 +246,7 @@
                                                                                   GFQueryResultSnapshotBlock block,
                                                                                   BOOL *stop) {
             dispatch_async(self.geoFire.callbackQueue, ^{
-                block(key, info.snapshot);
+                block(key, info.location, info.snapshot);
             });
         }];
     } else if (!isNew && changedLocation && info.isInQuery) {
@@ -261,7 +261,7 @@
                                                                                   GFQueryResultSnapshotBlock block,
                                                                                   BOOL *stop) {
             dispatch_async(self.geoFire.callbackQueue, ^{
-                block(key, info.snapshot);
+                block(key, info.location, info.snapshot);
             });
         }];
     } else if (wasInQuery && !info.isInQuery) {
@@ -276,7 +276,7 @@
                                                                                   GFQueryResultSnapshotBlock block,
                                                                                   BOOL *stop) {
             dispatch_async(self.geoFire.callbackQueue, ^{
-                block(key, info.snapshot);
+                block(key, info.location, info.snapshot);
             });
         }];
     }
@@ -345,7 +345,7 @@
                                                                                                      GFQueryResultSnapshotBlock block,
                                                                                                      BOOL *stop) {
                                 dispatch_async(self.geoFire.callbackQueue, ^{
-                                    block(key, snapshot);
+                                    block(key, info.location, snapshot);
                                 });
                             }];
                         }
@@ -565,9 +565,13 @@
         FirebaseHandle firebaseHandle = self.currentHandle++;
         NSNumber *numberHandle = [NSNumber numberWithUnsignedInteger:firebaseHandle];
         switch (eventType) {
-            case GFEventTypeKeyEntered: {
-                [self.keyEnteredSnapshotObservers setObject:[block copy]
-                                                         forKey:numberHandle];
+            case GFEventTypeKeyEntered:
+            case GFEventTypeKeyMoved: {
+                if (eventType == GFEventTypeKeyEntered) {
+                  [self.keyEnteredSnapshotObservers setObject:[block copy] forKey:numberHandle];
+                } else {
+                  [self.keyMovedSnapshotObservers setObject:[block copy] forKey:numberHandle];
+                }
                 self.currentHandle++;
                 dispatch_async(self.geoFire.callbackQueue, ^{
                     @synchronized(self) {
@@ -575,7 +579,7 @@
                                                                                 GFQueryLocationInfo *info,
                                                                                 BOOL *stop) {
                             if (info.isInQuery) {
-                                block(key, info.snapshot);
+                                block(key, info.location, info.snapshot);
                             }
                         }];
                     };
@@ -585,12 +589,6 @@
             case GFEventTypeKeyExited: {
                 [self.keyExitedSnapshotObservers setObject:[block copy]
                                                         forKey:numberHandle];
-                self.currentHandle++;
-                break;
-            }
-            case GFEventTypeKeyMoved: {
-                [self.keyMovedSnapshotObservers setObject:[block copy]
-                                                       forKey:numberHandle];
                 self.currentHandle++;
                 break;
             }

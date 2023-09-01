@@ -11,6 +11,7 @@
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     @synchronized(self) {
+        NSLog(@"Starting the log");
         [[GeofirePlugin alloc] init:registrar];
     }
 }
@@ -34,11 +35,24 @@
 
   NSDictionary *arguments = call.arguments;
 
-  if ([call.method isEqualToString:@"GeoFire.start"]) {
+  NSLog(@"callback");
+  if ([call.method isEqualToString:@"initialize"]) {
     NSString *path = arguments[@"path"];
+    NSString *root = arguments[@"root"];
+    BOOL isDefault = arguments[@"is_default"];
 
-    FIRDatabaseReference *geoFireRef = [[FIRDatabase database] referenceWithPath:path];
-    self.geoFire = [[GeoFire alloc] initWithFirebaseRef:geoFireRef];
+    // If the isDefault flag is true, get the reference to the default database.
+    FIRDatabaseReference *databaseReference;
+    if (isDefault) {
+      databaseReference = [[FIRDatabase database] referenceWithPath:path];
+    } else {
+      // Otherwise, get the reference to the database with the specified root.
+      databaseReference = [[FIRDatabase databaseWithURL:root] referenceWithPath:path];
+    }
+
+    NSLog(@"initializing");
+    self.geoFire = [[GeoFire alloc] initWithFirebaseRef:databaseReference];
+    NSLog(@"initialization complete");
 
     result(@(YES));
   } else if ([call.method isEqualToString:@"setLocation"]) {
@@ -96,29 +110,37 @@
 
     self.circleQuery = [self.geoFire queryAtLocation:location withRadius:radius];
 
-    [self.circleQuery observeEventType:GFEventTypeKeyEntered withBlock:^(NSString *key, CLLocation *location) {
+    [self.circleQuery observeEventType:GFEventTypeKeyEntered withSnapshotBlock:^(NSString *key, CLLocation *location, FIRDataSnapshot *snapshot) {
       NSMutableDictionary *param = [NSMutableDictionary dictionary];
 
       [param setValue:@"onKeyEntered" forKey:@"callBack"];
       [param setValue:key forKey:@"key"];
       [param setValue:@(location.coordinate.latitude) forKey:@"latitude"];
       [param setValue:@(location.coordinate.longitude) forKey:@"longitude"];
+      [param setValue:[snapshot.value copy] forKey:@"val"];
 
+      NSLog(@"Key Entered");
+      NSLog(snapshot.value);
       eventSink(param);
+      NSLog(@"post key moved sink");
     }];
 
-    [self.circleQuery observeEventType:GFEventTypeKeyMoved withBlock:^(NSString *key, CLLocation *location) {
+    [self.circleQuery observeEventType:GFEventTypeKeyMoved withSnapshotBlock:^(NSString *key, CLLocation *location, FIRDataSnapshot *snapshot) {
       NSMutableDictionary *param = [NSMutableDictionary dictionary];
 
       [param setValue:@"onKeyMoved" forKey:@"callBack"];
       [param setValue:key forKey:@"key"];
       [param setValue:@(location.coordinate.latitude) forKey:@"latitude"];
       [param setValue:@(location.coordinate.longitude) forKey:@"longitude"];
+      [param setValue:[snapshot.value copy] forKey:@"val"];
 
+      NSLog(@"Key Moved");
+      NSLog(snapshot.value);
       eventSink(param);
+      NSLog(@"post key moved sink");
     }];
 
-    [self.circleQuery observeEventType:GFEventTypeKeyExited withBlock:^(NSString *key, CLLocation *location) {
+    [self.circleQuery observeEventType:GFEventTypeKeyExited withSnapshotBlock:^(NSString *key, CLLocation *location, FIRDataSnapshot *snapshot) {
       NSMutableDictionary *param = [NSMutableDictionary dictionary];
 
       [param setValue:@"onKeyExited" forKey:@"callBack"];

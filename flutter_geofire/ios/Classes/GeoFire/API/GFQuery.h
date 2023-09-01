@@ -44,7 +44,7 @@ typedef NS_ENUM(NSUInteger, GFEventType)
 };
 
 typedef void (^GFQueryResultBlock) (NSString *key, CLLocation *location);
-typedef void (^GFQueryResultSnapshotBlock) (NSString *key, FIRDataSnapshot *snapshot);
+typedef void (^GFQueryResultSnapshotBlock) (NSString *key, CLLocation *location, FIRDataSnapshot *snapshot);
 typedef void (^GFReadyBlock) (void);
 
 /**
