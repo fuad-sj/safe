@@ -101,76 +101,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
             ),
           ),
           SizedBox(height: VSpace(0.025)),
-
-          Container(
-            height: MediaQuery.of(context).size.height * 0.12,
-            width: MediaQuery.of(context).size.width * 0.87,
-            decoration: BoxDecoration(
-              color: Color.fromRGBO(81, 79, 79, 0.15),
-              borderRadius: BorderRadius.circular(15.0),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.white12,
-                  blurRadius: 15.0,
-                  offset: Offset(0.0, 0.75),
-                  spreadRadius: 3.0,
-                )
-              ]
-            ),
-            child: Row(
-              children: [
-                Container(
-                  height: MediaQuery.of(context).size.height * 0.12,
-                  width: MediaQuery.of(context).size.width * 0.435,
-                  decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                         Color.fromRGBO(219, 4, 4, 1.0),
-                         Color.fromRGBO(109, 2, 24, 1.0)
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(15.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white12,
-                          blurRadius: 15.0,
-                          offset: Offset(0.0, 0.75),
-                          spreadRadius: 3.0,
-                        )
-                      ]
-                  ),
-                ),
-                Container(
-                 child: Column(
-                   children: [
-                     Container(
-                       child: Row (
-                         children: [
-                           Text('የጋራ',
-
-                           ),
-                           Icon(Icons.arrow_forward ,
-                           size: 40,
-                           )
-                         ],
-                       ),
-
-                     ),
-
-                     Text('4 ወይም 6 ሆነው የሚጉዋዙበት '),
-
-                   ],
-                 ),
-                )
-              ],
-
-            ),
-          ),
-          /*
           if (widget.showSharedRideOption) ...[
-            SizedBox(height: VSpace(0.005)),
             GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () async {
@@ -180,18 +111,101 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                       builder: (context) => SharedRidesListAndCompassScreen()),
                 );
               },
-              child: Center(
-                child: Container(
-                  height: MediaQuery.of(context).size.height * 0.085,
-                  child: Image(
-                    image: AssetImage('images/yegna.png'),
-                  ),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.12,
+                width: MediaQuery.of(context).size.width * 0.87,
+                decoration: BoxDecoration(
+                    color: Color.fromRGBO(81, 79, 79, 0.15),
+                    borderRadius: BorderRadius.circular(15.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white12,
+                        blurRadius: 15.0,
+                        offset: Offset(0.0, 0.75),
+                        spreadRadius: 3.0,
+                      )
+                    ]),
+                child: Row(
+                  children: [
+                    Container(
+                      height: MediaQuery.of(context).size.height * 0.12,
+                      width: MediaQuery.of(context).size.width * 0.435,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color.fromRGBO(219, 4, 4, 1.0),
+                            Color.fromRGBO(109, 2, 24, 1.0)
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(15.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white12,
+                            blurRadius: 15.0,
+                            offset: Offset(0.0, 0.75),
+                            spreadRadius: 3.0,
+                          )
+                        ],
+                      ),
+
+                      child: Image.asset(
+                        'images/share-ride.png'
+                      ),
+
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(left: 10.0, top: 10.0),
+                      child: Container(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.35,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'የጋራ',
+                                    style: TextStyle(
+                                      fontSize: 23.0,
+                                      fontFamily: 'Lato',
+                                      fontWeight: FontWeight.w900,
+                                      color: Color.fromRGBO(221, 0, 0, 1),
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    size: 35,
+                                    color: Color.fromRGBO(221, 0, 0, 1),
+                                  )
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: VSpace(0.01)),
+                            Container(
+                              width: MediaQuery.of(context).size.width * 0.25,
+                              child: Text(
+                                '4 ወይም 6 ሆነው የሚጉዋዙበት',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 3,
+                                softWrap: false,
+                                style: TextStyle(
+                                    fontSize: 12.0,
+                                    color: Color.fromRGBO(81, 79, 79, 1.0)),
+                              ),
+                            )
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
-
-           */
           SizedBox(height: VSpace(0.020)),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
@@ -218,14 +232,14 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                           : Colors.grey.shade700),
                   SizedBox(width: HSpace(0.05)),
                   Text(
-                      SafeLocalizations.of(context)!
-                          .bottom_sheet_where_to_where_are_you_going,
-                      style: TextStyle(fontFamily: 'Lato')),
+                    SafeLocalizations.of(context)!
+                        .bottom_sheet_where_to_where_are_you_going,
+                    style: TextStyle(fontFamily: 'Lato'),
+                  ),
                 ],
               ),
             ),
           ),
-
           SizedBox(height: VSpace(0.023)),
           Center(
             child: Container(
@@ -263,12 +277,15 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                         ),
                       ),
 
-                      Text(widget.referralCode ?? '',
-                          style: TextStyle(
-                              fontSize: 15.0,
-                              fontFamily: 'Lato',
-                              fontWeight: FontWeight.w900,
-                              color: Color.fromRGBO(221, 0, 0, 1))),
+                      Text(
+                        widget.referralCode ?? '',
+                        style: TextStyle(
+                          fontSize: 15.0,
+                          fontFamily: 'Lato',
+                          fontWeight: FontWeight.w900,
+                          color: Color.fromRGBO(221, 0, 0, 1),
+                        ),
+                      ),
 
                       //referral code copy
                       Container(
