@@ -194,7 +194,7 @@ class _SharedRidesListAndCompassScreenState
       _selfPhone = PrefUtil.getCurrentUserPhone();
 
       await Geofire.initialize(FIREBASE_DB_PATHS.SHARED_RIDE_BROADCASTS,
-          is_default: false,
+          is_default: Geofire.IS_DEFAULT_ROOT_FALSE,
           root: SharedRideBroadcast.SHARED_RIDE_DATABASE_ROOT);
 
       loadDestinationLocations();

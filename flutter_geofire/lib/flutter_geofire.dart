@@ -13,10 +13,13 @@ class Geofire {
   static const onKeyChanged = "onKeyChanged";
   static const onKeyExited = "onKeyExited";
 
+  static const IS_DEFAULT_ROOT_TRUE = 1;
+  static const IS_DEFAULT_ROOT_FALSE = 0;
+
   static Stream<dynamic>? _queryAtLocation;
 
-  static Future<bool> initialize(
-      String path, {bool is_default = true, String root = ""}) async {
+  static Future<bool> initialize(String path,
+      {int is_default = IS_DEFAULT_ROOT_TRUE, String root = ""}) async {
     final dynamic r = await _channel.invokeMethod(
         'initialize', <String, dynamic>{
       "path": path,
@@ -60,10 +63,11 @@ class Geofire {
 
   static Stream<dynamic>? queryAtLocation(
       double lat, double lng, double radius) {
-    _channel.invokeMethod('queryAtLocation',
-        {"lat": lat, "lng": lng, "radius": radius}).then((result) {
-    }).catchError((error) {
-    });
+    _channel
+        .invokeMethod(
+            'queryAtLocation', {"lat": lat, "lng": lng, "radius": radius})
+        .then((result) {})
+        .catchError((error) {});
 
     if (_queryAtLocation == null) {
       _queryAtLocation = _stream.receiveBroadcastStream();

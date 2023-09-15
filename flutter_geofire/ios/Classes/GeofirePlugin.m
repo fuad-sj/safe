@@ -6,12 +6,10 @@
 @implementation GeofirePlugin {
   FlutterMethodChannel *_channel;
   FlutterEventChannel *_eventChannel;
-  FlutterEventSink eventSink;
 }
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
     @synchronized(self) {
-        NSLog(@"Starting the log");
         [[GeofirePlugin alloc] init:registrar];
     }
 }
@@ -35,24 +33,21 @@
 
   NSDictionary *arguments = call.arguments;
 
-  NSLog(@"callback");
   if ([call.method isEqualToString:@"initialize"]) {
     NSString *path = arguments[@"path"];
     NSString *root = arguments[@"root"];
-    BOOL isDefault = arguments[@"is_default"];
-
+    int is_default = ((NSNumber *)arguments[@"is_default"]).intValue;
+      
     // If the isDefault flag is true, get the reference to the default database.
     FIRDatabaseReference *databaseReference;
-    if (isDefault) {
+    if (is_default == 1) {
       databaseReference = [[FIRDatabase database] referenceWithPath:path];
     } else {
       // Otherwise, get the reference to the database with the specified root.
       databaseReference = [[FIRDatabase databaseWithURL:root] referenceWithPath:path];
     }
 
-    NSLog(@"initializing");
     self.geoFire = [[GeoFire alloc] initWithFirebaseRef:databaseReference];
-    NSLog(@"initialization complete");
 
     result(@(YES));
   } else if ([call.method isEqualToString:@"setLocation"]) {
@@ -119,10 +114,7 @@
       [param setValue:@(location.coordinate.longitude) forKey:@"longitude"];
       [param setValue:[snapshot.value copy] forKey:@"val"];
 
-      NSLog(@"Key Entered");
-      NSLog(snapshot.value);
-      eventSink(param);
-      NSLog(@"post key moved sink");
+      self.eventSink(param);
     }];
 
     [self.circleQuery observeEventType:GFEventTypeKeyMoved withSnapshotBlock:^(NSString *key, CLLocation *location, FIRDataSnapshot *snapshot) {
@@ -134,10 +126,7 @@
       [param setValue:@(location.coordinate.longitude) forKey:@"longitude"];
       [param setValue:[snapshot.value copy] forKey:@"val"];
 
-      NSLog(@"Key Moved");
-      NSLog(snapshot.value);
-      eventSink(param);
-      NSLog(@"post key moved sink");
+      self.eventSink(param);
     }];
 
     [self.circleQuery observeEventType:GFEventTypeKeyExited withSnapshotBlock:^(NSString *key, CLLocation *location, FIRDataSnapshot *snapshot) {
@@ -148,7 +137,7 @@
       [param setValue:@(location.coordinate.latitude) forKey:@"latitude"];
       [param setValue:@(location.coordinate.longitude) forKey:@"longitude"];
 
-      eventSink(param);
+      self.eventSink(param);
     }];
 
     [self.circleQuery observeReadyWithBlock:^{
@@ -157,18 +146,18 @@
       [param setValue:@"onGeoQueryReady" forKey:@"callBack"];
       [param setValue:key forKey:@"result"];
 
-      eventSink(param);
+      self.eventSink(param);
     }];
   }
 }
 
-- (FlutterError *)onListen:(id)arguments eventSink:(FlutterEventSink)sink {
-  eventSink = sink;
+- (FlutterError*)onListenWithArguments:(id)arguments eventSink:(FlutterEventSink)sink {
+  self.eventSink = sink;
   return nil;
 }
 
-- (FlutterError *)onCancel:(id)arguments {
-  eventSink = nil;
+- (FlutterError*)onCancelWithArguments:(id)arguments {
+  self.eventSink = nil;
   return nil;
 }
 

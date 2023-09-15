@@ -5,4 +5,5 @@
 
 @property (nonatomic, strong) GeoFire *geoFire;
 @property (nonatomic, strong) GFCircleQuery *circleQuery;
+@property (nonatomic, strong) FlutterEventSink eventSink;
 @end
