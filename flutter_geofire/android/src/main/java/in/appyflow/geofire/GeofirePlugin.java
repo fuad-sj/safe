@@ -50,9 +50,9 @@ public class GeofirePlugin implements FlutterPlugin, MethodCallHandler, EventCha
         if (call.method.equals("initialize")) {
             String path = call.argument("path").toString();
             String root = call.argument("root").toString();
-            boolean is_default = call.argument("is_default");
+            int is_default = call.argument("is_default");
 
-            if (is_default) {
+            if (is_default == 1) {
                 databaseReference = FirebaseDatabase.getInstance().getReference(path);
             } else {
                 databaseReference = FirebaseDatabase.getInstance(root).getReference(path);
