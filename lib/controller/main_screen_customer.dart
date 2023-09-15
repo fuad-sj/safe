@@ -222,7 +222,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   final Connectivity _connectivity = Connectivity();
-  late StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  StreamSubscription<ConnectivityResult>? _connectivitySubscription;
 
   void setBottomMapPadding(double height) {
     const double MAP_BUFFER_HEIGHT = 5.0 + 15;
@@ -311,7 +311,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     */
     _tokenVersionUpdateSubscription?.cancel();
 
-    _connectivitySubscription.cancel();
+    _connectivitySubscription?.cancel();
     _currentCustomerSubscription?.cancel();
 
     _geofireLocationStream?.cancel();
