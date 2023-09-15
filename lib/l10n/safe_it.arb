@@ -75,6 +75,10 @@
   "bottom_sheet_where_to_current_location": "Argama Ammaa",
   "bottom_sheet_where_to_enter_destination": "Bakka Deemtu Galcha",
 
+  "bottom_sheet_where_to_where_single": "Single",
+  "bottom_sheet_where_to_where_shared": "Shared",
+  "bottom_sheet_where_to_where_shared_description": "shared",
+
   "order_history_title": "Seenaa Ajajaa",
   "order_history_order_status_placed": "Gaaffiin Gaafatameera",
   "order_history_order_status_confirmed": "Konkolaachisaan Waligaleera",

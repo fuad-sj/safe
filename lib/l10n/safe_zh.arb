@@ -75,6 +75,10 @@
   "bottom_sheet_where_to_current_location": "當前位置",
   "bottom_sheet_where_to_enter_destination": "輸入目的地",
 
+  "bottom_sheet_where_to_where_single": "Single",
+  "bottom_sheet_where_to_where_shared": "Shared",
+  "bottom_sheet_where_to_where_shared_description": "Share your ride with 4 or 6 passenger",
+
   "order_history_title": "訂單歷史",
   "order_history_order_status_placed": "請求已創建",
   "order_history_order_status_confirmed": "司機確認",

@@ -69,11 +69,17 @@
   "bottom_sheet_trip_details_distance_covered": "የተጛዙት ርቀት",
   "bottom_sheet_trip_details_ride_time": "የተጛዙበት ሰአት",
 
-  "bottom_sheet_where_to_hello_there": "Hello there",
+  "bottom_sheet_where_to_hello_there": "ሰላም",
   "bottom_sheet_where_to_where_to": "ወዴት መሄት ይፈልጋሉ",
-  "bottom_sheet_where_to_where_are_you_going": "Where are you going?",
+  "bottom_sheet_where_to_where_are_you_going": "ወዴት መሄት ይፈልጋሉ ?",
   "bottom_sheet_where_to_current_location": "መነሻ ቦታ",
   "bottom_sheet_where_to_enter_destination": "መድረሻ ያስገቡ",
+
+
+  "bottom_sheet_where_to_where_single": "የብቻ",
+  "bottom_sheet_where_to_where_shared": "የጋራ",
+  "bottom_sheet_where_to_where_shared_description": "4 ወይም 6 ሆነው የሚጉዋዙበት",
+
 
   "order_history_title": "የበፊት ትዛዝ",
   "order_history_order_status_placed": "ጥሪው ለማቅረብ",

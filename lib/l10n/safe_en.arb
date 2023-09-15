@@ -75,6 +75,11 @@
   "bottom_sheet_where_to_current_location": "Current Location",
   "bottom_sheet_where_to_enter_destination": "Enter Destination",
 
+  "bottom_sheet_where_to_where_single": "Single",
+  "bottom_sheet_where_to_where_shared": "Shared",
+  "bottom_sheet_where_to_where_shared_description": "Share your ride with 4 or 6 passenger",
+
+
   "order_history_title": "My Orders",
   "order_history_order_status_placed": "Request Created",
   "order_history_order_status_confirmed": "Driver Confirmed",
@@ -107,4 +112,5 @@
   "dialog_driver_not_found_dismiss": "Dismiss",
   "not_activated_customer_header": "Welcome To safe transport ",
   "not_activated_customer_body": "use Your friends Referral Code to sign in please "
+
 }

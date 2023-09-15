@@ -71,14 +71,14 @@ class PrefUtil {
 
   static const String pref_user_language_locale = "pref_user_language_locale";
 
-  static const String LANGUAGE_ENGLISH = 'en';
+  static const String LANGUAGE_AMHARIC = 'em';
 
   static Future<void> setUserLanguageLocale(String localeId) async {
     await _prefs.setString(pref_user_language_locale, localeId);
   }
 
   static String getUserLanguageLocale() {
-    return _prefs.getString(pref_user_language_locale) ?? LANGUAGE_ENGLISH;
+    return _prefs.getString(pref_user_language_locale) ?? LANGUAGE_AMHARIC;
   }
 
   static bool isUserLanguageLocaleSet() {
