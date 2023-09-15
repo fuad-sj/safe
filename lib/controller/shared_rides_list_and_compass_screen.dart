@@ -747,6 +747,9 @@ class _SharedRidesListAndCompassScreenState
   /// Aggregate destinations based on place, so multiple broadcasts to the same place appear as one in a list
   void updatePlaceRideAggregate(String rideId,
       {bool isRemoveOperation = false}) {
+    if (!_rideBroadcasts.containsKey(rideId)) {
+      return;
+    }
     SharedRideBroadcast broadcast = _rideBroadcasts[rideId]!;
     String placeId = broadcast.ride_details!.place_id!;
     bool isFemaleOnly = broadcast.ride_details?.is_female_only ?? false;
