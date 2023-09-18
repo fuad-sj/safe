@@ -1033,14 +1033,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     final RoundedLoadingButtonController _referalController =
         RoundedLoadingButtonController();
 
-    void _referalBtn() async {
-      Timer(Duration(seconds: 3), () {
-        _referalController.success();
-      });
-    }
-
-    bool _referalBtnActive = false;
-
     return Scaffold(
         key: _scaffoldKey,
         drawer: _getDrawerLayout(context),
@@ -1092,8 +1084,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
             WhereToBottomSheet(
               tickerProvider: this,
-              showSharedRideOption: startupInfoLoadComplete &&
-                  (!updateAvailable && !forcefulUpdateAvailable),
+              showSharedRideOption: !forcefulUpdateAvailable,
               showBottomSheet: _UIState == UI_STATE_NOTHING_STARTED,
               enableButtonSelection: _isInternetWorking,
               customerName: _currentCustomer?.user_name,
