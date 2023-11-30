@@ -3,7 +3,7 @@ description: Safe Passenger Application
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 2.0.31+42
+version: 2.0.33+44
 
 environment:
   sdk: ">=2.12.0 <3.0.0"
@@ -28,7 +28,7 @@ dependencies:
   google_maps_flutter: ^2.1.1
   geolocator: ^9.0.2
   http: ^0.13.4
-  provider: ^6.0.2
+  provider: ^6.0.5
   flutter_polyline_points: ^1.0.0
   google_polyline_algorithm: ^3.1.0
   font_awesome_flutter: ^9.2.0
@@ -130,6 +130,8 @@ flutter:
     - images/s_suzuki.png
     - images/back_pic.png
     - images/swip_logo.png
+    - images/shared_multiple.png
+    - images/shared_single.png
     - images/share_ride.png
     - assets/
 

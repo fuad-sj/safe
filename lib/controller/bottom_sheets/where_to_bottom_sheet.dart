@@ -151,7 +151,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                       ),
 
                       child: Image.asset(
-                        'images/share_ride.png'
+                        'images/shared_multiple.png'
                       ),
                     ),
                     Padding(
@@ -167,7 +167,8 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'የጋራ',
+                                    SafeLocalizations.of(context)!
+                                        .bottom_sheet_where_to_where_shared,
                                     style: TextStyle(
                                       fontSize: 23.0,
                                       fontFamily: 'Lato',
@@ -187,7 +188,8 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                             Container(
                               width: MediaQuery.of(context).size.width * 0.25,
                               child: Text(
-                                '4 ወይም 6 ሆነው የሚጉዋዙበት',
+                                SafeLocalizations.of(context)!
+                                    .bottom_sheet_where_to_where_shared_description,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 3,
                                 softWrap: false,
@@ -216,6 +218,101 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               }
             },
             child: Container(
+              height: MediaQuery.of(context).size.height * 0.12,
+              width: MediaQuery.of(context).size.width * 0.87,
+              decoration: BoxDecoration(
+                  color: Color.fromRGBO(81, 79, 79, 0.15),
+                  borderRadius: BorderRadius.circular(15.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white12,
+                      blurRadius: 15.0,
+                      offset: Offset(0.0, 0.75),
+                      spreadRadius: 3.0,
+                    )
+                  ]),
+              child: Row(
+                children: [
+                  Container(
+                    height: MediaQuery.of(context).size.height * 0.12,
+                    width: MediaQuery.of(context).size.width * 0.435,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Color.fromRGBO(219, 4, 4, 1.0),
+                          Color.fromRGBO(109, 2, 24, 1.0)
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(15.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white12,
+                          blurRadius: 15.0,
+                          offset: Offset(0.0, 0.75),
+                          spreadRadius: 3.0,
+                        )
+                      ],
+                    ),
+
+                    child: Image.asset(
+                        'images/shared_single.png'
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 10.0, top: 10.0),
+                    child: Container(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.35,
+                            child: Row(
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  SafeLocalizations.of(context)!
+                                  .bottom_sheet_where_to_where_single,
+                                  style: TextStyle(
+                                    fontSize: 23.0,
+                                    fontFamily: 'Lato',
+                                    fontWeight: FontWeight.w900,
+                                    color: Color.fromRGBO(221, 0, 0, 1),
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward,
+                                  size: 35,
+                                  color: Color.fromRGBO(221, 0, 0, 1),
+                                )
+                              ],
+                            ),
+                          ),
+                          SizedBox(height: VSpace(0.01)),
+                          Container(
+                            width: MediaQuery.of(context).size.width * 0.25,
+                            child: Text(
+                              SafeLocalizations.of(context)!
+                                  .bottom_sheet_where_to_where_are_you_going,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 3,
+                              softWrap: false,
+                              style: TextStyle(
+                                  fontSize: 12.0,
+                                  color: Color.fromRGBO(81, 79, 79, 1.0)),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+
+              /*
               height: MediaQuery.of(context).size.height * 0.044,
               decoration: BoxDecoration(
                 color: Color.fromRGBO(0, 0, 0, 0.1),
@@ -237,6 +334,8 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   ),
                 ],
               ),
+
+               */
             ),
           ),
           SizedBox(height: VSpace(0.023)),
