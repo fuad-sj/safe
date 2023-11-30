@@ -286,6 +286,15 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
     _currentPosition = position;
+
+    try {
+      if (_sysConfig != null) {
+        Address address = await GoogleApiUtils.searchCoordinateAddress(
+            _currentPosition!, _sysConfig!);
+        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+            .updatePickupLocationAddress(address);
+      }
+    } catch (err) {}
   }
 
   void _loadPhoneNumber() {
@@ -1514,15 +1523,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _mapController!
           .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
 
-      if (_sysConfig != null) {
-        Address address = await GoogleApiUtils.searchCoordinateAddress(
-            _currentPosition!, _sysConfig!);
-        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-            .updatePickupLocationAddress(address);
-        return true;
-      } else {
-        return false;
-      }
+      return true;
     } catch (err) {}
 
     return false;
