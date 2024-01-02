@@ -236,11 +236,11 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _defaultProfileImage = AssetImage('images/mask2.png');
     _teleIcon = Image(image: AssetImage('images/telelogo.png'));
 
+    liveLocation = new Location();
+
     Future.delayed(Duration.zero, () async {
       initConnectivity();
       loadMapIcons();
-
-      liveLocation = new Location();
 
       loadCurrentPosition();
 
