@@ -46,6 +46,7 @@ import 'package:safe/controller/ui_helpers.dart';
 import 'package:safe/language_selector_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
+import 'package:safe/models/driver_status.dart';
 import 'package:safe/models/token_version_and_update_info.dart';
 import 'package:safe/models/driver.dart';
 import 'package:safe/models/firebase_document.dart';
@@ -139,6 +140,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   Set<Marker> _mapMarkers = Set();
 
   Position? _currentPosition;
+  int? _serverTimestamp;
 
   double _mapBottomPadding = 0;
 
@@ -242,6 +244,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       initConnectivity();
       loadMapIcons();
 
+      await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
+
       await loadCurrentPosition();
 
       _loadPhoneNumber();
@@ -261,7 +265,6 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       _connectivitySubscription =
           _connectivity.onConnectivityChanged.listen(_updateConnectionStatus);
 
-      //await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
       _geoFireInitialized = true;
 
       if (Platform.isAndroid) {
@@ -290,13 +293,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _currentPosition = position;
 
     try {
+      _serverTimestamp = await GoogleApiUtils.getServerTimestamp();
+
       // we've hard-coded the number of instances that can handle google geocoding. check out how to implement Api Gateway
       Address address =
           await GoogleApiUtils.searchCoordinateAddress(_currentPosition!);
       Provider.of<PickUpAndDropOffLocations>(context, listen: false)
           .updatePickupLocationAddress(address);
-    } catch (err) {
-    }
+    } catch (err) {}
   }
 
   void _loadPhoneNumber() {
@@ -315,11 +319,10 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   void dispose() {
     _tripCounterTimer?.cancel();
 
-    /*
-    if (_geoFireInitialized) {
-      Geofire.stopListener();
-    }
-    */
+    Future.delayed(Duration.zero, () async {
+      await Geofire.stopListener();
+    });
+
     _tokenVersionUpdateSubscription?.cancel();
 
     _connectivitySubscription?.cancel();
@@ -1081,11 +1084,9 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
                 bool locationAcquired = await zoomCameraToCurrentPosition();
 
-                _ignoreGeofireUpdates = !_isReferralActivationComplete;
-
                 // start listening to nearby drivers once location is acquired
                 if (locationAcquired) {
-                  //await attachGeoFireListener();
+                  await attachGeoFireListener();
                 }
               },
             ),
@@ -1726,25 +1727,63 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     final String FIELD_KEY = 'key';
     final String FIELD_LATITUDE = 'latitude';
     final String FIELD_LONGITUDE = 'longitude';
+    final String FIELD_VAL = 'val';
+    final ONE_MINUTE_MILLISECONDS = 60 * 1000;
 
     _isNearbyDriverLoadingComplete = false;
 
+    // as the app could be returning from background, we always should reinitialize the listener to make sure we get fresh data.
+    await Geofire.stopListener();
+
+    _geofireLocationStream?.cancel();
     _geofireLocationStream = Geofire.queryAtLocation(
-            _currentPosition!.latitude, _currentPosition!.longitude, 0.2)
+            _currentPosition!.latitude, _currentPosition!.longitude, 0.6)
         ?.listen(
       (map) async {
-        if (map == null || _ignoreGeofireUpdates) {
+        if (map == null ||
+            _ignoreGeofireUpdates ||
+            // if we don't have server time, we can't do comparison of who is online/offline
+            (_serverTimestamp == null)) {
           return;
         }
 
         var callBack = map[FIELD_CALLBACK];
 
-        if (callBack != Geofire.onGeoQueryReady) {
-          var driver_id = map[FIELD_KEY];
+        bool isDriverValid = true;
 
-          if (!_nearbyDriverLocations.containsKey(driver_id)) {
-            if (random.nextDouble() > 0.2) return;
+        if (callBack != Geofire.onGeoQueryReady) {
+          var driverId = map[FIELD_KEY];
+
+          if (callBack == Geofire.onKeyEntered ||
+              callBack == Geofire.onKeyMoved) {
+            var elem = map[FIELD_VAL];
+            if (elem != null) {
+              DriverStatus status =
+                  DriverStatus.fromRealtimeDbSnapshot(elem["st"]);
+
+              if (status.is_driver_online != null &&
+                  status.is_already_dispatched != null &&
+                  // don't show already dispatched drivers
+                  status.is_already_dispatched! == false &&
+                  status.last_location_update != null &&
+                  // driver loc update should be within the past 5 minutes
+                  (status.last_location_update! >
+                      (_serverTimestamp! - (5 * ONE_MINUTE_MILLISECONDS)))) {
+                isDriverValid = true;
+              } else {
+                if (_nearbyDriverLocations.containsKey(driverId)) {
+                  _nearbyDriverLocations.remove(driverId);
+                }
+                isDriverValid = false;
+              }
+            } else {
+              isDriverValid = false;
+            }
           }
+        }
+
+        if (!isDriverValid) {
+          return;
         }
 
         switch (callBack) {

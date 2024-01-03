@@ -26,6 +26,15 @@ class GoogleApiUtils {
     return "/CacheEndpoint$instId/api/v1/";
   }
 
+  // gets backend server timestamp(since epoch), so we can do local accurate time comparisons
+  static Future<int> getServerTimestamp() async {
+    var response = await HttpUtil.getHttpsRequest(
+        REST_API_ROOT_PATH, "/TripEndpoint2/api/v1/server_timestamp", null);
+
+    int timestamp = response['server_time'];
+    return timestamp;
+  }
+
   // Convert [lat,long] into an human readable address using google maps api
   static Future<Address> searchCoordinateLatLng(
       LatLng latLng, SysConfig sysConfig) async {
