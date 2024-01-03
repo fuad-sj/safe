@@ -9,10 +9,12 @@ import 'package:path/path.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:safe/controller/custom_progress_dialog.dart';
 import 'package:safe/controller/custom_toast_message.dart';
+import 'package:safe/controller/dialogs/delete_customer_dialog.dart';
 import 'package:safe/models/FIREBASE_PATHS.dart';
 import 'package:safe/models/customer.dart';
 import 'package:safe/utils/alpha_numeric_utils.dart';
 import 'package:widget_mask/widget_mask.dart';
+import 'package:safe/controller/toggle_switch.dart';
 
 class CustomerProfileScreenNew extends StatefulWidget {
   static const String idScreen = "CustomerProfileScreen";
@@ -35,8 +37,6 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
   TextEditingController _emailController = TextEditingController();
   TextEditingController _lastNameController = TextEditingController();
 
-
-
   late ImageProvider _defaultProfileImage;
 
   Customer? _currentCustomer;
@@ -50,7 +50,7 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
   bool _enableRegisterBtn = false;
 
   final RoundedLoadingButtonController _CustomerLoadingBtnController =
-  RoundedLoadingButtonController();
+      RoundedLoadingButtonController();
 
   @override
   void initState() {
@@ -80,11 +80,9 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
 
     var gender_value = _currentCustomer!.gender;
 
-    if (gender_value == 1 ) {
+    if (gender_value == 1) {
       _character = Gender.female;
-    }
-    else {
-
+    } else {
       _character = Gender.male;
     }
 
@@ -113,10 +111,7 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
                     fit: BoxFit.cover)),
             child: Column(
               children: [
-
-
-
-                SizedBox(height: 22.0),
+                SizedBox(height: 20.0),
                 // don't bother to show UI if customer caching isn't complete
                 if (_currentCustomer != null) ...[
                   Padding(
@@ -125,8 +120,10 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(height: 12.0),
+                        BackButton(color: Color(0xff990000)),
+                        SizedBox(height: 12.0),
                         Text(
-                          'Welcome',
+                          'Welcome, ${_nameController.text.trim()}',
                           style: TextStyle(
                               fontFamily: 'Lato',
                               fontSize: 30.0,
@@ -149,8 +146,7 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
                               _profileFile = null;
                               _profileImage = null;
                             }
-                            setState(() {
-                            });
+                            setState(() {});
                           },
                           child: Container(
                             child: WidgetMask(
@@ -165,7 +161,7 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
                                 'images/mask2.png',
                                 width: MediaQuery.of(context).size.width * 0.20,
                                 height:
-                                MediaQuery.of(context).size.height * 0.10,
+                                    MediaQuery.of(context).size.height * 0.10,
                               ),
                             ),
                           ),
@@ -209,49 +205,63 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
                             style: TextStyle(fontSize: 15.0),
                           ),
                         ),
-                        SizedBox(height: 10.0),
-                        Container(
-                          width: MediaQuery.of(context).size.width * 0.9,
+                        Center(
+                            child: Container(
+                          margin: EdgeInsets.only(
+                              top: MediaQuery.of(context).size.height * 0.01),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              Expanded(
-                                child: RadioListTile<Gender>(
-                                  title: const Text('Female',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w400,
-                                      )),
-                                  value: Gender.female,
-                                  activeColor: Color(0xffDE0000),
-                                  groupValue: _character,
-                                  onChanged: (Gender? value) {
-                                    setState(
-                                          () {
-                                        _character = value!;
-                                      },
-                                    );
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text('ፆታ : ',
+                                  style: TextStyle(
+                                      color: Colors.grey.shade700,
+                                      fontFamily: 'Lato',
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w800)),
+                              SizedBox(
+                                  width:
+                                      MediaQuery.of(context).size.width * 0.05),
+                              Container(
+                                //width: MediaQuery.of(context).size.width * 0.8,
+                                child: ToggleSwitch(
+                                  minWidth:
+                                      MediaQuery.of(context).size.width * 0.20,
+                                  cornerRadius: 20.0,
+                                  activeBgColors: [
+                                    [Colors.blue[900]!],
+                                    [Color(0xFFFC2085)],
+                                  ],
+                                  activeFgColor: Colors.white,
+                                  inactiveBgColor: Colors.grey,
+                                  inactiveFgColor: Colors.white,
+                                  initialLabelIndex:
+                                      _character == Gender.male ? 0 : 1,
+                                  totalSwitches: 2,
+                                  labels: ['ወንድ', 'ሴት'],
+                                  animate: true,
+                                  animationDuration: 200,
+                                  customTextStyles: [
+                                    TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14.0)
+                                  ],
+                                  radiusStyle: true,
+                                  onToggle: (index) {
+                                    _character = (index == 0)
+                                        ? Gender.male
+                                        : Gender.female;
+                                    if (mounted) {
+                                      setState(() {});
+                                    }
                                   },
                                 ),
                               ),
-                              Expanded(
-                                  child: RadioListTile<Gender>(
-                                    title: const Text('Male',
-                                        style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w400)),
-                                    value: Gender.male,
-                                    activeColor: Color(0xffDE0000),
-                                    groupValue: _character,
-                                    onChanged: (Gender? value) {
-                                      setState(() {
-                                        _character = value!;
-                                      });
-                                    },
-                                  )),
                             ],
                           ),
-                        ),
+                        )),
+
+                        SizedBox(height: 10.0),
 
                         Container(
                           width: MediaQuery.of(context).size.width * 0.9,
@@ -273,8 +283,7 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
                           ),
                         ),
 
-                        SizedBox(height: 26.0),
-
+                        SizedBox(height: 40.0),
                         Center(
                           child: Container(
                             width: MediaQuery.of(context).size.width * 0.8,
@@ -289,9 +298,8 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
                                     child: RoundedLoadingButton(
                                       child: Text('Update',
                                           style:
-                                          TextStyle(color: Colors.white)),
-                                      controller:
-                                      _CustomerLoadingBtnController,
+                                              TextStyle(color: Colors.white)),
+                                      controller: _CustomerLoadingBtnController,
                                       onPressed: () {
                                         if (_nameController.text
                                             .trim()
@@ -321,6 +329,46 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
                             ),
                           ),
                         ),
+                        SizedBox(height: 40.0),
+                        Center(
+                          child: Container(
+                            width: MediaQuery.of(context).size.width * 0.8,
+                            child: Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.35,
+                                    height: MediaQuery.of(context).size.height *
+                                        0.042,
+                                    child: RoundedLoadingButton(
+                                      child: Text('Delete Account ',
+                                          style:
+                                              TextStyle(color: Colors.white)),
+                                      controller: _CustomerLoadingBtnController,
+                                      onPressed: () {
+                                        showDialog(
+                                          context: context,
+                                          builder: (_) => DeleteDialog()
+                                        );
+                                      },
+                                      color: _enableRegisterBtn
+                                          ? Color(0xff03702a)
+                                          : Color(0xff016b2b),
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    width: MediaQuery.of(context).size.width *
+                                        0.45,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 26.0),
                       ],
                     ),
                   ),
@@ -364,7 +412,7 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
     String fileName = basename(_profileFile!.path);
 
     String fileExtension =
-    AlphaNumericUtil.extractFileExtensionFromName(fileName);
+        AlphaNumericUtil.extractFileExtensionFromName(fileName);
 
     String convertedFilePath = Customer.convertStoragePathToCustomerPath(
         _getCustomerID, fileName, fileExtension);
@@ -374,9 +422,9 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
         .ref()
         .child(convertedFilePath);
     firebase_storage.UploadTask uploadTask =
-    firebaseStorageRef.putFile(_profileFile!);
+        firebaseStorageRef.putFile(_profileFile!);
     firebase_storage.TaskSnapshot taskSnapshot =
-    await uploadTask.whenComplete(() => null);
+        await uploadTask.whenComplete(() => null);
     String downloadURL = await taskSnapshot.ref.getDownloadURL();
 
     updateFields[fileName] = downloadURL;
@@ -389,8 +437,6 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
     _CustomerLoadingBtnController.reset();
     // dismiss progress dialog
     Navigator.pop(context);
-
-
   }
 
   void loadNetworkProfileImage() async {
@@ -407,15 +453,14 @@ class _CustomerProfileScreenNewState extends State<CustomerProfileScreenNew> {
           .resolve(new ImageConfiguration())
           .addListener(ImageStreamListener(
             (_, __) {
-          _networkProfileLoaded = true;
-          setState(() {});
-        },
-        onError: (_, __) {
-          _networkProfileLoaded = false;
-          setState(() {});
-        },
-      ));
-    } catch (err) {
-    }
+              _networkProfileLoaded = true;
+              setState(() {});
+            },
+            onError: (_, __) {
+              _networkProfileLoaded = false;
+              setState(() {});
+            },
+          ));
+    } catch (err) {}
   }
 }

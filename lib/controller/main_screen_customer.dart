@@ -264,11 +264,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       //await Geofire.initialize(FIREBASE_DB_PATHS.PATH_VEHICLE_LOCATIONS);
       _geoFireInitialized = true;
 
-      isPermissionNotificationGranted =
-          await DisableBatteryOptimization.isNotificationPermissionGranted;
+      if (Platform.isAndroid) {
+        isPermissionNotificationGranted =
+        await DisableBatteryOptimization.isNotificationPermissionGranted;
 
-      if (!isPermissionNotificationGranted) {
-        await DisableBatteryOptimization.askNotificationPermission();
+        if (!isPermissionNotificationGranted) {
+          await DisableBatteryOptimization.askNotificationPermission();
+        }
       }
     });
 
@@ -714,12 +716,14 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
           color: Colors.black, fontWeight: FontWeight.bold, fontFamily: 'Lato');
     }
 
+    Color mainColor = Color(0xffDD0000);
+
     List<_MenuListItem> primaryNavOptions = [
       _MenuListItem(
         Icons.history_rounded,
         SafeLocalizations.of(context)!.nav_option_my_trips,
         MenuOption.MENU_OPTION_MY_TRIPS,
-        Color(0xffDD0000),
+        mainColor,
       ),
       _MenuListItem(
         Icons.account_balance_wallet,
@@ -933,7 +937,8 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             backgroundColor: Colors.white,
             child: Icon(
                 _isHamburgerDrawerMode ? Icons.menu_outlined : Icons.close,
-                color: Color(0xffdd0000)),
+                color: Color(0xffdd0000)
+            ),
             radius: MediaQuery.of(context).size.height * 0.025,
           ),
         ),

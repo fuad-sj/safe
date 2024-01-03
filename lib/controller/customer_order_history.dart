@@ -71,6 +71,7 @@ class _CustomerOrderHistoryState extends State<CustomerOrderHistory> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: new AppBar(
+
         toolbarHeight: 50,
         backgroundColor: Color(0xffffffff),
         elevation: 0.0,

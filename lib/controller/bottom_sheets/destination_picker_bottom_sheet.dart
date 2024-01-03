@@ -182,7 +182,7 @@ class _DestinationPickerBottomSheetState
                                         }
 
                                         _autoCompleteTimer = new Timer(
-                                          Duration(milliseconds: 300),
+                                          Duration(milliseconds: 200),
                                           () async {
                                             if (widget.sysConfig == null) {
                                               return;
@@ -262,7 +262,7 @@ class _DestinationPickerBottomSheetState
                                       }
 
                                       _autoCompleteTimer = new Timer(
-                                        Duration(milliseconds: 300),
+                                        Duration(milliseconds: 200),
                                         () async {
                                           if (widget.sysConfig == null) {
                                             return;
