@@ -101,20 +101,23 @@ class _DestinationPickerBottomSheetState
   Widget buildContent(BuildContext context) {
     if (!_hasLoadedPickupText ||
         Provider.of<PickUpAndDropOffLocations>(context).resetPickupLocation) {
-      _hasLoadedPickupText = true;
+      if ((Provider.of<PickUpAndDropOffLocations>(context)
+                  .pickUpLocation
+                  ?.placeName ??
+              "")
+          .isNotEmpty) {
+        _hasLoadedPickupText = true;
 
-      Future.delayed(Duration.zero, () {
-        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-            .setResetPickupLocation(false);
-      });
+        Future.delayed(Duration.zero, () {
+          Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+              .setResetPickupLocation(false);
+        });
 
-      String placeName = Provider.of<PickUpAndDropOffLocations>(context)
-              .pickUpLocation
-              ?.placeName ??
-          '';
-      if (placeName.trim() == "") placeName = _initialPickupText;
-      _initialPickupText = placeName;
-      _pickupTextController.text = _initialPickupText;
+        _initialPickupText = Provider.of<PickUpAndDropOffLocations>(context)
+            .pickUpLocation!
+            .placeName;
+        _pickupTextController.text = _initialPickupText;
+      }
     }
 
     return Container(

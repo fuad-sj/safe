@@ -149,10 +149,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                           )
                         ],
                       ),
-
-                      child: Image.asset(
-                        'images/shared_multiple.png'
-                      ),
+                      child: Image.asset('images/shared_multiple.png'),
                     ),
                     Padding(
                       padding: EdgeInsets.only(left: 10.0, top: 10.0),
@@ -255,10 +252,7 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                         )
                       ],
                     ),
-
-                    child: Image.asset(
-                        'images/shared_single.png'
-                    ),
+                    child: Image.asset('images/shared_single.png'),
                   ),
                   Padding(
                     padding: EdgeInsets.only(left: 10.0, top: 10.0),
@@ -269,12 +263,11 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                           Container(
                             width: MediaQuery.of(context).size.width * 0.35,
                             child: Row(
-                              mainAxisAlignment:
-                              MainAxisAlignment.spaceBetween,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
                                   SafeLocalizations.of(context)!
-                                  .bottom_sheet_where_to_where_single,
+                                      .bottom_sheet_where_to_where_single,
                                   style: TextStyle(
                                     fontSize: 23.0,
                                     fontFamily: 'Lato',
@@ -310,7 +303,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   ),
                 ],
               ),
-
 
               /*
               height: MediaQuery.of(context).size.height * 0.044,
@@ -424,16 +416,17 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
               ),
             ),
           ),
-          if (widget.versionNumber != null) ...[
-            SizedBox(height: VSpace(0.01)),
-            Center(
-              child: Text("V-" + widget.versionNumber!,
-                  style: TextStyle(
-                      fontSize: 12.0,
-                      fontFamily: 'Lato',
-                      color: Color.fromRGBO(221, 0, 0, 1))),
-            ),
-          ],
+          SizedBox(height: VSpace(0.01)),
+          Center(
+            child: Text(
+                widget.versionNumber != null
+                    ? ("V-" + widget.versionNumber!)
+                    : "",
+                style: TextStyle(
+                    fontSize: 12.0,
+                    fontFamily: 'Lato',
+                    color: Color.fromRGBO(221, 0, 0, 1))),
+          ),
           SizedBox(height: VSpace(0.01)),
           Container(
             width: HSpace(0.9),

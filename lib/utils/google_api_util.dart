@@ -20,6 +20,12 @@ class GoogleApiUtils {
     return "/CacheEndpoint$instId/api/v1/";
   }
 
+  static String _getRandomInstanceEndPointFromIndex(int numEndpoints) {
+    Random random = new Random();
+    int instId = random.nextInt(numEndpoints) + 1;
+    return "/CacheEndpoint$instId/api/v1/";
+  }
+
   // Convert [lat,long] into an human readable address using google maps api
   static Future<Address> searchCoordinateLatLng(
       LatLng latLng, SysConfig sysConfig) async {
@@ -40,15 +46,16 @@ class GoogleApiUtils {
   }
 
   // Convert [lat,long] into an human readable address using google maps api
-  static Future<Address> searchCoordinateAddress(
-      Position position, SysConfig sysConfig) async {
+  static Future<Address> searchCoordinateAddress(Position position,
+      // make the default value be 1
+      {int numInstances = 1}) async {
     Map<String, dynamic> params = {
       'lat': '${position.latitude}',
       'lng': '${position.longitude}',
     };
 
     var response = await HttpUtil.getHttpsRequest(REST_API_ROOT_PATH,
-        _getRandomInstanceEndPoint(sysConfig) + 'geocode', params);
+        _getRandomInstanceEndPointFromIndex(numInstances) + 'geocode', params);
 
     String placeAddress = response['place'];
 

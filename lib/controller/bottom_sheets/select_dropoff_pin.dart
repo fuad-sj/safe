@@ -87,7 +87,7 @@ class _SelectDropOffPinBottomSheetState
   void loadDestinationLocation() async {
     if (widget.sysConfig != null) {
       _destinationAddress = await GoogleApiUtils.searchCoordinateAddress(
-          widget.currentPosition, widget.sysConfig!);
+          widget.currentPosition);
     }
     setState(() {});
   }

@@ -242,7 +242,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
       initConnectivity();
       loadMapIcons();
 
-      loadCurrentPosition();
+      await loadCurrentPosition();
 
       _loadPhoneNumber();
 
@@ -266,7 +266,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       if (Platform.isAndroid) {
         isPermissionNotificationGranted =
-        await DisableBatteryOptimization.isNotificationPermissionGranted;
+            await DisableBatteryOptimization.isNotificationPermissionGranted;
 
         if (!isPermissionNotificationGranted) {
           await DisableBatteryOptimization.askNotificationPermission();
@@ -290,13 +290,13 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
     _currentPosition = position;
 
     try {
-      if (_sysConfig != null) {
-        Address address = await GoogleApiUtils.searchCoordinateAddress(
-            _currentPosition!, _sysConfig!);
-        Provider.of<PickUpAndDropOffLocations>(context, listen: false)
-            .updatePickupLocationAddress(address);
-      }
-    } catch (err) {}
+      // we've hard-coded the number of instances that can handle google geocoding. check out how to implement Api Gateway
+      Address address =
+          await GoogleApiUtils.searchCoordinateAddress(_currentPosition!);
+      Provider.of<PickUpAndDropOffLocations>(context, listen: false)
+          .updatePickupLocationAddress(address);
+    } catch (err) {
+    }
   }
 
   void _loadPhoneNumber() {
@@ -339,7 +339,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
 
       checkIfNotificationClickLaunchedApp();
 
-      loadCurrentPosition();
+      await loadCurrentPosition();
 
       if (mounted) {
         setState(() {});
@@ -937,8 +937,7 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
             backgroundColor: Colors.white,
             child: Icon(
                 _isHamburgerDrawerMode ? Icons.menu_outlined : Icons.close,
-                color: Color(0xffdd0000)
-            ),
+                color: Color(0xffdd0000)),
             radius: MediaQuery.of(context).size.height * 0.025,
           ),
         ),
