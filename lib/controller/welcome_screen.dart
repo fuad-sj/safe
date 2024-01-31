@@ -37,10 +37,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   }
 
   @override
-  void didUpdateWidget(covariant WelcomeScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-
-    loadCurrentDriverDetails();
+  void dispose() {
+    _splashTimer?.cancel();
+    super.dispose();
   }
 
   void loadCurrentDriverDetails() async {
@@ -49,20 +48,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     _authExists = false;
     _customerRegistered = false;
 
+    if (mounted) {
+      setState(() {}); // Update UI to show loading state
+    }
+
     Future.delayed(Duration.zero).then(
-      (_) async {
+          (_) async {
         int loginStatus = PrefUtil.getLoginStatus();
         _splashTimer?.cancel();
         _splashTimer = new Timer(
             Duration(
                 seconds:
-                    loginStatus == PrefUtil.LOGIN_STATUS_PREVIOUSLY_LOGGED_IN
-                        ? 0
-                        : 1), () {
+                loginStatus == PrefUtil.LOGIN_STATUS_PREVIOUSLY_LOGGED_IN
+                    ? 0
+                    : 1), () {
+          _timerFinished = true;
           if (mounted) {
-            setState(() {
-              _timerFinished = true;
-            });
+            setState(() {});
           }
         });
 
@@ -75,45 +77,48 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         }
         _authExists = true;
 
-        Customer currentCustomer = Customer.fromSnapshot(
-          await FirebaseFirestore.instance
-              .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
-              .doc(FirebaseAuth.instance.currentUser!.uid)
-              .get(),
-        );
+        Customer currentCustomer;
+        try {
+          currentCustomer = Customer.fromSnapshot(
+            await FirebaseFirestore.instance
+                .collection(FIRESTORE_PATHS.COL_CUSTOMERS)
+                .doc(FirebaseAuth.instance.currentUser!.uid)
+                .get(),
+          );
+        } catch (error) {
+          // Handle errors from Firebase calls
+          print(error);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error loading customer data')),
+          );
+          return;
+        }
 
         _customerRegistered = currentCustomer.documentExists() &&
             currentCustomer.accountFullyCreated();
+
         _customerCheckingFinished = true;
         if (mounted) {
           setState(() {});
         }
-        return;
+
+        // Handle navigation directly
+        if (_timerFinished && _customerCheckingFinished) {
+          Navigator.pushNamedAndRemoveUntil(
+              context,
+              _customerRegistered
+                  ? MainScreenCustomer.idScreen
+                  : (_authExists
+                  ? RegistrationScreen.idScreen
+                  : LoginPage.idScreen),
+                  (route) => false);
+        }
       },
     );
   }
 
   @override
-  void dispose() {
-    _splashTimer?.cancel();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    if (_timerFinished && _customerCheckingFinished) {
-      Future.delayed(Duration.zero).then((_) async {
-        Navigator.pushNamedAndRemoveUntil(
-            context,
-            _customerRegistered
-                ? MainScreenCustomer.idScreen
-                : (_authExists
-                    ? RegistrationScreen.idScreen
-                    : LoginPage.idScreen),
-            (route) => false);
-      });
-    }
-
     return Scaffold(
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -126,8 +131,10 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             ),
           ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.15),
-          CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.black))
+          if (!_customerCheckingFinished)
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+            ),
         ],
       ),
     );
