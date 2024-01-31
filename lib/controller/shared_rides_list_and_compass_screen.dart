@@ -48,7 +48,7 @@ class _SharedRidesListAndCompassScreenState
   /// if we've moved so much from the launch of geoquery, relaunch the query to update the search radius area
   static const double GEOQUERY_RELAUNCH_MOVED_METERS = 50;
 
-  static const int INITIAL_LOAD_PASSED_THRESHOLD_SECONDS = 6;
+  static const int INITIAL_LOAD_PASSED_THRESHOLD_SECONDS = 3;
 
   StreamSubscription<dynamic>? _geofireStream;
 
@@ -78,6 +78,16 @@ class _SharedRidesListAndCompassScreenState
   static const int TURN_TYPE_NONE = -1;
   static const int TURN_TYPE_RIGHT = 1;
   static const int TURN_TYPE_LEFT = 2;
+
+  static const int LIST_SHOWN_NEARBY_DRIVERS = 1;
+  static const int LIST_SHOWN_DESTINATIONS = 2;
+  static const int LIST_SHOWN_SCHEDULE_RIDE = 3;
+
+  int _currentShownList = LIST_SHOWN_DESTINATIONS;
+  bool initialListShown = false;
+
+  bool _hasSelectedScheduledOption = false;
+  int _currentScheduledAfterMinutes = -1;
 
   List<double> arrSmoothedAngles = [];
   LatLng? smoothedCurrentLocation;
@@ -165,6 +175,9 @@ class _SharedRidesListAndCompassScreenState
   bool get isCorrectHeading => _computedOffsetHeading.abs() < 0.06;
 
   bool get isAtTheBackHeading => _computedOffsetHeading.abs() > 0.45;
+
+  bool get isShowingInitialSpinner =>
+      (!initialLoadHasPassed || isShowingLoadingSpinner);
 
   Color get colorForHeading => isCorrectHeading
       ? Colors.amber.shade400
@@ -310,8 +323,8 @@ class _SharedRidesListAndCompassScreenState
     );
   }
 
-  Future<void> sendNearbyLocationRequest(
-      String? placeId, String? placeName) async {
+  Future<void> sendNearbyLocationRequest(String? placeId, String? placeName,
+      {bool isScheduled = false, int scheduledAfterMinutes = 0}) async {
     if (device_token == null || currentLocation == null) {
       return;
     }
@@ -341,6 +354,11 @@ class _SharedRidesListAndCompassScreenState
         SharedRideCustomerRequestNearbyDriver.F_DESTINATION_PLACE_ID] = placeId;
     nearbyRequest[SharedRideCustomerRequestNearbyDriver
         .F_DESTINATION_PLACE_NAME] = placeName;
+
+    nearbyRequest[SharedRideCustomerRequestNearbyDriver
+        .F_IS_SCHEDULED_REQUEST] = _currentScheduledAfterMinutes != -1;
+    nearbyRequest[SharedRideCustomerRequestNearbyDriver
+        .F_SCHEDULED_AFTER_MINUTES] = _currentScheduledAfterMinutes;
 
     await FirebaseDatabase.instanceFor(
             app: Firebase.app(),
@@ -710,6 +728,14 @@ class _SharedRidesListAndCompassScreenState
         if (mounted) {
           setState(() {
             _sharedBroadcasts = sortedPlaces();
+            if (!initialListShown) {
+              initialListShown = true;
+              if (_currentShownList == LIST_SHOWN_DESTINATIONS) {
+                _currentShownList = _sharedBroadcasts.isNotEmpty
+                    ? LIST_SHOWN_NEARBY_DRIVERS
+                    : LIST_SHOWN_DESTINATIONS;
+              }
+            }
           });
         }
       },
@@ -1033,6 +1059,57 @@ class _SharedRidesListAndCompassScreenState
     double vHeight = MediaQuery.of(context).size.height;
     double hWidth = MediaQuery.of(context).size.width;
 
+    Widget _getTabWidget(String name, bool isSelected, VoidCallback callback) {
+      return GestureDetector(
+        onTap: () => callback(),
+        child: Container(
+          width: hWidth * 0.25,
+          height: vHeight * 0.045,
+          decoration: isSelected
+              ? BoxDecoration(
+                  color: Color.fromRGBO(255, 255, 255, 1),
+                  borderRadius: BorderRadius.circular(40),
+                )
+              : BoxDecoration(),
+          child: Center(
+              child: Text(
+            name,
+            style: TextStyle(
+                color: isSelected
+                    ? Color(0xffDE0000)
+                    : Color.fromRGBO(255, 255, 255, 1),
+                fontWeight: FontWeight.w700,
+                fontFamily: 'Lato',
+                fontSize: 14.0,
+                letterSpacing: isSelected ? 1 : 2),
+          )),
+        ),
+      );
+    }
+
+    List<Widget> _getScheduledRideWidget(
+        String name, int scheduleAfterMinutes) {
+      return <Widget>[
+        SizedBox(height: 60.0),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            textStyle:
+                const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+            foregroundColor: Colors.red.shade800,
+            backgroundColor: Colors.white,
+          ),
+          onPressed: () {
+            _currentScheduledAfterMinutes = scheduleAfterMinutes;
+            _hasSelectedScheduledOption = true;
+            if (mounted) {
+              setState(() {});
+            }
+          },
+          child: Text(name),
+        ),
+      ];
+    }
+
     return Scaffold(
       body: CustomScrollView(
         slivers: <Widget>[
@@ -1095,118 +1172,216 @@ class _SharedRidesListAndCompassScreenState
               ],
             ),
           ),
-          if (_sharedBroadcasts.isEmpty) ...[
-            if (!initialLoadHasPassed || isShowingLoadingSpinner) ...[
-              SliverToBoxAdapter(child: SizedBox(height: 15)),
-              SliverToBoxAdapter(
-                child: SpinKitFadingCircle(
-                  itemBuilder: (_, int index) {
-                    return DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: index.isEven
-                            ? Color.fromRGBO(131, 1, 1, 1.0)
-                            : Color.fromRGBO(255, 0, 0, 1.0),
-                      ),
-                    );
-                  },
-                ),
+          // አቅራቢያዎ | መዳረሻዎች | ቀጠሮ Selector
+          SliverToBoxAdapter(child: SizedBox(height: 15)),
+          SliverToBoxAdapter(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: hWidth * 0.04),
+              margin: EdgeInsets.symmetric(horizontal: hWidth * 0.05),
+              width: hWidth * 0.65,
+              height: vHeight * 0.065,
+              decoration: BoxDecoration(
+                  color: Color.fromRGBO(120, 120, 120, 1.0),
+                  borderRadius: BorderRadius.circular(50)),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  if (_sharedBroadcasts.isNotEmpty &&
+                      !isShowingLoadingSpinner) ...[
+                    _getTabWidget("አቅራቢያዎ",
+                        _currentShownList == LIST_SHOWN_NEARBY_DRIVERS, () {
+                      _currentShownList = LIST_SHOWN_NEARBY_DRIVERS;
+                      setState(() {});
+                    }),
+                  ],
+                  SizedBox(width: hWidth * 0.01),
+                  _getTabWidget(
+                      "መዳረሻዎች", _currentShownList == LIST_SHOWN_DESTINATIONS,
+                      () {
+                    _currentScheduledAfterMinutes = -1;
+                    _hasSelectedScheduledOption = false;
+                    _currentShownList = LIST_SHOWN_DESTINATIONS;
+                    setState(() {});
+                  }),
+                  SizedBox(width: hWidth * 0.01),
+                  _getTabWidget(
+                      "ቀጠሮ", _currentShownList == LIST_SHOWN_SCHEDULE_RIDE, () {
+                    _currentScheduledAfterMinutes = -1;
+                    _hasSelectedScheduledOption = false;
+                    _currentShownList = LIST_SHOWN_SCHEDULE_RIDE;
+                    setState(() {});
+                  }),
+                ],
               ),
-            ] else if (device_token != null && currentLocation != null) ...[
-              // the search bar
-              SliverToBoxAdapter(child: getSearchFieldWidget(vHeight, hWidth)),
+            ),
+          ),
+          SliverToBoxAdapter(child: SizedBox(height: 5)),
 
-              // the list of destination
+          if (isShowingInitialSpinner) ...[
+            SliverToBoxAdapter(child: SizedBox(height: 15)),
+            SliverToBoxAdapter(
+              child: SpinKitFadingCircle(
+                itemBuilder: (_, int index) {
+                  return DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: index.isEven
+                          ? Color.fromRGBO(131, 1, 1, 1.0)
+                          : Color.fromRGBO(255, 0, 0, 1.0),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ] else ...[
+            if (_sharedBroadcasts.isNotEmpty &&
+                _currentShownList == LIST_SHOWN_NEARBY_DRIVERS) ...[
+              SliverToBoxAdapter(child: SizedBox(height: 15)),
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (BuildContext context, int index) {
-                    SharedRideDestLocation destLocation =
-                        filteredList[index].value;
-                    return GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onTap: () async {
-                        setState(() {
-                          isShowingLoadingSpinner = true;
-                        });
-                        Fluttertoast.showToast(
-                          msg: "የ ${destLocation.name} ጥሪዎ ተሰራጭቷል፣ ትንሽ ይጠብቁ",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Colors.grey.shade700,
-                          textColor: Colors.white,
-                          fontSize: 16.0,
-                        );
-                        sendNearbyLocationRequest(
-                            destLocation.place_id, destLocation.name);
-                      },
-                      child: Container(
-                        //height: vHeight * 0.064,
-                        margin: EdgeInsets.only(
-                            bottom: vHeight * 0.01,
-                            left: hWidth * 0.07,
-                            right: hWidth * 0.1),
-                        child: Container(
-                          height: vHeight * 0.06,
-                          decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Colors.black12,
-                                width: 1.0,
-                              ),
-                              color: index % 2 == 0
-                                  ? Color.fromRGBO(230, 230, 230, 1)
-                                  : Color.fromRGBO(245, 245, 245, 1)),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: vHeight * 0.009,
-                                height: vHeight * 0.009,
-                                margin: EdgeInsets.only(
-                                    left: hWidth * 0.03, right: hWidth * 0.05),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.red,
-                                ),
-                              ),
-                              Container(
-                                width: hWidth * 0.6,
-                                child: Text(
-                                  destLocation.name.trim() ?? "",
-                                  overflow: TextOverflow.clip,
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                    fontSize: 15.0,
-                                    letterSpacing: 1.0,
-                                    color: Color.fromRGBO(12, 12, 12, 1.0),
-                                    fontFamily: "Nokia Pure Headline Bold",
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
+                    return _AvailableDriverListItem(
+                      /// can't use {@code _sharedBroadcasts[index].key} as it is the combined key here, not just the place id
+                      placeId: _sharedBroadcasts[index].value.place_id,
+                      placeAggregate: _sharedBroadcasts[index].value,
+                      onFourSeaterSelected: pickSharedRideForPlaceAndSeater,
+                      onSixSeaterSelected: pickSharedRideForPlaceAndSeater,
                     );
                   },
-                  childCount: filteredList.length,
+                  childCount: _sharedBroadcasts.length,
+                ),
+              ),
+              /**
+                 * destination list should be shown if either we not in schedule ride option
+                 * or we are in schedule ride, but we've selected the scheduling minute. so we're choosing the
+                 */
+            ] else if (_currentShownList != LIST_SHOWN_SCHEDULE_RIDE ||
+                (_currentShownList == LIST_SHOWN_SCHEDULE_RIDE &&
+                    _hasSelectedScheduledOption)) ...[
+              if (device_token != null && currentLocation != null) ...[
+                // the search bar
+                SliverToBoxAdapter(
+                    child: getSearchFieldWidget(vHeight, hWidth)),
+
+                // the list of destination
+                SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (BuildContext context, int index) {
+                      SharedRideDestLocation destLocation =
+                          filteredList[index].value;
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () async {
+                          String msg;
+                          //"ለበለጠ መረጃ 9981 የደውሉ።"
+                          if (_currentShownList != LIST_SHOWN_SCHEDULE_RIDE) {
+                            msg =
+                                "የ ${destLocation.name} ጥሪዎ ተሰራጭቷል፣ ትንሽ ይጠብቁ።";
+                          } else {
+                            String timeDuration;
+                            if (_currentScheduledAfterMinutes < 60) {
+                              timeDuration =
+                                  "$_currentScheduledAfterMinutes ደቂቃ";
+                            } else {
+                              timeDuration =
+                                  "${AlphaNumericUtil.formatDouble(_currentScheduledAfterMinutes / 60, 0)} ሰአት";
+                            }
+                            msg =
+                                "የ $timeDuration ቀጠሮ ወደ ${destLocation.name} ይዘዋል። ትንሽ ይጠብቁ።";
+                          }
+                          /*
+                          setState(() {
+                            isShowingLoadingSpinner = true;
+                          });
+                          */
+                          Fluttertoast.showToast(
+                            msg: msg,
+                            toastLength: Toast.LENGTH_LONG,
+                            gravity: ToastGravity.BOTTOM,
+                            timeInSecForIosWeb: 1,
+                            backgroundColor: Colors.grey.shade700,
+                            textColor: Colors.white,
+                            fontSize: 12.0,
+                          );
+                          sendNearbyLocationRequest(
+                              destLocation.place_id, destLocation.name);
+                        },
+                        child: Container(
+                          //height: vHeight * 0.064,
+                          margin: EdgeInsets.only(
+                              bottom: vHeight * 0.01,
+                              left: hWidth * 0.07,
+                              right: hWidth * 0.1),
+                          child: Container(
+                            height: vHeight * 0.06,
+                            decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: Colors.black12,
+                                  width: 1.0,
+                                ),
+                                color: index % 2 == 0
+                                    ? Color.fromRGBO(230, 230, 230, 1)
+                                    : Color.fromRGBO(245, 245, 245, 1)),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: vHeight * 0.009,
+                                  height: vHeight * 0.009,
+                                  margin: EdgeInsets.only(
+                                      left: hWidth * 0.03,
+                                      right: hWidth * 0.05),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                                Container(
+                                  width: hWidth * 0.6,
+                                  child: Text(
+                                    destLocation.name.trim() ?? "",
+                                    overflow: TextOverflow.clip,
+                                    maxLines: 2,
+                                    style: TextStyle(
+                                      fontSize: 15.0,
+                                      letterSpacing: 1.0,
+                                      color: Color.fromRGBO(12, 12, 12, 1.0),
+                                      fontFamily: "Nokia Pure Headline Bold",
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: filteredList.length,
+                  ),
+                ),
+              ],
+            ] else if (_currentShownList == LIST_SHOWN_SCHEDULE_RIDE) ...[
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    SizedBox(height: 20.0),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: hWidth * 0.025),
+                      child: Text(
+                        "ለቀጣይ ቀጠሮ ማስያዣ። ከ 9981 ይደወልሎታል። እናመሰግናለን።",
+                        style: TextStyle(
+                            fontSize: 14.0,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.red.shade800),
+                      ),
+                    ),
+                    ..._getScheduledRideWidget("ከ 15 ደቂቃ በኳላ", 15),
+                    ..._getScheduledRideWidget("ከ 30 ደቂቃ በኳላ", 30),
+                    ..._getScheduledRideWidget("ከ 1 ሰአት በኳላ", 60),
+                    ..._getScheduledRideWidget("ከ 2 ሰአት በኳላ", 120),
+                  ],
                 ),
               ),
             ],
-          ] else if (_sharedBroadcasts.isNotEmpty) ...[
-            SliverToBoxAdapter(child: SizedBox(height: 15)),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (BuildContext context, int index) {
-                  return _AvailableDriverListItem(
-                    /// can't use {@code _sharedBroadcasts[index].key} as it is the combined key here, not just the place id
-                    placeId: _sharedBroadcasts[index].value.place_id,
-                    placeAggregate: _sharedBroadcasts[index].value,
-                    onFourSeaterSelected: pickSharedRideForPlaceAndSeater,
-                    onSixSeaterSelected: pickSharedRideForPlaceAndSeater,
-                  );
-                },
-                childCount: _sharedBroadcasts.length,
-              ),
-            ),
           ],
         ],
       ),

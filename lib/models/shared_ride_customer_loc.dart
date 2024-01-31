@@ -108,4 +108,12 @@ class SharedRideCustomerRequestNearbyDriver {
   static const F_LAST_UPDATE_TIMESTAMP = "lut";
   @JsonKey(includeIfNull: false, name: F_LAST_UPDATE_TIMESTAMP)
   int? last_update_timestamp;
+
+  static const F_IS_SCHEDULED_REQUEST = "isr";
+  @JsonKey(includeIfNull: false, name: F_IS_SCHEDULED_REQUEST)
+  bool? is_scheduled_request;
+
+  static const F_SCHEDULED_AFTER_MINUTES = "sam";
+  @JsonKey(includeIfNull: false, name: F_SCHEDULED_AFTER_MINUTES)
+  int? scheduled_after_minutes;
 }
