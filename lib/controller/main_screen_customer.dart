@@ -411,10 +411,12 @@ class _MainScreenCustomerState extends State<MainScreenCustomer>
   }
 
   Future<void> _updateConnectionStatus(ConnectivityResult result) async {
-    setState(() {
-      _isInternetWorking =
-          result != ConnectivityResult.none && _sysConfig != null;
-    });
+    if (mounted) {
+      setState(() {
+        _isInternetWorking =
+            result != ConnectivityResult.none && _sysConfig != null;
+      });
+    }
   }
 
   Future<void> initConnectivity() async {
