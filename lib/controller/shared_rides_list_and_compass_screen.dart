@@ -1088,25 +1088,56 @@ class _SharedRidesListAndCompassScreenState
     }
 
     List<Widget> _getScheduledRideWidget(
-        String name, int scheduleAfterMinutes) {
+        String name, String nameMin, int scheduleAfterMinutes) {
       return <Widget>[
-        SizedBox(height: 60.0),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            textStyle:
-                const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
-            foregroundColor: Colors.red.shade800,
-            backgroundColor: Colors.white,
-          ),
-          onPressed: () {
+        SizedBox(height: 20.0),
+        InkWell(
+          onTap: () {
             _currentScheduledAfterMinutes = scheduleAfterMinutes;
             _hasSelectedScheduledOption = true;
             if (mounted) {
               setState(() {});
             }
           },
-          child: Text(name),
-        ),
+          child: Container(
+            //give the container height and width = 50
+            height: 200,
+            width: 250,
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('images/safetimer.png'),
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    name,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 30.0,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Lato',
+                    ),
+                  ),
+                  Text(
+                    nameMin,
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Lato',
+                    ),
+                  ),
+
+                ],
+              ),
+            ),
+          ),
+        )
       ];
     }
 
@@ -1366,18 +1397,35 @@ class _SharedRidesListAndCompassScreenState
                     SizedBox(height: 20.0),
                     Container(
                       margin: EdgeInsets.symmetric(horizontal: hWidth * 0.025),
-                      child: Text(
-                        "ለቀጣይ ቀጠሮ ማስያዣ። ከ 9981 ይደወልሎታል። እናመሰግናለን።",
-                        style: TextStyle(
-                            fontSize: 14.0,
+                      child: Center(
+                        child: Text(
+                          "ለቀጣይ ጉዞዎ እና ለጉዞዎ ማረጋገጫ ከጥሪ ማዕከሉ ጥሪ ይደርሰዎታል እናመሰግናለን!",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            // Larger font size for titles
+                            fontWeight: FontWeight.bold,
+                            // Bold font weight for titles
                             fontStyle: FontStyle.italic,
-                            color: Colors.red.shade800),
+                            color: Colors.red.shade800,
+                            letterSpacing: 1.2,
+                            // Add some letter spacing to make it look more elegant
+                            shadows: [
+                              Shadow(
+                                blurRadius: 3.0,
+                                color: Colors.black.withOpacity(0.3),
+                                offset: Offset(2, 2),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    ..._getScheduledRideWidget("ከ 15 ደቂቃ በኳላ", 15),
-                    ..._getScheduledRideWidget("ከ 30 ደቂቃ በኳላ", 30),
-                    ..._getScheduledRideWidget("ከ 1 ሰአት በኳላ", 60),
-                    ..._getScheduledRideWidget("ከ 2 ሰአት በኳላ", 120),
+                    ..._getScheduledRideWidget("ከ 15", " ደቂቃ በኋላ", 15),
+                    ..._getScheduledRideWidget("ከ 30", "ደቂቃ በኋላ", 30),
+                    ..._getScheduledRideWidget("ከ 1:00", "ሰዓት በኋላ", 60),
+                    ..._getScheduledRideWidget("ከ 1:30", "ሰዓት በኋላ", 90),
+                    ..._getScheduledRideWidget("ከ 2: 00", "ሰዓት በኋላ", 120),
                   ],
                 ),
               ),

@@ -93,7 +93,7 @@ class _WhereToBottomSheetWithRecommendationState extends State<WhereToBottomShee
                       ? ', ${widget.customerName!}'
                       : ''),
               style: TextStyle(
-                  fontSize: 25.0,
+                  fontSize: 30.0,
                   fontFamily: 'Lato',
                   fontWeight: FontWeight.bold,
                   color: Color(0xff515151))),

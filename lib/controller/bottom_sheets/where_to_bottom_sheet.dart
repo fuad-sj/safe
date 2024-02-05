@@ -303,31 +303,6 @@ class _WhereToBottomSheetState extends State<WhereToBottomSheet>
                   ),
                 ],
               ),
-
-              /*
-              height: MediaQuery.of(context).size.height * 0.044,
-              decoration: BoxDecoration(
-                color: Color.fromRGBO(0, 0, 0, 0.1),
-                borderRadius: BorderRadius.circular(15.0),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: VSpace(0.05), width: HSpace(0.03)),
-                  Icon(Icons.search_sharp,
-                      color: widget.enableButtonSelection
-                          ? Color(0xffDD0000)
-                          : Colors.grey.shade700),
-                  SizedBox(width: HSpace(0.05)),
-                  Text(
-                    SafeLocalizations.of(context)!
-                        .bottom_sheet_where_to_where_are_you_going,
-                    style: TextStyle(fontFamily: 'Lato'),
-                  ),
-                ],
-              ),
-
-               */
             ),
           ),
           SizedBox(height: VSpace(0.023)),
